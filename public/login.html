@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Titi Invita</title>
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo">
+                <i class="fas fa-chair"></i>
+                <h1>Titi Invita</h1>
+            </div>
+            <h2>Sistema de Control de Mesas</h2>
+            <p>Bienvenido, por favor inicia sesión</p>
+        </div>
+        
+        <form id="loginForm" class="login-form">
+            <div class="form-group">
+                <label for="email">
+                    <i class="fas fa-envelope"></i> Correo Electrónico
+                </label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    placeholder="jorge.flores@titi-app.com"
+                    required>
+                <div class="input-hint">Ejemplo: usuario@dominio.com</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i> Contraseña
+                </label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    placeholder="Titi-apps2026@!"
+                    required>
+                <div class="input-hint">Mínimo 8 caracteres, mayúsculas, minúsculas y símbolos</div>
+            </div>
+            
+            <div class="form-options">
+                <label class="checkbox">
+                    <input type="checkbox" id="remember">
+                    <span>Recordar mis datos</span>
+                </label>
+            </div>
+            
+            <button type="submit" class="btn-login">
+                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </button>
+            
+            <div class="login-links">
+                <a href="index.html">
+                    <i class="fas fa-arrow-left"></i> Volver al inicio
+                </a>
+            </div>
+        </form>
+        
+        <div class="login-demo">
+            <h4><i class="fas fa-info-circle"></i> Credenciales de Prueba</h4>
+            <div class="demo-credentials">
+                <div>
+                    <strong>Administrador:</strong>
+                    <p>Email: jorge.flores@titi-app.com</p>
+                    <p>Contraseña: Titi-apps2026@!</p>
+                </div>
+                <div>
+                    <strong>Cliente:</strong>
+                    <p>Email: cliente@ejemplo.com</p>
+                    <p>Contraseña: Titi-apps2026@!</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="login-footer">
+            <p>&copy; 2024 Titi Invita - Sistema de Control de Mesas</p>
+            <p class="tech-info">HTML5 • CSS3 • JavaScript • PostgreSQL</p>
+        </div>
+    </div>
+    
+    <div id="messageToast" class="toast"></div>
+    
+    <script src="login.js"></script>
+</body>
+</html>

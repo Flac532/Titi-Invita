@@ -1,0 +1,59 @@
+# digitalocean-app.yaml - Configuración para Digital Ocean App Platform
+name: titi-invita
+region: nyc
+services:
+- name: titi-invita-api
+  github:
+    branch: main
+    deploy_on_push: true
+  source_dir: /
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "3000"
+  - key: DB_HOST
+    scope: RUN_TIME
+    value: ${db.HOST}
+  - key: DB_PORT
+    scope: RUN_TIME
+    value: ${db.PORT}
+  - key: DB_NAME
+    scope: RUN_TIME
+    value: ${db.DATABASE}
+  - key: DB_USER
+    scope: RUN_TIME
+    value: ${db.USERNAME}
+  - key: DB_PASSWORD
+    scope: RUN_TIME
+    value: ${db.PASSWORD}
+  - key: JWT_SECRET
+    scope: RUN_TIME
+    value: ${JWT_SECRET}
+  - key: CORS_ORIGIN
+    value: "https://titi-invita.ondigitalocean.app,http://localhost:3000"
+  http_port: 3000
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  build_command: npm install
+  run_command: npm start
+  static_sites:
+  - name: titi-invita-frontend
+    github:
+      branch: main
+      deploy_on_push: true
+    source_dir: /public
+    output_dir: /
+    routes:
+    - path: /
+    - path: /login
+    - path: /admin
+    - path: /cliente
+    environment_slug: html
+databases:
+- engine: PG
+  name: titi-invita-db
+  production: true
+  cluster_name: titi-invita-db
+  db_name: defaultdb
+  db_user: titi_admin

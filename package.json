@@ -1,0 +1,43 @@
+{
+  "name": "titi-invita",
+  "version": "1.0.0",
+  "description": "Sistema completo de control de mesas para eventos",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "build": "echo 'Build completado para producción'",
+    "dev": "nodemon server/server.js",
+    "test": "echo 'No hay tests configurados'",
+    "deploy": "echo 'Configura tu despliegue en digitalocean-app.yaml'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "helmet": "^7.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
+  "keywords": [
+    "eventos",
+    "mesas",
+    "invitados",
+    "organizacion",
+    "postgresql",
+    "nodejs"
+  ],
+  "author": "Titi Invita Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tuusuario/titi-invita.git"
+  }
+}

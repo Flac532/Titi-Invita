@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Titi Invita</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-chair"></i>
+                    <h2>Titi Invita</h2>
+                </div>
+                <p class="role-badge">Administrador</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active" data-page="dashboard">
+                        <a href="#">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" data-page="usuarios">
+                        <a href="#">
+                            <i class="fas fa-users"></i>
+                            <span>Usuarios</span>
+                            <span class="badge" id="userCount">15</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" data-page="eventos">
+                        <a href="#">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Eventos</span>
+                            <span class="badge" id="eventCount">42</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" data-page="configuracion">
+                        <a href="#">
+                            <i class="fas fa-cog"></i>
+                            <span>Configuración</span>
+                        </a>
+                    </li>
+                    <li class="nav-divider"></li>
+                    <li class="nav-item">
+                        <a href="index.html">
+                            <i class="fas fa-home"></i>
+                            <span>Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Cerrar Sesión</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">JF</div>
+                    <div class="user-details">
+                        <strong id="userName">Jorge Flores</strong>
+                        <small id="userEmail">jorge.flores@titi-app.com</small>
+                    </div>
+                </div>
+                <div class="system-status">
+                    <div class="status-indicator online"></div>
+                    <small>Sistema Online</small>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="btn-icon" id="refreshBtn" title="Actualizar">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="btn-icon" id="notificationsBtn" title="Notificaciones">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">3</span>
+                        </button>
+                        <button class="btn-icon" id="fullscreenBtn" title="Pantalla Completa">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+                    <div class="current-time" id="currentTime">
+                        <i class="far fa-clock"></i>
+                        <span>Cargando...</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Dashboard -->
+                <div class="page active" id="dashboardPage">
+                    <div class="dashboard-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon total-users">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Total Usuarios</h3>
+                                <p class="stat-number" id="statTotalUsers">15</p>
+                                <p class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i> 2 este mes
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon total-events">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Total Eventos</h3>
+                                <p class="stat-number" id="statTotalEvents">42</p>
+                                <p class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i> 5 esta semana
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon active-events">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Eventos Activos</h3>
+                                <p class="stat-number" id="statActiveEvents">8</p>
+                                <p class="stat-change neutral">
+                                    <i class="fas fa-minus"></i> Sin cambios
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon occupied-chairs">
+                                <i class="fas fa-chair"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Sillas Ocupadas</h3>
+                                <p class="stat-number" id="statOccupiedChairs">320</p>
+                                <p class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i> 48 hoy
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-charts">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3>Eventos Últimos 7 Días</h3>
+                                <select id="chartTimeRange">
+                                    <option value="7">7 días</option>
+                                    <option value="30">30 días</option>
+                                    <option value="90">90 días</option>
+                                </select>
+                            </div>
+                            <div class="chart-placeholder" id="eventsChart">
+                                <div class="chart-message">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <p>Gráfico de eventos se cargará aquí</p>
+                                    <small>Conectar con backend para datos reales</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3>Últimos Usuarios Registrados</h3>
+                                <button class="btn-small" id="viewAllUsers">
+                                    <i class="fas fa-eye"></i> Ver Todos
+                                </button>
+                            </div>
+                            <div class="users-list" id="recentUsers">
+                                <!-- Se llenará dinámicamente -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-actions">
+                        <div class="quick-actions">
+                            <h3>Acciones Rápidas</h3>
+                            <div class="actions-grid">
+                                <button class="action-btn" id="addUserBtn">
+                                    <i class="fas fa-user-plus"></i>
+                                    <span>Agregar Usuario</span>
+                                </button>
+                                <button class="action-btn" id="viewEventsBtn">
+                                    <i class="fas fa-calendar-plus"></i>
+                                    <span>Ver Eventos</span>
+                                </button>
+                                <button class="action-btn" id="exportDataBtn">
+                                    <i class="fas fa-file-export"></i>
+                                    <span>Exportar Datos</span>
+                                </button>
+                                <button class="action-btn" id="systemReportBtn">
+                                    <i class="fas fa-chart-pie"></i>
+                                    <span>Reporte del Sistema</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="system-info">
+                            <h3>Información del Sistema</h3>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Versión:</span>
+                                    <span class="info-value">1.0.0</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Base de Datos:</span>
+                                    <span class="info-value">PostgreSQL 15</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Última Actualización:</span>
+                                    <span class="info-value">Hoy, 10:30 AM</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Siguiente Backup:</span>
+                                    <span class="info-value">02:00 AM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gestión de Usuarios -->
+                <div class="page" id="usuariosPage">
+                    <div class="page-header">
+                        <h2>Gestión de Usuarios</h2>
+                        <div class="page-actions">
+                            <button class="btn-primary" id="addUserModalBtn">
+                                <i class="fas fa-user-plus"></i> Agregar Usuario
+                            </button>
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="userSearch" placeholder="Buscar por nombre o email...">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label for="filterRole">Rol:</label>
+                            <select id="filterRole">
+                                <option value="">Todos</option>
+                                <option value="admin">Administrador</option>
+                                <option value="cliente">Cliente</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterStatus">Estado:</label>
+                            <select id="filterStatus">
+                                <option value="">Todos</option>
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                            </select>
+                        </div>
+                        <button class="btn-secondary" id="clearFilters">
+                            <i class="fas fa-times"></i> Limpiar Filtros
+                        </button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Fecha Registro</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <!-- Se llenará dinámicamente -->
+                            </tbody>
+                        </table>
+                        <div class="table-footer">
+                            <div class="pagination-info">
+                                Mostrando <span id="showingCount">0</span> de <span id="totalCount">0</span> usuarios
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="pagination-btn" id="prevPage" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="page-info">Página <span id="currentPage">1</span></span>
+                                <button class="pagination-btn" id="nextPage" disabled>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gestión de Eventos -->
+                <div class="page" id="eventosPage">
+                    <div class="page-header">
+                        <h2>Gestión de Eventos</h2>
+                        <div class="page-actions">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="eventSearch" placeholder="Buscar eventos...">
+                            </div>
+                            <div class="export-options">
+                                <button class="btn-secondary" id="exportCSV">
+                                    <i class="fas fa-file-csv"></i> CSV
+                                </button>
+                                <button class="btn-secondary" id="exportJSON">
+                                    <i class="fas fa-file-code"></i> JSON
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label for="filterClient">Cliente:</label>
+                            <select id="filterClient">
+                                <option value="">Todos los clientes</option>
+                                <!-- Se llenará dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterDate">Fecha:</label>
+                            <input type="date" id="filterDate">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterEventStatus">Estado:</label>
+                            <select id="filterEventStatus">
+                                <option value="">Todos</option>
+                                <option value="activo">Activo</option>
+                                <option value="completado">Completado</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="events-grid" id="eventsGrid">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                </div>
+                
+                <!-- Configuración -->
+                <div class="page" id="configuracionPage">
+                    <div class="page-header">
+                        <h2>Configuración del Sistema</h2>
+                    </div>
+                    
+                    <div class="settings-container">
+                        <div class="settings-section">
+                            <h3>
+                                <i class="fas fa-database"></i>
+                                Configuración de Base de Datos
+                            </h3>
+                            <div class="settings-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Host PostgreSQL:</label>
+                                        <input type="text" id="dbHost" 
+                                            placeholder="db-postgresql-nyc3-12345-do-user-9876543-0.b.db.ondigitalocean.com">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Puerto:</label>
+                                        <input type="number" id="dbPort" value="25060">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Base de Datos:</label>
+                                        <input type="text" id="dbName" value="defaultdb">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Usuario:</label>
+                                        <input type="text" id="dbUser" value="titi_admin">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Contraseña:</label>
+                                    <div class="password-input">
+                                        <input type="password" id="dbPassword" placeholder="••••••••">
+                                        <button type="button" class="toggle-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <button class="btn-primary" id="testConnectionBtn">
+                                    <i class="fas fa-plug"></i> Probar Conexión
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3>
+                                <i class="fas fa-shield-alt"></i>
+                                Configuración de Seguridad
+                            </h3>
+                            <div class="settings-form">
+                                <div class="form-group">
+                                    <label>Duración de Sesión (horas):</label>
+                                    <input type="number" id="sessionDuration" value="24" min="1" max="720">
+                                </div>
+                                <div class="form-group">
+                                    <label>Intentos de Login Máximos:</label>
+                                    <input type="number" id="maxLoginAttempts" value="5" min="1" max="10">
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="requireSSL" checked>
+                                    <label for="requireSSL">Requiere SSL para conexiones</label>
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="autoBackup" checked>
+                                    <label for="autoBackup">Backup automático diario</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h3>
+                                <i class="fas fa-bell"></i>
+                                Notificaciones
+                            </h3>
+                            <div class="settings-form">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="notifyNewUsers" checked>
+                                    <label for="notifyNewUsers">Notificar nuevos usuarios</label>
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="notifyLargeEvents" checked>
+                                    <label for="notifyLargeEvents">Notificar eventos grandes (+100 personas)</label>
+                                </div>
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="notifySystemAlerts" checked>
+                                    <label for="notifySystemAlerts">Notificar alertas del sistema</label>
+                                </div>
+                                <div class="form-group">
+                                    <label>Email para Notificaciones:</label>
+                                    <input type="email" id="notificationEmail" value="admin@titi-invita.com">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-actions">
+                            <button class="btn-primary" id="saveSettingsBtn">
+                                <i class="fas fa-save"></i> Guardar Configuración
+                            </button>
+                            <button class="btn-secondary" id="resetSettingsBtn">
+                                <i class="fas fa-undo"></i> Restaurar Valores por Defecto
+                            </button>
+                            <button class="btn-danger" id="clearCacheBtn">
+                                <i class="fas fa-trash-alt"></i> Limpiar Caché
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal Agregar Usuario -->
+    <div class="modal" id="addUserModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-user-plus"></i>
+                    Agregar Nuevo Usuario
+                </h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="form-group">
+                        <label for="newUserName">Nombre Completo *</label>
+                        <input type="text" id="newUserName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserEmail">Correo Electrónico *</label>
+                        <input type="email" id="newUserEmail" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newUserRole">Rol *</label>
+                            <select id="newUserRole" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="cliente">Cliente</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="newUserStatus">Estado</label>
+                            <select id="newUserStatus">
+                                <option value="activo" selected>Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserPassword">Contraseña Temporal *</label>
+                        <div class="password-input">
+                            <input type="password" id="newUserPassword" required>
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="generate-password" id="generatePasswordBtn">
+                                <i class="fas fa-random"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="strength-bar"></div>
+                            <span class="strength-text">Fuerza: --</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Notificación de Bienvenida</label>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="sendWelcomeEmail" checked>
+                            <label for="sendWelcomeEmail">Enviar email de bienvenida con credenciales</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary modal-cancel">Cancelar</button>
+                <button class="btn-primary" id="submitAddUser">Crear Usuario</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Editar Usuario -->
+    <div class="modal" id="editUserModal">
+        <div class="modal-content">
+            <!-- Similar a addUserModal pero para editar -->
+        </div>
+    </div>
+    
+    <!-- Modal Confirmación -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="confirmTitle"></h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+                <div class="warning-box" id="confirmWarning" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Esta acción no se puede deshacer</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="confirmCancel">Cancelar</button>
+                <button class="btn-danger" id="confirmAction">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div id="messageToast" class="toast"></div>
+    
+    <script src="login.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

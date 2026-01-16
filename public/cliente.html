@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Eventos - Titi Invita</title>
+    <link rel="stylesheet" href="cliente.css">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+</head>
+<body>
+    <!-- Header -->
+    <header class="cliente-header">
+        <div class="header-left">
+            <div class="logo">
+                <i class="fas fa-chair"></i>
+                <h1>Titi Invita</h1>
+            </div>
+            <div class="event-selector">
+                <select id="eventSelector">
+                    <option value="">Seleccionar Evento...</option>
+                </select>
+                <button class="btn-icon" id="newEventBtn" title="Nuevo Evento">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button class="btn-icon" id="refreshEventsBtn" title="Actualizar">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">MG</div>
+                <div class="user-details">
+                    <strong id="userName">María González</strong>
+                    <small id="userRole">Cliente</small>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon" id="shareBtn" title="Compartir Vista">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+                <button class="btn-icon" id="helpBtn" title="Ayuda">
+                    <i class="fas fa-question-circle"></i>
+                </button>
+                <button class="btn-icon" id="logoutBtn" title="Cerrar Sesión">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Contenido Principal -->
+    <main class="cliente-main">
+        <!-- Panel de Control Izquierdo -->
+        <aside class="control-panel">
+            <div class="panel-section">
+                <h3>
+                    <i class="fas fa-sliders-h"></i>
+                    Configuración del Evento
+                </h3>
+                
+                <div class="form-group">
+                    <label for="eventName">Nombre del Evento *</label>
+                    <input type="text" id="eventName" placeholder="Ej: Boda de Ana y Carlos" value="Boda de Ana y Carlos">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventDate">Fecha del Evento</label>
+                        <input type="date" id="eventDate" value="2024-06-15">
+                    </div>
+                    <div class="form-group">
+                        <label for="eventTime">Hora</label>
+                        <input type="time" id="eventTime" value="18:00">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="eventDescription">Descripción</label>
+                    <textarea id="eventDescription" rows="3" placeholder="Descripción del evento...">Celebración de boda en el jardín principal</textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="numMesas">Número de Mesas</label>
+                        <input type="number" id="numMesas" min="1" max="50" value="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="sillasPorMesa">Sillas por Mesa</label>
+                        <input type="number" id="sillasPorMesa" min="1" max="12" value="8">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="formaMesa">Forma de la Mesa</label>
+                    <select id="formaMesa">
+                        <option value="rectangular">Rectangular</option>
+                        <option value="circular">Circular</option>
+                        <option value="cuadrada">Cuadrada</option>
+                    </select>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn-primary" id="btnCrearMesas">
+                        <i class="fas fa-sync"></i> Actualizar Mesas
+                    </button>
+                    <button class="btn-secondary" id="btnGuardarEvento">
+                        <i class="fas fa-save"></i> Guardar Evento
+                    </button>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <h3>
+                    <i class="fas fa-chart-pie"></i>
+                    Estadísticas
+                </h3>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statTotalMesas">8</div>
+                        <div class="stat-label">Mesas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statTotalSillas">64</div>
+                        <div class="stat-label">Sillas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statSillasOcupadas">32</div>
+                        <div class="stat-label">Ocupadas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statPorcentajeOcupacion">50%</div>
+                        <div class="stat-label">Ocupación</div>
+                    </div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="ocupacionBar" style="width: 50%"></div>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <h3>
+                    <i class="fas fa-history"></i>
+                    Historial de Cambios
+                </h3>
+                
+                <div class="history-list" id="historyList">
+                    <div class="history-item">
+                        <div class="history-time">Hoy, 10:30</div>
+                        <div class="history-action">Cambió nombre de Mesa 3 a "Familia González"</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="history-time">Hoy, 09:15</div>
+                        <div class="history-action">Asignó 4 sillas en Mesa 5</div>
+                    </div>
+                    <div class="history-item">
+                        <div class="history-time">Ayer, 16:45</div>
+                        <div class="history-action">Creó nuevo evento "Boda de Ana y Carlos"</div>
+                    </div>
+                </div>
+                
+                <button class="btn-secondary btn-small" id="viewFullHistory">
+                    <i class="fas fa-list"></i> Ver Historial Completo
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Área de Visualización de Mesas -->
+        <section class="visualization-area">
+            <div class="visualization-header">
+                <h2 id="currentEventName">Boda de Ana y Carlos</h2>
+                <div class="visualization-actions">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchGuests" placeholder="Buscar invitado...">
+                    </div>
+                    <button class="btn-icon" id="zoomInBtn" title="Acercar">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="btn-icon" id="zoomOutBtn" title="Alejar">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <button class="btn-icon" id="resetViewBtn" title="Restablecer Vista">
+                        <i class="fas fa-expand-arrows-alt"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mesas-container" id="mesasContainer">
+                <!-- Mesas se generarán aquí con JavaScript -->
+            </div>
+            
+            <div class="visualization-footer">
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color sin-asignar"></div>
+                        <span>Sin Asignar</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color asignado"></div>
+                        <span>Asignado</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color confirmado"></div>
+                        <span>Confirmado</span>
+                    </div>
+                </div>
+                
+                <div class="view-options">
+                    <label class="checkbox">
+                        <input type="checkbox" id="showNames" checked>
+                        <span>Mostrar Nombres</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" id="autoSave" checked>
+                        <span>Guardado Automático</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Panel de Invitados Derecho -->
+        <aside class="guests-panel">
+            <div class="panel-section">
+                <h3>
+                    <i class="fas fa-users"></i>
+                    Lista de Invitados
+                </h3>
+                
+                <div class="guest-search">
+                    <input type="text" id="guestSearch" placeholder="Buscar invitado...">
+                    <button class="btn-icon" id="addGuestBtn" title="Agregar Invitado">
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                </div>
+                
+                <div class="guest-filters">
+                    <select id="guestFilter">
+                        <option value="all">Todos los invitados</option>
+                        <option value="assigned">Asignados a mesa</option>
+                        <option value="unassigned">Sin asignar</option>
+                        <option value="confirmed">Confirmados</option>
+                    </select>
+                </div>
+                
+                <div class="guests-list" id="guestsList">
+                    <!-- Lista de invitados se generará aquí -->
+                </div>
+                
+                <div class="guest-actions">
+                    <button class="btn-secondary btn-small" id="importGuestsBtn">
+                        <i class="fas fa-file-import"></i> Importar CSV
+                    </button>
+                    <button class="btn-secondary btn-small" id="exportGuestsBtn">
+                        <i class="fas fa-file-export"></i> Exportar Lista
+                    </button>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <h3>
+                    <i class="fas fa-info-circle"></i>
+                    Información de Invitado
+                </h3>
+                
+                <div class="guest-details" id="guestDetails">
+                    <div class="empty-state">
+                        <i class="fas fa-user"></i>
+                        <p>Selecciona un invitado para ver sus detalles</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <h3>
+                    <i class="fas fa-qrcode"></i>
+                    Compartir Evento
+                </h3>
+                
+                <div class="share-options">
+                    <div class="share-link">
+                        <input type="text" id="shareUrl" readonly value="https://titi-invita.com/e/abc123" />
+                        <button class="btn-icon" id="copyUrlBtn" title="Copiar URL">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="qr-code">
+                        <div class="qr-placeholder">
+                            <i class="fas fa-qrcode"></i>
+                            <small>QR Code para vista móvil</small>
+                        </div>
+                    </div>
+                    
+                    <div class="share-buttons">
+                        <button class="btn-secondary btn-small">
+                            <i class="fas fa-envelope"></i> Email
+                        </button>
+                        <button class="btn-secondary btn-small">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+    
+    <!-- Modales -->
+    <div class="modal" id="newEventModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-plus"></i> Nuevo Evento</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="newEventForm">
+                    <div class="form-group">
+                        <label for="newEventName">Nombre del Evento *</label>
+                        <input type="text" id="newEventName" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newEventDate">Fecha *</label>
+                            <input type="date" id="newEventDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newEventTime">Hora</label>
+                            <input type="time" id="newEventTime">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newEventLocation">Ubicación</label>
+                        <input type="text" id="newEventLocation" placeholder="Ej: Salón de Eventos Principal">
+                    </div>
+                    <div class="form-group">
+                        <label for="newEventType">Tipo de Evento</label>
+                        <select id="newEventType">
+                            <option value="boda">Boda</option>
+                            <option value="conferencia">Conferencia</option>
+                            <option value="fiesta">Fiesta</option>
+                            <option value="corporativo">Evento Corporativo</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Configuración Inicial</label>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="useTemplate" checked>
+                            <label for="useTemplate">Usar plantilla predeterminada</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary modal-cancel">Cancelar</button>
+                <button class="btn-primary" id="createEventBtn">Crear Evento</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="guestModal">
+        <div class="modal-content">
+            <!-- Modal para agregar/editar invitados -->
+        </div>
+    </div>
+    
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <!-- Modal para compartir -->
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div id="messageToast" class="toast"></div>
+    
+    <script src="login.js"></script>
+    <script src="cliente.js"></script>
+</body>
+</html>
