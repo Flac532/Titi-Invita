@@ -5,8 +5,8 @@ const USUARIOS_PREDEFINIDOS = [
     {
         id: 1,
         nombre: "Jorge Flores",
-        email: "jorge.flores@titi-app.com",
-        password: "Titi-apps2026@!",
+        email: "jorge.flores@titi-app.com",  // ← CON GUION EN EMAIL
+        password: "Titi-apps2026@!",         // ← CON GUION EN CONTRASEÑA
         rol: "admin",
         activo: true,
         avatar: "JF"
@@ -15,19 +15,10 @@ const USUARIOS_PREDEFINIDOS = [
         id: 2,
         nombre: "María González",
         email: "cliente@ejemplo.com",
-        password: "Titi-apps2026@!",
+        password: "Titi-apps2026@!",         // ← CON GUION EN CONTRASEÑA
         rol: "cliente",
         activo: true,
         avatar: "MG"
-    },
-    {
-        id: 3,
-        nombre: "Carlos López",
-        email: "carlos@empresa.com",
-        password: "Titi-apps2026@!",
-        rol: "cliente",
-        activo: true,
-        avatar: "CL"
     }
 ];
 
@@ -77,6 +68,22 @@ function verificarCredenciales(email, password) {
     };
 }
 
+// ========== CAMBIO IMPORTANTE AQUÍ ==========
+// Validar formato de email (acepta guiones)
+function validarEmail(email) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
+
+// Validar fortaleza de contraseña (AHORA ACEPTA GUIÓN)
+function validarPassword(password) {
+    // Mínimo 8 caracteres, al menos una mayúscula, una minúscula, un número y un símbolo
+    // Símbolos aceptados: @$!%*?&.-_ (incluye guión y punto)
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.\-_])[A-Za-z\d@$!%*?&.\-_]{8,}$/;
+    return regex.test(password);
+}
+// ===========================================
+
 // Guardar sesión en localStorage
 function guardarSesion(usuario, remember) {
     const sesionData = {
@@ -86,20 +93,16 @@ function guardarSesion(usuario, remember) {
     };
     
     if (remember) {
-        // Guardar por 30 días
         localStorage.setItem('titi_sesion', JSON.stringify(sesionData));
     } else {
-        // Guardar por sesión
         sessionStorage.setItem('titi_sesion', JSON.stringify(sesionData));
     }
 }
 
 // Cargar sesión guardada
 function cargarSesionGuardada() {
-    // Primero buscar en sessionStorage
     let sesionData = sessionStorage.getItem('titi_sesion');
     
-    // Si no hay, buscar en localStorage
     if (!sesionData) {
         sesionData = localStorage.getItem('titi_sesion');
     }
@@ -107,20 +110,15 @@ function cargarSesionGuardada() {
     if (sesionData) {
         try {
             const data = JSON.parse(sesionData);
-            
-            // Verificar si la sesión sigue siendo válida (24 horas)
             const tiempoTranscurrido = new Date().getTime() - data.timestamp;
             const horasTranscurridas = tiempoTranscurrido / (1000 * 60 * 60);
             
             if (horasTranscurridas < 24) {
-                // Rellenar campos del formulario
                 emailInput.value = data.usuario.email;
                 rememberCheckbox.checked = data.remember;
-                
                 showToast(`Bienvenido de nuevo, ${data.usuario.nombre.split(' ')[0]}!`, 'success');
                 return true;
             } else {
-                // Sesión expirada, limpiar
                 localStorage.removeItem('titi_sesion');
                 sessionStorage.removeItem('titi_sesion');
             }
@@ -134,7 +132,6 @@ function cargarSesionGuardada() {
 
 // Redireccionar según rol
 function redireccionarPorRol(usuario) {
-    // Guardar usuario actual
     if (usuario.rol === 'admin') {
         localStorage.setItem('titi_usuario_actual', JSON.stringify(usuario));
         window.location.href = 'admin.html';
@@ -150,21 +147,8 @@ function simularAPICall(email, password) {
         setTimeout(() => {
             const resultado = verificarCredenciales(email, password);
             resolve(resultado);
-        }, 1000); // Simular delay de red
+        }, 1000);
     });
-}
-
-// Validar formato de email
-function validarEmail(email) {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-}
-
-// Validar fortaleza de contraseña
-function validarPassword(password) {
-    // Mínimo 8 caracteres, al menos una mayúscula, una minúscula, un número y un símbolo
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    return regex.test(password);
 }
 
 // Manejar submit del formulario
@@ -189,8 +173,9 @@ async function handleLogin(event) {
         return;
     }
     
+    // ========== ¡ESTA VALIDACIÓN AHORA ACEPTA GUIÓN! ==========
     if (!validarPassword(password)) {
-        showToast('La contraseña debe tener mínimo 8 caracteres, incluyendo mayúsculas, minúsculas, números y símbolos', 'warning');
+        showToast('La contraseña debe tener mínimo 8 caracteres, incluyendo mayúsculas, minúsculas, números y símbolos (@$!%*?&.-_)', 'warning');
         passwordInput.focus();
         return;
     }
@@ -258,13 +243,11 @@ function verificarAutenticacion() {
     const usuario = obtenerUsuarioActual();
     const paginaActual = window.location.pathname.split('/').pop();
     
-    // Si está en login pero ya está autenticado, redireccionar
     if (paginaActual === 'login.html' && usuario) {
         redireccionarPorRol(usuario);
         return false;
     }
     
-    // Si no está en login pero no está autenticado, redireccionar a login
     if (paginaActual !== 'login.html' && paginaActual !== 'index.html' && !usuario) {
         window.location.href = 'login.html';
         return false;
@@ -317,12 +300,3 @@ document.addEventListener('DOMContentLoaded', function() {
         verificarAutenticacion: verificarAutenticacion
     };
 });
-
-// Exportar para usar en otros archivos
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        verificarCredenciales,
-        logout,
-        obtenerUsuarioActual
-    };
-}
