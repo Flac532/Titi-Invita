@@ -41,46 +41,6 @@ const USUARIOS_DEMO = [
         fechaRegistro: "2024-03-05",
         avatar: "AM",
         eventos: 8
-    },
-    {
-        id: 5,
-        nombre: "Roberto Sánchez",
-        email: "roberto@negocio.com",
-        rol: "cliente",
-        estado: "inactivo",
-        fechaRegistro: "2024-01-30",
-        avatar: "RS",
-        eventos: 2
-    },
-    {
-        id: 6,
-        nombre: "Laura Ramírez",
-        email: "laura@empresa.com",
-        rol: "cliente",
-        estado: "activo",
-        fechaRegistro: "2024-03-10",
-        avatar: "LR",
-        eventos: 4
-    },
-    {
-        id: 7,
-        nombre: "Pedro Hernández",
-        email: "pedro.h@corp.com",
-        rol: "cliente",
-        estado: "activo",
-        fechaRegistro: "2024-02-15",
-        avatar: "PH",
-        eventos: 6
-    },
-    {
-        id: 8,
-        nombre: "Sofía Castro",
-        email: "sofia@eventos.com",
-        rol: "cliente",
-        estado: "inactivo",
-        fechaRegistro: "2024-01-25",
-        avatar: "SC",
-        eventos: 1
     }
 ];
 
@@ -117,50 +77,6 @@ const EVENTOS_DEMO = [
         sillas: 96,
         ocupadas: 96,
         color: "#f093fb"
-    },
-    {
-        id: 4,
-        nombre: "Reunión Corporativa Q1",
-        cliente: "Roberto Sánchez",
-        fecha: "2024-03-15",
-        estado: "completado",
-        mesas: 8,
-        sillas: 64,
-        ocupadas: 60,
-        color: "#43e97b"
-    },
-    {
-        id: 5,
-        nombre: "Lanzamiento Producto",
-        cliente: "Laura Ramírez",
-        fecha: "2024-06-30",
-        estado: "activo",
-        mesas: 18,
-        sillas: 144,
-        ocupadas: 110,
-        color: "#667eea"
-    },
-    {
-        id: 6,
-        nombre: "Graduación Universidad",
-        cliente: "Pedro Hernández",
-        fecha: "2024-07-20",
-        estado: "activo",
-        mesas: 30,
-        sillas: 240,
-        ocupadas: 220,
-        color: "#f5576c"
-    },
-    {
-        id: 7,
-        nombre: "Cena de Gala Beneficencia",
-        cliente: "Sofía Castro",
-        fecha: "2024-03-05",
-        estado: "cancelado",
-        mesas: 20,
-        sillas: 160,
-        ocupadas: 0,
-        color: "#9E9E9E"
     }
 ];
 
@@ -214,8 +130,6 @@ const eventSearch = document.getElementById('eventSearch');
 const filterClient = document.getElementById('filterClient');
 const filterDate = document.getElementById('filterDate');
 const filterEventStatus = document.getElementById('filterEventStatus');
-const exportCSV = document.getElementById('exportCSV');
-const exportJSON = document.getElementById('exportJSON');
 
 // Configuración
 const testConnectionBtn = document.getElementById('testConnectionBtn');
@@ -228,9 +142,24 @@ const messageToast = document.getElementById('messageToast');
 
 // Inicializar aplicación
 function initAdmin() {
+    console.log('=== INICIANDO ADMIN ===');
+    
     // Cargar usuario actual
-    usuarioActual = window.titiAuth?.obtenerUsuarioActual();
-    if (!usuarioActual) {
+    const usuarioStr = localStorage.getItem('titi_usuario') || 
+                       localStorage.getItem('titi_usuario_actual') ||
+                       sessionStorage.getItem('titi_usuario');
+    
+    if (!usuarioStr) {
+        console.log('No hay usuario en storage, redirigiendo a login');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    try {
+        usuarioActual = JSON.parse(usuarioStr);
+        console.log('Usuario cargado:', usuarioActual);
+    } catch (error) {
+        console.error('Error parseando usuario:', error);
         window.location.href = 'login.html';
         return;
     }
@@ -243,9 +172,9 @@ function initAdmin() {
     }
     
     // Configurar UI con datos del usuario
-    userAvatar.textContent = usuarioActual.avatar || usuarioActual.nombre.substring(0, 2).toUpperCase();
-    userName.textContent = usuarioActual.nombre;
-    userEmail.textContent = usuarioActual.email;
+    if (userAvatar) userAvatar.textContent = usuarioActual.avatar || usuarioActual.nombre.substring(0, 2).toUpperCase();
+    if (userName) userName.textContent = usuarioActual.nombre;
+    if (userEmail) userEmail.textContent = usuarioActual.email;
     
     // Configurar reloj en tiempo real
     updateClock();
@@ -259,6 +188,32 @@ function initAdmin() {
     
     // Configurar event listeners
     setupEventListeners();
+    
+    // Configurar acciones rápidas
+    setupQuickActions();
+    
+    console.log('Admin inicializado correctamente');
+}
+
+// Configurar acciones rápidas
+function setupQuickActions() {
+    // Botón "Agregar Usuario" en dashboard
+    document.getElementById('addUserBtn')?.addEventListener('click', function() {
+        cambiarPagina('usuarios');
+        setTimeout(() => {
+            document.getElementById('addUserModalBtn')?.click();
+        }, 300);
+    });
+    
+    // Botón "Ver Eventos" en dashboard
+    document.getElementById('viewEventsBtn')?.addEventListener('click', function() {
+        cambiarPagina('eventos');
+    });
+    
+    // Botón "Ver Todos" usuarios
+    document.getElementById('viewAllUsers')?.addEventListener('click', function() {
+        cambiarPagina('usuarios');
+    });
 }
 
 // Actualizar reloj
@@ -286,38 +241,44 @@ function updateClock() {
 
 // Cargar dashboard
 function cargarDashboard() {
+    console.log('Cargando dashboard...');
+    
     // Actualizar estadísticas
     const totalUsers = USUARIOS_DEMO.length;
     const totalEvents = EVENTOS_DEMO.length;
     const activeEvents = EVENTOS_DEMO.filter(e => e.estado === 'activo').length;
     const occupiedChairs = EVENTOS_DEMO.reduce((sum, event) => sum + event.ocupadas, 0);
     
-    statTotalUsers.textContent = totalUsers;
-    statTotalEvents.textContent = totalEvents;
-    statActiveEvents.textContent = activeEvents;
-    statOccupiedChairs.textContent = occupiedChairs;
-    userCountElement.textContent = totalUsers;
-    eventCountElement.textContent = totalEvents;
+    if (statTotalUsers) statTotalUsers.textContent = totalUsers;
+    if (statTotalEvents) statTotalEvents.textContent = totalEvents;
+    if (statActiveEvents) statActiveEvents.textContent = activeEvents;
+    if (statOccupiedChairs) statOccupiedChairs.textContent = occupiedChairs;
+    if (userCountElement) userCountElement.textContent = totalUsers;
+    if (eventCountElement) eventCountElement.textContent = totalEvents;
     
     // Cargar usuarios recientes
     const recentUsersList = USUARIOS_DEMO
         .sort((a, b) => new Date(b.fechaRegistro) - new Date(a.fechaRegistro))
         .slice(0, 5);
     
-    recentUsers.innerHTML = recentUsersList.map(user => `
-        <div class="user-list-item">
-            <div class="user-list-avatar">${user.avatar}</div>
-            <div class="user-list-info">
-                <strong>${user.nombre}</strong>
-                <small>${user.email}</small>
+    if (recentUsers) {
+        recentUsers.innerHTML = recentUsersList.map(user => `
+            <div class="user-list-item">
+                <div class="user-list-avatar">${user.avatar}</div>
+                <div class="user-list-info">
+                    <strong>${user.nombre}</strong>
+                    <small>${user.email}</small>
+                </div>
+                <div class="user-list-date">${formatDate(user.fechaRegistro)}</div>
             </div>
-            <div class="user-list-date">${formatDate(user.fechaRegistro)}</div>
-        </div>
-    `).join('');
+        `).join('');
+    }
 }
 
 // Cargar usuarios en tabla
 function cargarUsuarios() {
+    console.log('Cargando usuarios...');
+    
     // Aplicar filtros
     aplicarFiltrosUsuarios();
     
@@ -329,59 +290,61 @@ function cargarUsuarios() {
     const usuariosPaginados = usuariosFiltrados.slice(startIndex, endIndex);
     
     // Actualizar tabla
-    usersTableBody.innerHTML = usuariosPaginados.map(user => `
-        <tr>
-            <td>${user.id}</td>
-            <td>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="user-list-avatar" style="width: 32px; height: 32px; font-size: 0.8rem;">
-                        ${user.avatar}
+    if (usersTableBody) {
+        usersTableBody.innerHTML = usuariosPaginados.map(user => `
+            <tr>
+                <td>${user.id}</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="user-list-avatar" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                            ${user.avatar}
+                        </div>
+                        ${user.nombre}
                     </div>
-                    ${user.nombre}
-                </div>
-            </td>
-            <td>${user.email}</td>
-            <td>
-                <span class="status-badge ${user.rol === 'admin' ? 'status-active' : ''}">
-                    ${user.rol}
-                </span>
-            </td>
-            <td>
-                <span class="status-badge ${user.estado === 'activo' ? 'status-active' : 'status-inactive'}">
-                    ${user.estado}
-                </span>
-            </td>
-            <td>${formatDate(user.fechaRegistro)}</td>
-            <td>
-                <div class="table-actions">
-                    <button class="action-btn-small action-btn-edit" title="Editar" onclick="editarUsuario(${user.id})">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="action-btn-small action-btn-reset" title="Reiniciar Contraseña" onclick="resetPassword(${user.id})">
-                        <i class="fas fa-key"></i>
-                    </button>
-                    <button class="action-btn-small action-btn-delete" title="Eliminar" onclick="eliminarUsuario(${user.id})">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+                </td>
+                <td>${user.email}</td>
+                <td>
+                    <span class="status-badge ${user.rol === 'admin' ? 'status-active' : ''}">
+                        ${user.rol}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge ${user.estado === 'activo' ? 'status-active' : 'status-inactive'}">
+                        ${user.estado}
+                    </span>
+                </td>
+                <td>${formatDate(user.fechaRegistro)}</td>
+                <td>
+                    <div class="table-actions">
+                        <button class="action-btn-small action-btn-edit" title="Editar" onclick="editarUsuario(${user.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn-small action-btn-reset" title="Reiniciar Contraseña" onclick="resetPassword(${user.id})">
+                            <i class="fas fa-key"></i>
+                        </button>
+                        <button class="action-btn-small action-btn-delete" title="Eliminar" onclick="eliminarUsuario(${user.id})">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
     
     // Actualizar controles de paginación
-    showingCount.textContent = usuariosPaginados.length;
-    totalCount.textContent = totalUsers;
-    currentPage.textContent = paginaActualUsuarios;
+    if (showingCount) showingCount.textContent = usuariosPaginados.length;
+    if (totalCount) totalCount.textContent = totalUsers;
+    if (currentPage) currentPage.textContent = paginaActualUsuarios;
     
-    prevPage.disabled = paginaActualUsuarios === 1;
-    nextPage.disabled = paginaActualUsuarios === totalPages;
+    if (prevPage) prevPage.disabled = paginaActualUsuarios === 1;
+    if (nextPage) nextPage.disabled = paginaActualUsuarios === totalPages;
 }
 
 // Aplicar filtros de usuarios
 function aplicarFiltrosUsuarios() {
-    const searchTerm = userSearch.value.toLowerCase();
-    const roleFilter = filterRole.value;
-    const statusFilter = filterStatus.value;
+    const searchTerm = userSearch ? userSearch.value.toLowerCase() : '';
+    const roleFilter = filterRole ? filterRole.value : '';
+    const statusFilter = filterStatus ? filterStatus.value : '';
     
     usuariosFiltrados = USUARIOS_DEMO.filter(user => {
         const matchesSearch = 
@@ -400,70 +363,76 @@ function aplicarFiltrosUsuarios() {
 
 // Cargar eventos
 function cargarEventos() {
+    console.log('Cargando eventos...');
+    
     // Aplicar filtros
     aplicarFiltrosEventos();
     
     // Actualizar grid
-    eventsGrid.innerHTML = eventosFiltrados.map(event => `
-        <div class="event-card">
-            <div class="event-header">
-                <div class="event-title">${event.nombre}</div>
-                <div class="event-client">${event.cliente}</div>
-                <div class="event-meta">
-                    <span><i class="far fa-calendar"></i> ${formatDate(event.fecha)}</span>
-                    <span class="status-badge ${event.estado}">
-                        ${event.estado}
-                    </span>
-                </div>
-            </div>
-            <div class="event-body">
-                <div class="event-stats">
-                    <div class="stat-item">
-                        <span class="stat-value">${event.mesas}</span>
-                        <span class="stat-label">Mesas</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value">${event.sillas}</span>
-                        <span class="stat-label">Sillas</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value">${event.ocupadas}</span>
-                        <span class="stat-label">Ocupadas</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-value">${Math.round((event.ocupadas / event.sillas) * 100)}%</span>
-                        <span class="stat-label">Ocupación</span>
+    if (eventsGrid) {
+        eventsGrid.innerHTML = eventosFiltrados.map(event => `
+            <div class="event-card">
+                <div class="event-header">
+                    <div class="event-title">${event.nombre}</div>
+                    <div class="event-client">${event.cliente}</div>
+                    <div class="event-meta">
+                        <span><i class="far fa-calendar"></i> ${formatDate(event.fecha)}</span>
+                        <span class="status-badge ${event.estado}">
+                            ${event.estado}
+                        </span>
                     </div>
                 </div>
-                <div class="event-details">
-                    <p><i class="fas fa-chart-pie" style="color: ${event.color};"></i> 
-                    ID Evento: ${event.id.toString().padStart(3, '0')}</p>
+                <div class="event-body">
+                    <div class="event-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">${event.mesas}</span>
+                            <span class="stat-label">Mesas</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${event.sillas}</span>
+                            <span class="stat-label">Sillas</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${event.ocupadas}</span>
+                            <span class="stat-label">Ocupadas</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${Math.round((event.ocupadas / event.sillas) * 100)}%</span>
+                            <span class="stat-label">Ocupación</span>
+                        </div>
+                    </div>
+                    <div class="event-details">
+                        <p><i class="fas fa-chart-pie" style="color: ${event.color};"></i> 
+                        ID Evento: ${event.id.toString().padStart(3, '0')}</p>
+                    </div>
+                </div>
+                <div class="event-footer">
+                    <button class="btn-view" onclick="verEvento(${event.id})">
+                        <i class="fas fa-eye"></i> Ver Detalles
+                    </button>
                 </div>
             </div>
-            <div class="event-footer">
-                <button class="btn-view" onclick="verEvento(${event.id})">
-                    <i class="fas fa-eye"></i> Ver Detalles
-                </button>
-            </div>
-        </div>
-    `).join('');
+        `).join('');
+    }
     
     // Actualizar lista de clientes en filtro
     const clientesUnicos = [...new Set(EVENTOS_DEMO.map(e => e.cliente))];
-    filterClient.innerHTML = `
-        <option value="">Todos los clientes</option>
-        ${clientesUnicos.map(cliente => `
-            <option value="${cliente}">${cliente}</option>
-        `).join('')}
-    `;
+    if (filterClient) {
+        filterClient.innerHTML = `
+            <option value="">Todos los clientes</option>
+            ${clientesUnicos.map(cliente => `
+                <option value="${cliente}">${cliente}</option>
+            `).join('')}
+        `;
+    }
 }
 
 // Aplicar filtros de eventos
 function aplicarFiltrosEventos() {
-    const searchTerm = eventSearch.value.toLowerCase();
-    const clientFilter = filterClient.value;
-    const dateFilter = filterDate.value;
-    const statusFilter = filterEventStatus.value;
+    const searchTerm = eventSearch ? eventSearch.value.toLowerCase() : '';
+    const clientFilter = filterClient ? filterClient.value : '';
+    const dateFilter = filterDate ? filterDate.value : '';
+    const statusFilter = filterEventStatus ? filterEventStatus.value : '';
     
     eventosFiltrados = EVENTOS_DEMO.filter(event => {
         const matchesSearch = 
@@ -480,27 +449,45 @@ function aplicarFiltrosEventos() {
 
 // Cargar configuración
 function cargarConfiguracion() {
+    console.log('Cargando configuración...');
+    
     // Cargar configuración guardada de localStorage
     const settings = JSON.parse(localStorage.getItem('titi_settings') || '{}');
     
     // Aplicar configuración a los campos
-    document.getElementById('dbHost').value = settings.dbHost || '';
-    document.getElementById('dbPort').value = settings.dbPort || 25060;
-    document.getElementById('dbName').value = settings.dbName || 'defaultdb';
-    document.getElementById('dbUser').value = settings.dbUser || 'titi_admin';
-    document.getElementById('dbPassword').value = settings.dbPassword || '';
-    document.getElementById('sessionDuration').value = settings.sessionDuration || 24;
-    document.getElementById('maxLoginAttempts').value = settings.maxLoginAttempts || 5;
-    document.getElementById('requireSSL').checked = settings.requireSSL !== false;
-    document.getElementById('autoBackup').checked = settings.autoBackup !== false;
-    document.getElementById('notifyNewUsers').checked = settings.notifyNewUsers !== false;
-    document.getElementById('notifyLargeEvents').checked = settings.notifyLargeEvents !== false;
-    document.getElementById('notifySystemAlerts').checked = settings.notifySystemAlerts !== false;
-    document.getElementById('notificationEmail').value = settings.notificationEmail || 'admin@titi-invita.com';
+    const dbHost = document.getElementById('dbHost');
+    const dbPort = document.getElementById('dbPort');
+    const dbName = document.getElementById('dbName');
+    const dbUser = document.getElementById('dbUser');
+    const dbPassword = document.getElementById('dbPassword');
+    const sessionDuration = document.getElementById('sessionDuration');
+    const maxLoginAttempts = document.getElementById('maxLoginAttempts');
+    const requireSSL = document.getElementById('requireSSL');
+    const autoBackup = document.getElementById('autoBackup');
+    const notifyNewUsers = document.getElementById('notifyNewUsers');
+    const notifyLargeEvents = document.getElementById('notifyLargeEvents');
+    const notifySystemAlerts = document.getElementById('notifySystemAlerts');
+    const notificationEmail = document.getElementById('notificationEmail');
+    
+    if (dbHost) dbHost.value = settings.dbHost || '';
+    if (dbPort) dbPort.value = settings.dbPort || 25060;
+    if (dbName) dbName.value = settings.dbName || 'defaultdb';
+    if (dbUser) dbUser.value = settings.dbUser || 'titi_admin';
+    if (dbPassword) dbPassword.value = settings.dbPassword || '';
+    if (sessionDuration) sessionDuration.value = settings.sessionDuration || 24;
+    if (maxLoginAttempts) maxLoginAttempts.value = settings.maxLoginAttempts || 5;
+    if (requireSSL) requireSSL.checked = settings.requireSSL !== false;
+    if (autoBackup) autoBackup.checked = settings.autoBackup !== false;
+    if (notifyNewUsers) notifyNewUsers.checked = settings.notifyNewUsers !== false;
+    if (notifyLargeEvents) notifyLargeEvents.checked = settings.notifyLargeEvents !== false;
+    if (notifySystemAlerts) notifySystemAlerts.checked = settings.notifySystemAlerts !== false;
+    if (notificationEmail) notificationEmail.value = settings.notificationEmail || 'admin@titi-invita.com';
 }
 
 // Configurar event listeners
 function setupEventListeners() {
+    console.log('Configurando event listeners...');
+    
     // Navegación
     navItems.forEach(item => {
         if (item.dataset.page) {
@@ -518,13 +505,18 @@ function setupEventListeners() {
     // Cerrar sesión
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {
-             e.preventDefault();
-             // Limpiar todo y redirigir
-             localStorage.removeItem('titi_token');
-             localStorage.removeItem('titi_usuario');
-             localStorage.removeItem('titi_usuario_actual');
-             sessionStorage.clear();
-             window.location.href = 'index.html';
+            e.preventDefault();
+            console.log('Cerrando sesión...');
+            
+            // Limpiar todo el almacenamiento
+            localStorage.removeItem('titi_token');
+            localStorage.removeItem('titi_usuario');
+            localStorage.removeItem('titi_usuario_actual');
+            localStorage.removeItem('titi_sesion');
+            sessionStorage.clear();
+            
+            // Redirigir al inicio
+            window.location.href = 'index.html';
         });
     }
     
@@ -543,9 +535,9 @@ function setupEventListeners() {
     
     if (clearFilters) {
         clearFilters.addEventListener('click', () => {
-            userSearch.value = '';
-            filterRole.value = '';
-            filterStatus.value = '';
+            if (userSearch) userSearch.value = '';
+            if (filterRole) filterRole.value = '';
+            if (filterStatus) filterStatus.value = '';
             cargarUsuarios();
         });
     }
@@ -587,15 +579,6 @@ function setupEventListeners() {
         filterEventStatus.addEventListener('change', cargarEventos);
     }
     
-    // Exportar datos
-    if (exportCSV) {
-        exportCSV.addEventListener('click', exportarCSV);
-    }
-    
-    if (exportJSON) {
-        exportJSON.addEventListener('click', exportarJSON);
-    }
-    
     // Configuración
     if (testConnectionBtn) {
         testConnectionBtn.addEventListener('click', testConexionDB);
@@ -633,26 +616,12 @@ function setupEventListeners() {
             cerrarTodosModales();
         }
     });
-    
-    // Botones de acción rápida
-    document.getElementById('viewAllUsers')?.addEventListener('click', () => {
-        cambiarPagina('usuarios');
-    });
-    
-    document.getElementById('addUserBtn')?.addEventListener('click', () => {
-        abrirModal(addUserModal);
-    });
-    
-    document.getElementById('viewEventsBtn')?.addEventListener('click', () => {
-        cambiarPagina('eventos');
-    });
-    
-    document.getElementById('exportDataBtn')?.addEventListener('click', exportarTodosDatos);
-    document.getElementById('systemReportBtn')?.addEventListener('click', generarReporteSistema);
 }
 
 // Cambiar página
 function cambiarPagina(pageId) {
+    console.log('Cambiando a página:', pageId);
+    
     // Actualizar navegación
     navItems.forEach(item => {
         item.classList.remove('active');
@@ -677,7 +646,9 @@ function cambiarPagina(pageId) {
         'configuracion': 'Configuración'
     };
     
-    pageTitle.textContent = pageTitles[pageId] || 'Dashboard';
+    if (pageTitle) {
+        pageTitle.textContent = pageTitles[pageId] || 'Dashboard';
+    }
     
     // Ocultar sidebar en móvil
     sidebar.classList.remove('show');
@@ -695,12 +666,14 @@ function formatDate(dateString) {
 
 // Mostrar toast
 function showToast(message, type = 'success') {
-    messageToast.textContent = message;
-    messageToast.className = `toast ${type} show`;
-    
-    setTimeout(() => {
-        messageToast.classList.remove('show');
-    }, 4000);
+    if (messageToast) {
+        messageToast.textContent = message;
+        messageToast.className = `toast ${type} show`;
+        
+        setTimeout(() => {
+            messageToast.classList.remove('show');
+        }, 4000);
+    }
 }
 
 // Funciones de gestión de usuarios
@@ -732,7 +705,6 @@ function eliminarUsuario(userId) {
             'Eliminar Usuario',
             `¿Estás seguro de que quieres eliminar a ${usuario.nombre}? Esta acción no se puede deshacer.`,
             () => {
-                // En una implementación real, eliminaría de la base de datos
                 showToast(`Usuario ${usuario.nombre} eliminado`, 'success');
             },
             true
@@ -745,50 +717,7 @@ function verEvento(eventId) {
     const evento = EVENTOS_DEMO.find(e => e.id === eventId);
     if (evento) {
         showToast(`Viendo evento: ${evento.nombre}`, 'info');
-        // En una implementación real, redireccionaría a la vista del evento
     }
-}
-
-// Funciones de exportación
-function exportarCSV() {
-    const headers = ['ID', 'Nombre', 'Cliente', 'Fecha', 'Estado', 'Mesas', 'Sillas', 'Ocupadas'];
-    const rows = eventosFiltrados.map(event => [
-        event.id,
-        event.nombre,
-        event.cliente,
-        event.fecha,
-        event.estado,
-        event.mesas,
-        event.sillas,
-        event.ocupadas
-    ]);
-    
-    const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.join(','))
-    ].join('\n');
-    
-    descargarArchivo(csvContent, 'eventos.csv', 'text/csv');
-    showToast('Datos exportados en formato CSV', 'success');
-}
-
-function exportarJSON() {
-    const jsonContent = JSON.stringify(eventosFiltrados, null, 2);
-    descargarArchivo(jsonContent, 'eventos.json', 'application/json');
-    showToast('Datos exportados en formato JSON', 'success');
-}
-
-function exportarTodosDatos() {
-    const data = {
-        usuarios: USUARIOS_DEMO,
-        eventos: EVENTOS_DEMO,
-        exportado: new Date().toISOString(),
-        sistema: 'Titi Invita v1.0.0'
-    };
-    
-    const jsonContent = JSON.stringify(data, null, 2);
-    descargarArchivo(jsonContent, 'titi-invita-backup.json', 'application/json');
-    showToast('Backup completo exportado', 'success');
 }
 
 // Funciones de configuración
@@ -797,12 +726,7 @@ function testConexionDB() {
     
     // Simular prueba de conexión
     setTimeout(() => {
-        const exito = Math.random() > 0.3; // 70% de éxito para demo
-        if (exito) {
-            showToast('✅ Conexión exitosa a PostgreSQL', 'success');
-        } else {
-            showToast('❌ Error de conexión a PostgreSQL', 'error');
-        }
+        showToast('✅ Modo demo: La conexión a PostgreSQL está configurada para producción', 'success');
     }, 2000);
 }
 
@@ -847,36 +771,25 @@ function limpiarCache() {
         () => {
             localStorage.removeItem('titi_sesion');
             sessionStorage.removeItem('titi_sesion');
-            showToast('Caché limpiado correctamente. Las sesiones serán cerradas.', 'success');
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+            showToast('Caché limpiado correctamente', 'success');
         },
         true
     );
 }
 
 // Funciones de utilidad
-function descargarArchivo(content, filename, mimeType) {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
 function abrirModal(modal) {
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
 }
 
 function cerrarModal(modal) {
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto';
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
 }
 
 function cerrarTodosModales() {
@@ -886,13 +799,19 @@ function cerrarTodosModales() {
 }
 
 function mostrarConfirmacion(titulo, mensaje, callback, warning = false) {
-    document.getElementById('confirmTitle').textContent = titulo;
-    document.getElementById('confirmMessage').textContent = mensaje;
-    document.getElementById('confirmWarning').style.display = warning ? 'flex' : 'none';
+    const confirmTitle = document.getElementById('confirmTitle');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmWarning = document.getElementById('confirmWarning');
+    
+    if (confirmTitle) confirmTitle.textContent = titulo;
+    if (confirmMessage) confirmMessage.textContent = mensaje;
+    if (confirmWarning) confirmWarning.style.display = warning ? 'flex' : 'none';
     
     const confirmModal = document.getElementById('confirmModal');
     const confirmAction = document.getElementById('confirmAction');
     const confirmCancel = document.getElementById('confirmCancel');
+    
+    if (!confirmModal || !confirmAction || !confirmCancel) return;
     
     // Guardar callback actual
     confirmAction.callback = callback;
@@ -913,81 +832,13 @@ function mostrarConfirmacion(titulo, mensaje, callback, warning = false) {
     
     confirmAction.onclick = handleConfirm;
     confirmCancel.onclick = handleCancel;
-    
-    // Limpiar después de cerrar
-    confirmModal.addEventListener('click', function(e) {
-        if (e.target === confirmModal) {
-            confirmAction.onclick = null;
-            confirmCancel.onclick = null;
-        }
-    });
-}
-
-function generarReporteSistema() {
-    const reporte = {
-        fecha: new Date().toISOString(),
-        sistema: 'Titi Invita v1.0.0',
-        estadisticas: {
-            totalUsuarios: USUARIOS_DEMO.length,
-            usuariosActivos: USUARIOS_DEMO.filter(u => u.estado === 'activo').length,
-            totalEventos: EVENTOS_DEMO.length,
-            eventosActivos: EVENTOS_DEMO.filter(e => e.estado === 'activo').length,
-            totalSillas: EVENTOS_DEMO.reduce((sum, e) => sum + e.sillas, 0),
-            sillasOcupadas: EVENTOS_DEMO.reduce((sum, e) => sum + e.ocupadas, 0),
-            tasaOcupacion: Math.round((EVENTOS_DEMO.reduce((sum, e) => sum + e.ocupadas, 0) / EVENTOS_DEMO.reduce((sum, e) => sum + e.sillas, 0)) * 100) + '%'
-        },
-        configuracion: JSON.parse(localStorage.getItem('titi_settings') || '{}')
-    };
-    
-    const reporteHTML = `
-        <h2>Reporte del Sistema - Titi Invita</h2>
-        <p><strong>Fecha:</strong> ${new Date(reporte.fecha).toLocaleString()}</p>
-        
-        <h3>📊 Estadísticas</h3>
-        <table style="width:100%; border-collapse: collapse; margin: 20px 0;">
-            <tr><td>Total Usuarios:</td><td><strong>${reporte.estadisticas.totalUsuarios}</strong></td></tr>
-            <tr><td>Usuarios Activos:</td><td><strong>${reporte.estadisticas.usuariosActivos}</strong></td></tr>
-            <tr><td>Total Eventos:</td><td><strong>${reporte.estadisticas.totalEventos}</strong></td></tr>
-            <tr><td>Eventos Activos:</td><td><strong>${reporte.estadisticas.eventosActivos}</strong></td></tr>
-            <tr><td>Total Sillas:</td><td><strong>${reporte.estadisticas.totalSillas}</strong></td></tr>
-            <tr><td>Sillas Ocupadas:</td><td><strong>${reporte.estadisticas.sillasOcupadas}</strong></td></tr>
-            <tr><td>Tasa de Ocupación:</td><td><strong>${reporte.estadisticas.tasaOcupacion}</strong></td></tr>
-        </table>
-        
-        <h3>⚙️ Configuración Actual</h3>
-        <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px; overflow: auto;">
-${JSON.stringify(reporte.configuracion, null, 2)}
-        </pre>
-    `;
-    
-    // Crear ventana de reporte
-    const reportWindow = window.open('', '_blank');
-    reportWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Reporte del Sistema - Titi Invita</title>
-            <style>
-                body { font-family: Arial, sans-serif; padding: 20px; }
-                h2 { color: #764ba2; }
-                h3 { color: #333; margin-top: 30px; }
-                table { width: 100%; border-collapse: collapse; }
-                td { padding: 10px; border-bottom: 1px solid #ddd; }
-                pre { background: #f5f5f5; padding: 15px; border-radius: 5px; }
-            </style>
-        </head>
-        <body>
-            ${reporteHTML}
-            <p style="margin-top: 30px; color: #666; font-size: 0.9em;">
-                Reporte generado automáticamente por Titi Invita v1.0.0
-            </p>
-        </body>
-        </html>
-    `);
-    reportWindow.document.close();
-    
-    showToast('Reporte del sistema generado', 'success');
 }
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', initAdmin);
+
+// Exponer funciones para HTML
+window.editarUsuario = editarUsuario;
+window.resetPassword = resetPassword;
+window.eliminarUsuario = eliminarUsuario;
+window.verEvento = verEvento;
