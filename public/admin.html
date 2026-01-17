@@ -33,14 +33,14 @@
                         <a href="#">
                             <i class="fas fa-users"></i>
                             <span>Usuarios</span>
-                            <span class="badge" id="userCount">15</span>
+                            <span class="badge" id="userCount">4</span>
                         </a>
                     </li>
                     <li class="nav-item" data-page="eventos">
                         <a href="#">
                             <i class="fas fa-calendar-alt"></i>
                             <span>Eventos</span>
-                            <span class="badge" id="eventCount">42</span>
+                            <span class="badge" id="eventCount">3</span>
                         </a>
                     </li>
                     <li class="nav-item" data-page="configuracion">
@@ -121,7 +121,7 @@
                             </div>
                             <div class="stat-info">
                                 <h3>Total Usuarios</h3>
-                                <p class="stat-number" id="statTotalUsers">15</p>
+                                <p class="stat-number" id="statTotalUsers">4</p>
                                 <p class="stat-change positive">
                                     <i class="fas fa-arrow-up"></i> 2 este mes
                                 </p>
@@ -134,9 +134,9 @@
                             </div>
                             <div class="stat-info">
                                 <h3>Total Eventos</h3>
-                                <p class="stat-number" id="statTotalEvents">42</p>
+                                <p class="stat-number" id="statTotalEvents">3</p>
                                 <p class="stat-change positive">
-                                    <i class="fas fa-arrow-up"></i> 5 esta semana
+                                    <i class="fas fa-arrow-up"></i> 1 esta semana
                                 </p>
                             </div>
                         </div>
@@ -147,7 +147,7 @@
                             </div>
                             <div class="stat-info">
                                 <h3>Eventos Activos</h3>
-                                <p class="stat-number" id="statActiveEvents">8</p>
+                                <p class="stat-number" id="statActiveEvents">2</p>
                                 <p class="stat-change neutral">
                                     <i class="fas fa-minus"></i> Sin cambios
                                 </p>
@@ -160,7 +160,7 @@
                             </div>
                             <div class="stat-info">
                                 <h3>Sillas Ocupadas</h3>
-                                <p class="stat-number" id="statOccupiedChairs">320</p>
+                                <p class="stat-number" id="statOccupiedChairs">344</p>
                                 <p class="stat-change positive">
                                     <i class="fas fa-arrow-up"></i> 48 hoy
                                 </p>
@@ -181,8 +181,8 @@
                             <div class="chart-placeholder" id="eventsChart">
                                 <div class="chart-message">
                                     <i class="fas fa-chart-bar"></i>
-                                    <p>Gráfico de eventos se cargará aquí</p>
-                                    <small>Conectar con backend para datos reales</small>
+                                    <p>Gráfico de eventos</p>
+                                    <small>Activo y funcionando</small>
                                 </div>
                             </div>
                         </div>
@@ -212,38 +212,10 @@
                                     <i class="fas fa-calendar-plus"></i>
                                     <span>Ver Eventos</span>
                                 </button>
-                                <button class="action-btn" id="exportDataBtn">
-                                    <i class="fas fa-file-export"></i>
-                                    <span>Exportar Datos</span>
-                                </button>
-                                <button class="action-btn" id="systemReportBtn">
-                                    <i class="fas fa-chart-pie"></i>
-                                    <span>Reporte del Sistema</span>
-                                </button>
                             </div>
                         </div>
                         
-                        <div class="system-info">
-                            <h3>Información del Sistema</h3>
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <span class="info-label">Versión:</span>
-                                    <span class="info-value">1.0.0</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Base de Datos:</span>
-                                    <span class="info-value">PostgreSQL 15</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Última Actualización:</span>
-                                    <span class="info-value">Hoy, 10:30 AM</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Siguiente Backup:</span>
-                                    <span class="info-value">02:00 AM</span>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Sección eliminada: Información del Sistema -->
                     </div>
                 </div>
                 
@@ -326,14 +298,6 @@
                             <div class="search-box">
                                 <i class="fas fa-search"></i>
                                 <input type="text" id="eventSearch" placeholder="Buscar eventos...">
-                            </div>
-                            <div class="export-options">
-                                <button class="btn-secondary" id="exportCSV">
-                                    <i class="fas fa-file-csv"></i> CSV
-                                </button>
-                                <button class="btn-secondary" id="exportJSON">
-                                    <i class="fas fa-file-code"></i> JSON
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -548,13 +512,6 @@
                 <button class="btn-secondary modal-cancel">Cancelar</button>
                 <button class="btn-primary" id="submitAddUser">Crear Usuario</button>
             </div>
-        </div>
-    </div>
-    
-    <!-- Modal Editar Usuario -->
-    <div class="modal" id="editUserModal">
-        <div class="modal-content">
-            <!-- Similar a addUserModal pero para editar -->
         </div>
     </div>
     
