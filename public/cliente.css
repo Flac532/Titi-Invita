@@ -148,7 +148,7 @@
 /* ===== LAYOUT PRINCIPAL ===== */
 .cliente-main {
     display: grid;
-    grid-template-columns: 300px 1fr 300px;
+    grid-template-columns: 320px 1fr 320px;
     min-height: calc(100vh - 80px);
     gap: 0;
 }
@@ -160,6 +160,8 @@
     padding: 25px;
     overflow-y: auto;
     height: calc(100vh - 80px);
+    max-width: 320px;
+    box-sizing: border-box;
 }
 
 .guests-panel {
@@ -172,6 +174,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-width: 0; /* Importante para flexbox */
 }
 
 /* ===== PANEL DE CONTROL IZQUIERDO ===== */
@@ -222,6 +225,7 @@
     border-radius: var(--radius-sm);
     font-size: 0.9rem;
     background: var(--bg-white);
+    box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -361,23 +365,29 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .visualization-header h2 {
     font-size: 1.4rem;
     color: var(--text-dark);
     font-weight: 600;
+    margin: 0;
 }
 
 .visualization-actions {
     display: flex;
     align-items: center;
     gap: 15px;
+    flex-wrap: wrap;
 }
 
 .search-box {
     position: relative;
     min-width: 200px;
+    flex: 1;
+    max-width: 300px;
 }
 
 .search-box i {
@@ -395,24 +405,26 @@
     border-radius: var(--radius-sm);
     font-size: 0.9rem;
     background: var(--bg-white);
+    box-sizing: border-box;
 }
 
-/* Contenedor de mesas (MANTENER ESTILOS DE final.html) */
+/* Contenedor de mesas - VERSIÓN MEJORADA */
 .mesas-container {
     flex: 1;
     padding: 30px;
     overflow: auto;
     display: flex;
     flex-wrap: wrap;
-    gap: 70px 125px;
+    gap: 60px 100px;
     justify-content: center;
     align-content: flex-start;
     background-color: #f9f9f9;
+    min-height: 400px;
 }
 
 .mesa {
     position: relative;
-    margin-bottom: 80px;
+    margin-bottom: 60px;
     flex-shrink: 0;
 }
 
@@ -425,6 +437,13 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s;
+    font-size: 0.9rem;
+    max-width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .mesa-info:hover {
@@ -442,59 +461,65 @@
     background-color: var(--color-mesa);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     z-index: 1;
-    margin-top: 100px;
+    margin-top: 80px;
+    font-size: 14px;
+    padding: 5px;
+    box-sizing: border-box;
+    text-align: center;
+    word-break: break-word;
+    overflow: hidden;
 }
 
 .mesa-rectangular {
-    width: 210px;
-    height: 110px;
+    width: 240px;
+    height: 130px;
     border-radius: 10px;
 }
 
 .mesa-circular {
-    width: 140px;
-    height: 140px;
+    width: 160px;
+    height: 160px;
     border-radius: 50%;
 }
 
 .mesa-cuadrada {
-    width: 160px;
-    height: 160px;
+    width: 180px;
+    height: 180px;
     border-radius: 10px;
 }
 
 .sillas-container {
     position: absolute;
-    width: calc(100% + 50px);
-    height: calc(100% + 50px);
-    top: 50px; 
-    left: -25px; 
+    width: calc(100% + 80px);
+    height: calc(100% + 80px);
+    top: 40px;
+    left: -40px;
 }
 
 .circular-sillas {
-    width: 140px;
-    height: 140px;
-    top: 75%;
+    width: 160px;
+    height: 160px;
+    top: 70%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
 
 .rectangular-sillas, .cuadrada-sillas {
-    width: calc(100% + 50px);
-    height: calc(100% + 50px);
-    top: 50px;
-    left: -25px;
+    width: calc(100% + 80px);
+    height: calc(100% + 80px);
+    top: 40px;
+    left: -40px;
 }
 
 .silla {
     position: absolute;
-    width: 32px;
-    height: 42px;
+    width: 38px;
+    height: 48px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 11px;
     color: white;
     font-weight: bold;
     transition: transform 0.2s, filter 0.2s;
@@ -509,7 +534,7 @@
     content: '';
     position: absolute;
     top: -6px;
-    left: 6px;
+    left: 9px;
     width: 20px;
     height: 8px;
     background-color: inherit;
@@ -542,11 +567,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .legend {
     display: flex;
     gap: 20px;
+    flex-wrap: wrap;
 }
 
 .legend-item {
@@ -576,6 +604,7 @@
 .view-options {
     display: flex;
     gap: 20px;
+    flex-wrap: wrap;
 }
 
 .checkbox {
@@ -607,6 +636,7 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     font-size: 0.9rem;
+    box-sizing: border-box;
 }
 
 .guest-filters {
@@ -620,12 +650,14 @@
     border-radius: var(--radius-sm);
     font-size: 0.9rem;
     background: var(--bg-white);
+    box-sizing: border-box;
 }
 
 .guests-list {
     max-height: 300px;
     overflow-y: auto;
     margin-bottom: 20px;
+    min-height: 200px;
 }
 
 .guest-item {
@@ -721,6 +753,7 @@
     padding: 20px;
     background: var(--bg-light);
     border-radius: var(--radius-sm);
+    box-sizing: border-box;
 }
 
 .guest-detail-header {
@@ -741,17 +774,29 @@
     justify-content: center;
     font-size: 1.5rem;
     font-weight: 600;
+    flex-shrink: 0;
+}
+
+.guest-detail-info {
+    flex: 1;
+    min-width: 0;
 }
 
 .guest-detail-info h4 {
     font-size: 1.2rem;
     color: var(--text-dark);
     margin-bottom: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .guest-detail-info p {
     font-size: 0.9rem;
     color: var(--text-light);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .guest-detail-content {
@@ -763,6 +808,7 @@
     justify-content: space-between;
     padding: 10px 0;
     border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
 }
 
 .detail-row:last-child {
@@ -771,13 +817,17 @@
 
 .detail-label {
     color: var(--text-light);
-    font-size: 0.9rem;
+    flex-shrink: 0;
 }
 
 .detail-value {
     color: var(--text-dark);
     font-weight: 500;
-    font-size: 0.9rem;
+    text-align: right;
+    flex: 1;
+    margin-left: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Compartir evento */
@@ -794,6 +844,7 @@
     border-radius: var(--radius-sm);
     font-size: 0.9rem;
     background: var(--bg-light);
+    box-sizing: border-box;
 }
 
 .qr-code {
@@ -822,6 +873,7 @@
 .share-buttons {
     display: flex;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 /* ===== MODALES ===== */
@@ -880,6 +932,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    margin: 0;
 }
 
 .modal-close {
@@ -915,38 +968,95 @@
 }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
     .cliente-main {
         grid-template-columns: 280px 1fr 280px;
     }
+    
+    .control-panel,
+    .guests-panel {
+        padding: 20px;
+        width: 280px;
+    }
+    
+    .mesas-container {
+        gap: 50px 80px;
+        padding: 25px;
+    }
+    
+    .mesa-rectangular {
+        width: 220px;
+        height: 120px;
+    }
+    
+    .mesa-circular {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .mesa-cuadrada {
+        width: 170px;
+        height: 170px;
+    }
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1200px) {
     .cliente-main {
         grid-template-columns: 250px 1fr;
     }
     
     .guests-panel {
         display: none;
-    }
-    
-    .guests-panel.active {
-        display: block;
         position: fixed;
         right: 0;
         top: 80px;
         bottom: 0;
-        width: 300px;
+        width: 320px;
         z-index: 90;
         box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        border-left: 1px solid var(--border-color);
+    }
+    
+    .guests-panel.active {
+        display: block;
+    }
+    
+    /* Botón para mostrar/ocultar panel derecho */
+    .panel-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 101;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        border: none;
+        font-size: 1.2rem;
+    }
+    
+    .control-panel {
+        width: 250px;
+        padding: 15px;
+    }
+    
+    .mesas-container {
+        gap: 40px 60px;
+        padding: 20px;
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     .cliente-header {
+        padding: 15px;
         flex-direction: column;
         gap: 15px;
-        padding: 15px;
     }
     
     .header-left {
@@ -969,23 +1079,25 @@
     
     .control-panel {
         display: none;
-    }
-    
-    .control-panel.active {
-        display: block;
         position: fixed;
         left: 0;
         top: 80px;
         bottom: 0;
-        width: 300px;
+        width: 320px;
         z-index: 90;
         box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+        border-right: 1px solid var(--border-color);
+    }
+    
+    .control-panel.active {
+        display: block;
     }
     
     .visualization-header {
         flex-direction: column;
         gap: 15px;
         align-items: flex-start;
+        padding: 15px;
     }
     
     .visualization-actions {
@@ -995,33 +1107,110 @@
     
     .search-box {
         flex: 1;
+        max-width: 100%;
     }
     
     .mesas-container {
         padding: 15px;
-        gap: 40px 80px;
+        gap: 30px 50px;
     }
     
     .visualization-footer {
         flex-direction: column;
         gap: 15px;
         align-items: flex-start;
+        padding: 15px;
     }
     
     .view-options {
         width: 100%;
         justify-content: space-between;
     }
+    
+    .mesa-rectangular {
+        width: 200px;
+        height: 110px;
+    }
+    
+    .mesa-circular {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .mesa-cuadrada {
+        width: 160px;
+        height: 160px;
+    }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .mesas-container {
-        gap: 30px 60px;
+        gap: 25px 40px;
         padding: 10px;
     }
     
     .mesa {
-        margin-bottom: 60px;
+        margin-bottom: 40px;
+    }
+    
+    .mesa-rectangular {
+        width: 180px;
+        height: 100px;
+    }
+    
+    .mesa-circular {
+        width: 130px;
+        height: 130px;
+    }
+    
+    .mesa-cuadrada {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .silla {
+        width: 34px;
+        height: 44px;
+        font-size: 10px;
+    }
+    
+    .modal-content {
+        margin: 10px;
+        max-height: 85vh;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .stat-item {
+        padding: 12px;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo h1 {
+        font-size: 1.2rem;
+    }
+    
+    .event-selector select {
+        min-width: 150px;
+        font-size: 0.8rem;
+        padding: 8px 12px;
+    }
+    
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .mesas-container {
+        gap: 20px 30px;
     }
     
     .mesa-rectangular {
@@ -1035,12 +1224,28 @@
     }
     
     .mesa-cuadrada {
-        width: 130px;
-        height: 130px;
+        width: 140px;
+        height: 140px;
     }
     
-    .modal-content {
-        margin: 10px;
+    .mesa-info {
+        font-size: 0.8rem;
+        padding: 6px 10px;
+    }
+    
+    .silla {
+        width: 30px;
+        height: 40px;
+        font-size: 9px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .button-group {
+        flex-direction: column;
     }
 }
 
@@ -1083,4 +1288,82 @@
     .empty-state i {
         color: #404040;
     }
+    
+    .guest-detail-view {
+        background: #2d2d2d;
+    }
+}
+
+/* ===== ARREGLOS ESPECIALES PARA VISTA APRETADA ===== */
+/* Ajuste automático para zoom 100% */
+body {
+    overflow-x: hidden;
+}
+
+/* Mejorar scroll suave */
+.mesas-container {
+    scroll-behavior: smooth;
+}
+
+/* Espaciado mejorado para elementos */
+.panel-section h3 {
+    font-size: 1rem;
+    margin-bottom: 15px;
+}
+
+/* Reducir padding en paneles laterales */
+.control-panel, .guests-panel {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+/* Ajustar tamaño de fuente en paneles */
+.control-panel *,
+.guests-panel * {
+    font-size: 0.9rem;
+}
+
+/* Mejorar visibilidad de mesas en pantallas grandes */
+@media (min-width: 1600px) {
+    .cliente-main {
+        grid-template-columns: 350px 1fr 350px;
+    }
+    
+    .mesas-container {
+        gap: 70px 130px;
+        padding: 40px;
+    }
+    
+    .mesa-rectangular {
+        width: 280px;
+        height: 150px;
+    }
+    
+    .mesa-circular {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .mesa-cuadrada {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .silla {
+        width: 42px;
+        height: 52px;
+        font-size: 12px;
+    }
+}
+
+/* Fix para Chrome zoom */
+@media screen and (-webkit-min-device-pixel-ratio: 1.5) {
+    .mesas-container {
+        gap: 45px 85px;
+    }
+}
+
+/* Asegurar que todo sea visible sin scroll horizontal */
+.visualization-area {
+    overflow-x: hidden;
 }
