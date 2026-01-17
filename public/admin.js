@@ -518,8 +518,13 @@ function setupEventListeners() {
     // Cerrar sesión
     if (logoutBtn) {
         logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.titiAuth.logout();
+             e.preventDefault();
+             // Limpiar todo y redirigir
+             localStorage.removeItem('titi_token');
+             localStorage.removeItem('titi_usuario');
+             localStorage.removeItem('titi_usuario_actual');
+             sessionStorage.clear();
+             window.location.href = 'index.html';
         });
     }
     
