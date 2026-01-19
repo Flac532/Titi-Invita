@@ -889,21 +889,24 @@ function configurarEventListeners() {
     });
     
     // Zoom
-    zoomInBtn.addEventListener('click', function() {
+    zoomInBtn.addEventListener('click', function(e) {
+        e.preventDefault();
         if (zoomLevel < 2) {
             zoomLevel += 0.1;
             aplicarZoom();
         }
     });
     
-    zoomOutBtn.addEventListener('click', function() {
+    zoomOutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
         if (zoomLevel > 0.5) {
             zoomLevel -= 0.1;
             aplicarZoom();
         }
     });
     
-    resetViewBtn.addEventListener('click', function() {
+    resetViewBtn.addEventListener('click', function(e) {
+        e.preventDefault();
         zoomLevel = 1;
         aplicarZoom();
     });
@@ -932,27 +935,67 @@ function configurarEventListeners() {
         mostrarMensaje(`Guardado automático ${this.checked ? 'activado' : 'desactivado'}`, 'info');
     });
     
-    // Shortcuts de teclado
+    // ===== CORRECCIÓN: Permitir escritura en inputs =====
+    // Prevenir que el event listener global intercepte teclas en inputs
+    const inputs = [
+        eventNameInput, eventDateInput, eventTimeInput, eventDescriptionInput,
+        numMesasInput, sillasPorMesaInput, searchGuests, guestSearch
+    ];
+    
+    inputs.forEach(input => {
+        if (input) {
+            input.addEventListener('keydown', function(e) {
+                e.stopPropagation();
+            });
+        }
+    });
+    
+    // También para todos los inputs del formulario en el panel de control
+    document.querySelectorAll('.control-panel input, .control-panel select, .control-panel textarea').forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            e.stopPropagation();
+        });
+    });
+    
+    // Y para el modal de nuevo evento
+    document.querySelectorAll('#newEventForm input, #newEventForm select, #newEventForm textarea').forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            e.stopPropagation();
+        });
+    });
+    
+    // Shortcuts de teclado (CORREGIDO)
     document.addEventListener('keydown', function(e) {
-        // Ctrl+S para guardar
+        // Ignorar shortcuts si el foco está en un input, textarea o select
+        const activeElement = document.activeElement;
+        const isInputFocused = activeElement.tagName === 'INPUT' || 
+                              activeElement.tagName === 'TEXTAREA' || 
+                              activeElement.tagName === 'SELECT';
+        
+        // Si hay un input enfocado, NO ejecutar los shortcuts
+        if (isInputFocused) {
+            return; // Permitir que el input maneje la tecla normalmente
+        }
+        
+        // Ctrl+S para guardar (solo cuando no hay input enfocado)
         if (e.ctrlKey && e.key === 's') {
             e.preventDefault();
             guardarEvento();
         }
         
-        // Ctrl+N para nuevo evento
+        // Ctrl+N para nuevo evento (solo cuando no hay input enfocado)
         if (e.ctrlKey && e.key === 'n') {
             e.preventDefault();
             document.getElementById('newEventModal').style.display = 'flex';
         }
         
-        // Ctrl+F para buscar
+        // Ctrl+F para buscar (solo cuando no hay input enfocado)
         if (e.ctrlKey && e.key === 'f') {
             e.preventDefault();
             searchGuests.focus();
         }
         
-        // + para zoom in
+        // + para zoom in (solo cuando no hay input enfocado)
         if (e.key === '+' || e.key === '=') {
             e.preventDefault();
             if (zoomLevel < 2) {
@@ -961,7 +1004,7 @@ function configurarEventListeners() {
             }
         }
         
-        // - para zoom out
+        // - para zoom out (solo cuando no hay input enfocado)
         if (e.key === '-') {
             e.preventDefault();
             if (zoomLevel > 0.5) {
@@ -970,7 +1013,7 @@ function configurarEventListeners() {
             }
         }
         
-        // 0 para reset zoom
+        // 0 para reset zoom (solo cuando no hay input enfocado)
         if (e.key === '0') {
             e.preventDefault();
             zoomLevel = 1;
