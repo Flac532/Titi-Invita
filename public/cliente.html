@@ -5,158 +5,121 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Eventos - Titi Invita</title>
     <link rel="stylesheet" href="cliente.css">
+    <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
-    <style>
-        /* Estilos para íconos en secciones */
-        .section-icon {
-            font-size: 1.3rem;
-            color: var(--primary-color);
-            margin-right: 10px;
-        }
-    </style>
 </head>
 <body>
-    <!-- Layout Principal Vertical -->
+    <!-- Contenido Principal - Layout de 3 columnas -->
     <main class="cliente-main">
-        <!-- ===== SECCIÓN 1: INFORMACIÓN DEL EVENTO ===== -->
-        <section class="evento-info">
-            <div class="evento-header">
-                <div class="evento-title">
-                    <i class="fas fa-bullseye"></i>
-                    <h2>INFORMACIÓN DEL EVENTO</h2>
-                </div>
-                <div class="evento-user">
-                    <div class="user-avatar">MG</div>
-                    <div class="user-details">
-                        <strong>María González</strong>
-                        <small>Cliente</small>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="evento-details">
-                <div class="evento-detail-item">
-                    <i class="fas fa-calendar-alt"></i>
-                    <div class="evento-detail-content">
-                        <h3>Evento</h3>
-                        <p id="currentEventName">Boda de Ana y Carlos</p>
-                    </div>
-                </div>
-                
-                <div class="evento-detail-item">
-                    <i class="fas fa-clock"></i>
-                    <div class="evento-detail-content">
-                        <h3>Fecha y Hora</h3>
-                        <p id="currentEventDate">15 Junio, 2024 - 18:00</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="evento-stats">
-                <div class="stat-badge">
+        <!-- ===== COLUMNA 1: Selección de Evento ===== -->
+        <aside class="event-panel">
+            <div class="panel-section">
+                <div class="logo">
                     <i class="fas fa-chair"></i>
-                    <span id="statTotalMesas">8 Mesas</span>
+                    <h1>Titi Invita</h1>
                 </div>
-                <div class="stat-badge">
-                    <i class="fas fa-user-friends"></i>
-                    <span id="statTotalSillas">64 Sillas</span>
+                
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">MG</div>
+                    <div class="user-details">
+                        <strong id="userName">María González</strong>
+                        <small id="userRole">Cliente</small>
+                    </div>
+                </div>
+                
+                <div class="event-selector-container">
+                    <h3>
+                        <i class="fas fa-calendar-alt"></i>
+                        Seleccionar Evento
+                    </h3>
+                    
+                    <div class="event-selector">
+                        <select id="eventSelector">
+                            <option value="">Seleccionar Evento...</option>
+                        </select>
+                        <div class="event-selector-buttons">
+                            <button class="btn-icon" id="newEventBtn" title="Nuevo Evento">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn-icon" id="refreshEventsBtn" title="Actualizar">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="current-event-info">
+                        <h4>Evento Actual:</h4>
+                        <h2 id="currentEventName">Boda de Ana y Carlos</h2>
+                        <p id="currentEventDate">15 de Junio, 2024 - 18:00</p>
+                    </div>
+                </div>
+                
+                <div class="header-actions">
+                    <button class="btn-icon" id="shareBtn" title="Compartir Vista">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                    <button class="btn-icon" id="helpBtn" title="Ayuda">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
+                    <button class="btn-icon" id="logoutBtn" title="Cerrar Sesión">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                    <button class="btn-icon" id="fullscreenBtn" title="Pantalla Completa">
+                        <i class="fas fa-expand"></i>
+                    </button>
                 </div>
             </div>
-        </section>
+            
+            <div class="panel-section quick-stats">
+                <h3>
+                    <i class="fas fa-tachometer-alt"></i>
+                    Vista Rápida
+                </h3>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statTotalMesas">8</div>
+                        <div class="stat-label">Mesas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statTotalSillas">64</div>
+                        <div class="stat-label">Sillas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statSillasOcupadas">32</div>
+                        <div class="stat-label">Ocupadas</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statPorcentajeOcupacion">50%</div>
+                        <div class="stat-label">Ocupación</div>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-label">Ocupación Total</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="ocupacionBar" style="width: 50%"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
         
-        <!-- ===== SECCIÓN 2: CONFIGURAR EVENTO ===== -->
-        <section class="config-section">
-            <div class="section-header">
-                <i class="fas fa-sliders-h"></i>
-                <h3>CONFIGURAR EVENTO</h3>
-            </div>
-            
-            <form class="form-grid" id="eventConfigForm">
-                <div class="form-group">
-                    <label for="eventName">
-                        <i class="fas fa-tag"></i>
-                        Nombre del Evento
-                    </label>
-                    <input type="text" id="eventName" placeholder="Ej: Boda de Ana y Carlos" value="Boda de Ana y Carlos">
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="eventDate">
-                            <i class="fas fa-calendar"></i>
-                            Fecha
-                        </label>
-                        <input type="date" id="eventDate" value="2024-06-15">
-                    </div>
-                    <div class="form-group">
-                        <label for="eventTime">
-                            <i class="fas fa-clock"></i>
-                            Hora
-                        </label>
-                        <input type="time" id="eventTime" value="18:00">
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="numMesas">
-                            <i class="fas fa-table"></i>
-                            Mesas
-                        </label>
-                        <input type="number" id="numMesas" min="1" max="100" value="8">
-                    </div>
-                    <div class="form-group">
-                        <label for="sillasPorMesa">
-                            <i class="fas fa-chair"></i>
-                            Sillas por Mesa
-                        </label>
-                        <input type="number" id="sillasPorMesa" min="1" max="20" value="8">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="formaMesa">
-                        <i class="fas fa-shapes"></i>
-                        Forma de la Mesa
-                    </label>
-                    <select id="formaMesa">
-                        <option value="rectangular">▢ Rectangular</option>
-                        <option value="circular">● Circular</option>
-                        <option value="cuadrada">■ Cuadrada</option>
-                    </select>
-                </div>
-            </form>
-            
-            <div class="form-actions">
-                <button class="btn btn-primary" id="btnCrearMesas">
-                    <i class="fas fa-sync"></i> ACTUALIZAR MESAS
-                </button>
-            </div>
-        </section>
-        
-        <!-- ===== SECCIÓN 3: DISEÑO DE MESAS ===== -->
-        <section class="mesas-section">
-            <div class="section-header">
-                <i class="fas fa-chair"></i>
-                <h3>DISEÑO DE MESAS</h3>
-            </div>
-            
+        <!-- ===== COLUMNA 2: Área de Mesas (CENTRO) ===== -->
+        <section class="mesas-area">
             <div class="mesas-header">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchGuests" placeholder="Buscar invitado...">
+                    <input type="text" id="searchGuests" placeholder="Buscar invitado en mesas...">
                 </div>
                 
                 <div class="mesas-controls">
-                    <div class="zoom-controls">
-                        <button class="btn-icon" id="zoomOutBtn" title="Alejar">
-                            <i class="fas fa-search-minus"></i>
-                        </button>
-                        <button class="btn-icon" id="zoomInBtn" title="Acercar">
-                            <i class="fas fa-search-plus"></i>
-                        </button>
-                    </div>
+                    <button class="btn-icon" id="zoomInBtn" title="Acercar">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="btn-icon" id="zoomOutBtn" title="Alejar">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
                     <button class="btn-icon" id="resetViewBtn" title="Restablecer Vista">
                         <i class="fas fa-expand-arrows-alt"></i>
                     </button>
@@ -188,51 +151,188 @@
                         <input type="checkbox" id="showNames" checked>
                         <span>Mostrar Nombres</span>
                     </label>
+                    <label class="checkbox">
+                        <input type="checkbox" id="autoSave" checked>
+                        <span>Guardado Automático</span>
+                    </label>
                 </div>
             </div>
         </section>
         
-        <!-- ===== SECCIÓN 4: GESTIÓN DE INVITADOS ===== -->
-        <section class="guests-section">
-            <div class="section-header">
-                <i class="fas fa-users"></i>
-                <h3>GESTIÓN DE INVITADOS</h3>
+        <!-- ===== COLUMNA 3: Configuración + Invitados (DERECHA) ===== -->
+        <aside class="right-panel">
+            <!-- FILA 1: Configuración del Evento -->
+            <div class="config-section">
+                <div class="panel-section">
+                    <h3>
+                        <i class="fas fa-sliders-h"></i>
+                        Configuración del Evento
+                    </h3>
+                    
+                    <div class="form-group">
+                        <label for="eventName">Nombre del Evento *</label>
+                        <input type="text" id="eventName" placeholder="Ej: Boda de Ana y Carlos" value="Boda de Ana y Carlos">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="eventDate">Fecha</label>
+                            <input type="date" id="eventDate" value="2024-06-15">
+                        </div>
+                        <div class="form-group">
+                            <label for="eventTime">Hora</label>
+                            <input type="time" id="eventTime" value="18:00">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eventDescription">Descripción</label>
+                        <textarea id="eventDescription" rows="2" placeholder="Descripción del evento...">Celebración de boda en el jardín principal</textarea>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="numMesas">Número de Mesas</label>
+                            <input type="number" id="numMesas" min="1" max="100" value="8">
+                        </div>
+                        <div class="form-group">
+                            <label for="sillasPorMesa">Sillas por Mesa</label>
+                            <input type="number" id="sillasPorMesa" min="1" max="20" value="8">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="formaMesa">Forma de la Mesa</label>
+                        <select id="formaMesa">
+                            <option value="rectangular">Rectangular</option>
+                            <option value="circular">Circular</option>
+                            <option value="cuadrada">Cuadrada</option>
+                        </select>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button class="btn-primary" id="btnCrearMesas">
+                            <i class="fas fa-sync"></i> Actualizar Mesas
+                        </button>
+                        <button class="btn-secondary" id="btnGuardarEvento">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </div>
             </div>
             
-            <div class="guest-header">
-                <div class="guest-search">
-                    <input type="text" id="guestSearch" placeholder="Buscar invitado...">
-                    <button class="btn-icon" id="addGuestBtn" title="Agregar Invitado">
-                        <i class="fas fa-user-plus"></i>
-                    </button>
+            <!-- FILA 2: Lista de Invitados -->
+            <div class="guests-section">
+                <div class="panel-section">
+                    <h3>
+                        <i class="fas fa-users"></i>
+                        Lista de Invitados
+                    </h3>
+                    
+                    <div class="guest-search">
+                        <input type="text" id="guestSearch" placeholder="Buscar invitado...">
+                        <button class="btn-icon" id="addGuestBtn" title="Agregar Invitado">
+                            <i class="fas fa-user-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="guest-filters">
+                        <select id="guestFilter">
+                            <option value="all">Todos los invitados</option>
+                            <option value="assigned">Asignados a mesa</option>
+                            <option value="unassigned">Sin asignar</option>
+                            <option value="confirmed">Confirmados</option>
+                        </select>
+                    </div>
+                    
+                    <div class="guests-list" id="guestsList">
+                        <!-- Lista de invitados se generará aquí -->
+                    </div>
+                    
+                    <div class="guest-actions">
+                        <button class="btn-secondary btn-small" id="importGuestsBtn">
+                            <i class="fas fa-file-import"></i> Importar CSV
+                        </button>
+                        <button class="btn-secondary btn-small" id="exportGuestsBtn">
+                            <i class="fas fa-file-export"></i> Exportar Lista
+                        </button>
+                    </div>
                 </div>
                 
-                <div class="guest-filters">
-                    <select id="guestFilter">
-                        <option value="all">Todos los invitados</option>
-                        <option value="assigned">Asignados a mesa</option>
-                        <option value="unassigned">Sin asignar</option>
-                        <option value="confirmed">Confirmados</option>
-                    </select>
+                <div class="panel-section guest-details-section">
+                    <h3>
+                        <i class="fas fa-info-circle"></i>
+                        Información de Invitado
+                    </h3>
+                    
+                    <div class="guest-details" id="guestDetails">
+                        <div class="empty-state">
+                            <i class="fas fa-user"></i>
+                            <p>Selecciona un invitado para ver sus detalles</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="guests-list" id="guestsList">
-                <!-- Invitados se generarán aquí -->
-            </div>
-            
-            <div class="guest-actions">
-                <button class="btn btn-secondary btn-small" id="importGuestsBtn">
-                    <i class="fas fa-file-import"></i> IMPORTAR CSV
-                </button>
-                <button class="btn btn-secondary btn-small" id="exportGuestsBtn">
-                    <i class="fas fa-file-export"></i> EXPORTAR LISTA
-                </button>
-            </div>
-        </section>
+        </aside>
     </main>
-
-    <!-- Scripts -->
+    
+    <!-- Modales -->
+    <div class="modal" id="newEventModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-plus"></i> Nuevo Evento</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="newEventForm">
+                    <div class="form-group">
+                        <label for="newEventName">Nombre del Evento *</label>
+                        <input type="text" id="newEventName" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newEventDate">Fecha *</label>
+                            <input type="date" id="newEventDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newEventTime">Hora</label>
+                            <input type="time" id="newEventTime">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newEventLocation">Ubicación</label>
+                        <input type="text" id="newEventLocation" placeholder="Ej: Salón de Eventos Principal">
+                    </div>
+                    <div class="form-group">
+                        <label for="newEventType">Tipo de Evento</label>
+                        <select id="newEventType">
+                            <option value="boda">Boda</option>
+                            <option value="conferencia">Conferencia</option>
+                            <option value="fiesta">Fiesta</option>
+                            <option value="corporativo">Evento Corporativo</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Configuración Inicial</label>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="useTemplate" checked>
+                            <label for="useTemplate">Usar plantilla predeterminada</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary modal-cancel">Cancelar</button>
+                <button class="btn-primary" id="createEventBtn">Crear Evento</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div id="messageToast" class="toast"></div>
+    
+    <script src="login.js"></script>
     <script src="cliente.js"></script>
 </body>
 </html>
