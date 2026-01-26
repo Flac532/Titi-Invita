@@ -466,24 +466,82 @@ body {
     color: var(--text-lighter);
 }
 
-/* Contenedor de mesas - AHORA CON MÁS ESPACIO */
+/* ===== CONTENEDOR DE MESAS RESPONSIVO ===== */
+/* GRID RESPONSIVO AUTOMÁTICO */
 .mesas-container {
     flex: 1;
     padding: 30px;
     overflow: auto;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 70px 125px;
-    justify-content: center;
-    align-content: flex-start;
+    display: grid;
+    gap: 40px;
     background-color: #f9f9f9 !important;
     min-height: 500px;
+    justify-content: center;
+    align-items: start;
 }
 
+/* Desktop grande: 4 columnas */
+@media (min-width: 1400px) {
+    .mesas-container {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 50px;
+    }
+}
+
+/* Desktop normal: 3 columnas */
+@media (min-width: 1024px) and (max-width: 1399px) {
+    .mesas-container {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 45px;
+    }
+}
+
+/* Desktop pequeño / Tablet grande: 2 columnas */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .mesas-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+        padding: 25px;
+    }
+}
+
+/* Tablet: 2 columnas más compactas */
+@media (min-width: 600px) and (max-width: 767px) {
+    .mesas-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+        padding: 20px;
+    }
+}
+
+/* Móvil grande: 1 columna */
+@media (min-width: 480px) and (max-width: 599px) {
+    .mesas-container {
+        grid-template-columns: 1fr;
+        gap: 35px;
+        padding: 20px;
+    }
+}
+
+/* Móvil pequeño: 1 columna compacta */
+@media (max-width: 479px) {
+    .mesas-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 15px;
+    }
+}
+
+/* Estilos para cada mesa */
 .mesa {
     position: relative;
-    margin-bottom: 80px;
-    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-self: center;
+    width: 100%;
+    max-width: 250px;
+    margin: 0 auto;
 }
 
 .mesa-info {
@@ -496,6 +554,8 @@ body {
     cursor: pointer;
     transition: background-color 0.3s;
     color: #333333 !important;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .mesa-info:hover {
@@ -513,59 +573,162 @@ body {
     background-color: var(--color-mesa);
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     z-index: 1;
-    margin-top: 100px;
+    margin-top: 20px;
 }
 
+/* Tamaños responsivos de mesas */
 .mesa-rectangular {
-    width: 210px;
-    height: 110px;
+    width: 180px;
+    height: 100px;
     border-radius: 10px;
+    font-size: 0.9rem;
 }
 
 .mesa-circular {
     width: 140px;
     height: 140px;
     border-radius: 50%;
+    font-size: 0.9rem;
 }
 
 .mesa-cuadrada {
-    width: 160px;
-    height: 160px;
+    width: 150px;
+    height: 150px;
     border-radius: 10px;
+    font-size: 0.9rem;
 }
 
+/* Ajustes responsivos para mesas */
+@media (max-width: 1023px) {
+    .mesa-rectangular {
+        width: 160px;
+        height: 90px;
+    }
+    
+    .mesa-circular {
+        width: 130px;
+        height: 130px;
+    }
+    
+    .mesa-cuadrada {
+        width: 140px;
+        height: 140px;
+    }
+}
+
+@media (max-width: 599px) {
+    .mesa {
+        max-width: 200px;
+    }
+    
+    .mesa-rectangular {
+        width: 140px;
+        height: 80px;
+        font-size: 0.8rem;
+    }
+    
+    .mesa-circular {
+        width: 120px;
+        height: 120px;
+        font-size: 0.8rem;
+    }
+    
+    .mesa-cuadrada {
+        width: 130px;
+        height: 130px;
+        font-size: 0.8rem;
+    }
+    
+    .mesa-info {
+        font-size: 0.9rem;
+        padding: 6px 10px;
+    }
+}
+
+@media (max-width: 479px) {
+    .mesa {
+        max-width: 180px;
+    }
+    
+    .mesa-rectangular {
+        width: 130px;
+        height: 70px;
+    }
+    
+    .mesa-circular {
+        width: 110px;
+        height: 110px;
+    }
+    
+    .mesa-cuadrada {
+        width: 120px;
+        height: 120px;
+    }
+}
+
+/* Contenedor de sillas responsivo */
 .sillas-container {
     position: absolute;
-    width: calc(100% + 50px);
-    height: calc(100% + 50px);
-    top: 50px; 
-    left: -25px; 
+    width: calc(100% + 40px);
+    height: calc(100% + 40px);
+    top: 30px;
+    left: -20px;
 }
 
 .circular-sillas {
     width: 140px;
     height: 140px;
-    top: 75%;
+    top: 70%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
 
 .rectangular-sillas, .cuadrada-sillas {
-    width: calc(100% + 50px);
-    height: calc(100% + 50px);
-    top: 50px;
-    left: -25px;
+    width: calc(100% + 40px);
+    height: calc(100% + 40px);
+    top: 30px;
+    left: -20px;
 }
 
+/* Ajustes responsivos para contenedor de sillas */
+@media (max-width: 1023px) {
+    .sillas-container {
+        width: calc(100% + 35px);
+        height: calc(100% + 35px);
+        top: 25px;
+        left: -17.5px;
+    }
+    
+    .circular-sillas {
+        width: 130px;
+        height: 130px;
+    }
+}
+
+@media (max-width: 599px) {
+    .sillas-container {
+        width: calc(100% + 30px);
+        height: calc(100% + 30px);
+        top: 20px;
+        left: -15px;
+    }
+    
+    .circular-sillas {
+        width: 120px;
+        height: 120px;
+    }
+}
+
+/* Sillas */
 .silla {
     position: absolute;
-    width: 32px;
-    height: 42px;
+    width: 28px; /* Un poco más pequeñas para móviles */
+    height: 38px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 9px;
     color: white;
     font-weight: bold;
     transition: transform 0.2s, filter 0.2s;
@@ -579,10 +742,10 @@ body {
 .silla:before {
     content: '';
     position: absolute;
-    top: -6px;
-    left: 6px;
-    width: 20px;
-    height: 8px;
+    top: -5px;
+    left: 5px;
+    width: 18px;
+    height: 7px;
     background-color: inherit;
     border-radius: 3px 3px 0 0;
 }
@@ -603,6 +766,22 @@ body {
 
 .estado-confirmado {
     background-color: var(--color-confirmado) !important;
+}
+
+/* Ajustes de sillas para móviles */
+@media (max-width: 599px) {
+    .silla {
+        width: 26px;
+        height: 36px;
+        font-size: 8px;
+    }
+    
+    .silla:before {
+        top: -4px;
+        left: 4px;
+        width: 16px;
+        height: 6px;
+    }
 }
 
 /* Footer visualización */
@@ -997,15 +1176,11 @@ body {
     border: 1px solid var(--border-color);
 }
 
-/* ===== RESPONSIVE ===== */
+/* ===== RESPONSIVE GENERAL ===== */
 @media (max-width: 1200px) {
     .control-panel,
     .guests-panel {
         width: 280px;
-    }
-    
-    .mesas-container {
-        gap: 60px 100px;
     }
 }
 
@@ -1050,6 +1225,13 @@ body {
     .event-selector {
         min-width: 100%;
     }
+    
+    /* Ajustes para mesas en tablet vertical */
+    .mesas-container {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 35px;
+        padding: 20px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1089,11 +1271,6 @@ body {
         min-width: 100%;
     }
     
-    .mesas-container {
-        padding: 15px;
-        gap: 40px 80px;
-    }
-    
     .visualization-footer {
         flex-direction: column;
         gap: 15px;
@@ -1112,33 +1289,11 @@ body {
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
     .mesas-container {
-        gap: 30px 60px;
-        padding: 10px;
-    }
-    
-    .mesa {
-        margin-bottom: 60px;
-    }
-    
-    .mesa-rectangular {
-        width: 160px;
-        height: 90px;
-    }
-    
-    .mesa-circular {
-        width: 120px;
-        height: 120px;
-    }
-    
-    .mesa-cuadrada {
-        width: 130px;
-        height: 130px;
-    }
-    
-    .modal-content {
-        margin: 10px;
+        grid-template-columns: 1fr !important;
+        gap: 30px;
+        padding: 15px;
     }
     
     .form-row {
@@ -1153,5 +1308,97 @@ body {
     .legend {
         flex-direction: column;
         gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        margin: 10px;
+    }
+}
+
+/* ===== ANULAR COMPLETAMENTE EL MODO OSCURO ===== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary-color: #764ba2 !important;
+        --primary-dark: #5a3780 !important;
+        --primary-light: #9a7bb8 !important;
+        --secondary-color: #f5a623 !important;
+        --bg-light: #f8f9fa !important;
+        --bg-white: #ffffff !important;
+        --text-dark: #333333 !important;
+        --text-light: #666666 !important;
+        --text-lighter: #888888 !important;
+        --border-color: #e0e0e0 !important;
+        
+        --color-sin-asignar: #9E9E9E !important;
+        --color-asignado: #f44336 !important;
+        --color-confirmado: #4CAF50 !important;
+        --color-mesa: #8B4513 !important;
+        --color-silla: #9E9E9E !important;
+    }
+    
+    body {
+        background: #f5f7fa !important;
+        color: #333333 !important;
+    }
+    
+    /* Mantener todos los estilos en modo claro */
+    .cliente-header,
+    .control-panel,
+    .guests-panel,
+    .visualization-header,
+    .visualization-footer,
+    .modal-content {
+        background: #ffffff !important;
+        color: #333333 !important;
+        border-color: #e0e0e0 !important;
+    }
+    
+    .mesas-container {
+        background-color: #f9f9f9 !important;
+    }
+    
+    .mesa-info {
+        background: #e8f5e9 !important;
+        color: #333333 !important;
+    }
+    
+    .search-box input,
+    .form-group input,
+    .form-group select,
+    .form-group textarea,
+    .event-selector select,
+    .guest-filters select,
+    .guest-search input,
+    .share-link input {
+        background: #ffffff !important;
+        color: #333333 !important;
+        border-color: #e0e0e0 !important;
+    }
+    
+    .guest-item {
+        background: #f8f9fa !important;
+        color: #333333 !important;
+    }
+    
+    /* Todos los textos en color oscuro */
+    .panel-section h3,
+    .form-group label,
+    .guest-name,
+    .guest-detail-info h4,
+    .detail-value,
+    .modal-header h3 {
+        color: #333333 !important;
+    }
+    
+    /* Textos secundarios en gris */
+    .user-details small,
+    .history-time,
+    .guest-details,
+    .guest-detail-info p,
+    .detail-label,
+    .empty-state {
+        color: #666666 !important;
     }
 }
