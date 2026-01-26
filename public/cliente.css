@@ -965,109 +965,61 @@ body {
     border: 1px solid var(--border-color);
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 1200px) {
-    .cliente-main {
-        grid-template-columns: 280px 1fr 380px;
-    }
-}
-
-@media (max-width: 992px) {
-    .cliente-main {
-        grid-template-columns: 250px 1fr 350px;
-    }
-    
-    .mesas-container {
-        gap: 50px 100px;
-        padding: 20px;
-    }
-}
-
+/* ===== RESPONSIVE OPTIMIZADO ===== */
 @media (max-width: 768px) {
+    /* 1. Cambiar grid por flex vertical */
     .cliente-main {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr auto;
+        display: flex;
+        flex-direction: column;
         height: auto;
-        min-height: 100vh;
     }
     
+    /* 2. Orden de las secciones: */
+    /* Primero: Panel de evento (logo, usuario, selector) */
     .event-panel {
-        grid-row: 1;
-        height: auto;
-        max-height: none;
+        order: 1;
+        width: 100%;
         border-right: none;
         border-bottom: 1px solid var(--border-color);
-    }
-    
-    .mesas-area {
-        grid-row: 2;
-        min-height: 500px;
-    }
-    
-    .right-panel {
-        grid-row: 3;
-        border-left: none;
-        border-top: 1px solid var(--border-color);
-        flex-direction: row;
-        max-height: none;
-    }
-    
-    .config-section,
-    .guests-section {
-        flex: 1;
-        max-height: none;
-        border-bottom: none;
-        border-right: 1px solid var(--border-color);
-    }
-    
-    .guests-section {
-        border-right: none;
-    }
-    
-    .mesas-container {
-        gap: 40px 80px;
         padding: 15px;
     }
     
-    .mesa {
-        margin-bottom: 60px;
-    }
-    
-    .mesa-rectangular {
-        width: 180px;
-        height: 100px;
-    }
-    
-    .mesa-circular {
-        width: 130px;
-        height: 130px;
-    }
-    
-    .mesa-cuadrada {
-        width: 150px;
-        height: 150px;
-    }
-}
-
-@media (max-width: 480px) {
-    .right-panel {
-        flex-direction: column;
-    }
-    
+    /* Segundo: Configuración del evento (antes parte de columna 3) */
     .config-section {
-        border-right: none;
+        order: 2;
+        width: 100%;
         border-bottom: 1px solid var(--border-color);
+        padding: 15px;
     }
     
+    /* Tercero: Área de mesas (centro) */
+    .mesas-area {
+        order: 3;
+        width: 100%;
+        border-bottom: 1px solid var(--border-color);
+        min-height: 500px;
+    }
+    
+    /* Cuarto: Invitados (resto de columna 3) */
+    .guests-section {
+        order: 4;
+        width: 100%;
+        padding: 15px;
+    }
+    
+    /* 3. Reorganizar panel derecho */
+    .right-panel {
+        display: contents; /* Hace que los hijos sean hijos directos del grid */
+    }
+    
+    /* 4. Ajustar mesas para móvil */
     .mesas-container {
-        gap: 30px 60px;
-        padding: 10px;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 30px !important;
+        padding: 20px !important;
     }
     
-    .mesa {
-        margin-bottom: 50px;
-    }
-    
+    /* 5. Ajustar tamaños */
     .mesa-rectangular {
         width: 160px;
         height: 90px;
@@ -1083,12 +1035,26 @@ body {
         height: 140px;
     }
     
+    /* 6. Ajustar formularios */
     .form-row {
         grid-template-columns: 1fr;
     }
     
-    .modal-content {
-        margin: 10px;
+    .button-group {
+        flex-direction: column;
+    }
+}
+
+/* Móvil pequeño: 1 columna de mesas */
+@media (max-width: 480px) {
+    .mesas-container {
+        grid-template-columns: 1fr !important;
+        gap: 35px !important;
+    }
+    
+    .mesa {
+        max-width: 200px;
+        margin: 0 auto;
     }
 }
 
