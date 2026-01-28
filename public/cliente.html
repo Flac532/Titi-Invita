@@ -8,6 +8,54 @@
     <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <style>
+        /* Estilos adicionales para roles y límites */
+        .role-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 5px;
+        }
+        
+        .role-badge.admin {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+        }
+        
+        .role-badge.organizador {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+            color: white;
+        }
+        
+        .role-badge.cliente {
+            background: linear-gradient(135deg, #2196F3, #1565C0);
+            color: white;
+        }
+        
+        .event-limit-info {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #ff9800, #ff5722);
+            color: white;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            animation: pulse 2s infinite;
+            display: none;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+    </style>
 </head>
 <body>
     <!-- Contenido Principal - Layout de 3 columnas -->
@@ -24,8 +72,17 @@
                     <div class="user-avatar" id="userAvatar">MG</div>
                     <div class="user-details">
                         <strong id="userName">María González</strong>
-                        <small id="userRole">Cliente</small>
+                        <div>
+                            <small id="userRole">Cliente</small>
+                            <span id="roleBadge" class="role-badge cliente"></span>
+                        </div>
                     </div>
+                </div>
+                
+                <!-- Información de límite de eventos -->
+                <div class="event-limit-info" id="eventLimitInfo">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="limitText"></span>
                 </div>
                 
                 <div class="event-selector-container">
@@ -52,6 +109,7 @@
                         <h4>Evento Actual:</h4>
                         <h2 id="currentEventName">Boda de Ana y Carlos</h2>
                         <p id="currentEventDate">15 de Junio, 2024 - 18:00</p>
+                        <p id="currentEventStatus">Estado: <span class="status-active">Activo</span></p>
                     </div>
                 </div>
                 
@@ -103,6 +161,28 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Estadísticas de eventos -->
+            <div class="panel-section event-stats">
+                <h3>
+                    <i class="fas fa-chart-bar"></i>
+                    Estadísticas de Eventos
+                </h3>
+                <div class="event-counts">
+                    <div class="count-item">
+                        <span class="count-value" id="totalEventsCount">1</span>
+                        <span class="count-label">Total Eventos</span>
+                    </div>
+                    <div class="count-item">
+                        <span class="count-value" id="activeEventsCount">1</span>
+                        <span class="count-label">Activos</span>
+                    </div>
+                    <div class="count-item">
+                        <span class="count-value" id="draftEventsCount">0</span>
+                        <span class="count-label">Borradores</span>
+                    </div>
+                </div>
+            </div>
         </aside>
         
         <!-- ===== COLUMNA 2: Área de Mesas (CENTRO) ===== -->
@@ -122,6 +202,9 @@
                     </button>
                     <button class="btn-icon" id="resetViewBtn" title="Restablecer Vista">
                         <i class="fas fa-expand-arrows-alt"></i>
+                    </button>
+                    <button class="btn-icon" id="changeLayoutBtn" title="Cambiar Disposición" onclick="mostrarOpcionesDisposicion()">
+                        <i class="fas fa-th"></i>
                     </button>
                 </div>
             </div>
@@ -154,6 +237,10 @@
                     <label class="checkbox">
                         <input type="checkbox" id="autoSave" checked>
                         <span>Guardado Automático</span>
+                    </label>
+                    <label class="checkbox">
+                        <input type="checkbox" id="showGrid">
+                        <span>Mostrar Cuadrícula</span>
                     </label>
                 </div>
             </div>
@@ -190,6 +277,25 @@
                         <textarea id="eventDescription" rows="2" placeholder="Descripción del evento...">Celebración de boda en el jardín principal</textarea>
                     </div>
                     
+                    <!-- Configuración de Disposición -->
+                    <div class="form-group">
+                        <label>Disposición de Mesas</label>
+                        <div class="disposicion-row">
+                            <div class="form-group-small">
+                                <label for="numColumnas">Columnas</label>
+                                <input type="number" id="numColumnas" min="1" max="20" value="4" onchange="actualizarDisposicion()">
+                            </div>
+                            <div class="form-group-small">
+                                <label for="numFilas">Filas</label>
+                                <input type="number" id="numFilas" min="1" max="20" value="2" onchange="actualizarDisposicion()">
+                            </div>
+                            <div class="form-group-small">
+                                <label for="espaciado">Espaciado</label>
+                                <input type="number" id="espaciado" min="10" max="200" value="70" onchange="actualizarDisposicion()">
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="form-row">
                         <div class="form-group">
                             <label for="numMesas">Número de Mesas</label>
@@ -216,6 +322,9 @@
                         </button>
                         <button class="btn-secondary" id="btnGuardarEvento">
                             <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                        <button class="btn-secondary" id="btnFinalizarEvento" title="Finalizar Evento">
+                            <i class="fas fa-flag-checkered"></i> Finalizar
                         </button>
                     </div>
                 </div>
@@ -255,6 +364,9 @@
                         </button>
                         <button class="btn-secondary btn-small" id="exportGuestsBtn">
                             <i class="fas fa-file-export"></i> Exportar Lista
+                        </button>
+                        <button class="btn-secondary btn-small" id="sendInvitationsBtn">
+                            <i class="fas fa-envelope"></i> Enviar Invitaciones
                         </button>
                     </div>
                 </div>
@@ -320,6 +432,10 @@
                             <label for="useTemplate">Usar plantilla predeterminada</label>
                         </div>
                     </div>
+                    <div id="eventLimitWarning" style="display: none; color: #f44336; font-size: 0.9rem; margin-top: 10px;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Como cliente solo puedes tener 1 evento activo.</span>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -329,10 +445,122 @@
         </div>
     </div>
     
+    <!-- Modal Opciones de Disposición -->
+    <div class="modal" id="layoutModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-th"></i> Configurar Disposición</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="layout-options">
+                    <div class="layout-presets">
+                        <h4>Disposiciones Predefinidas</h4>
+                        <div class="preset-grid">
+                            <div class="preset-item" onclick="aplicarPreset(4, 2, 70)">
+                                <div class="preset-visual" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
+                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
+                                </div>
+                                <span>4x2</span>
+                            </div>
+                            <div class="preset-item" onclick="aplicarPreset(3, 3, 80)">
+                                <div class="preset-visual" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
+                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
+                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
+                                </div>
+                                <span>3x3</span>
+                            </div>
+                            <div class="preset-item" onclick="aplicarPreset(5, 2, 60)">
+                                <div class="preset-visual" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
+                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
+                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
+                                </div>
+                                <span>5x2</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="layout-custom">
+                        <h4>Personalizado</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="customColumnas">Columnas</label>
+                                <input type="range" id="customColumnas" min="1" max="10" value="4" oninput="document.getElementById('columnasValue').textContent = this.value">
+                                <span id="columnasValue">4</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="customFilas">Filas</label>
+                                <input type="range" id="customFilas" min="1" max="10" value="2" oninput="document.getElementById('filasValue').textContent = this.value">
+                                <span id="filasValue">2</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="customEspaciado">Espaciado (px)</label>
+                            <input type="range" id="customEspaciado" min="20" max="150" value="70" oninput="document.getElementById('espaciadoValue').textContent = this.value + 'px'">
+                            <span id="espaciadoValue">70px</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModal(document.getElementById('layoutModal'))">Cancelar</button>
+                <button class="btn-primary" onclick="aplicarDisposicionPersonalizada()">Aplicar</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Toast -->
     <div id="messageToast" class="toast"></div>
     
     <script src="login.js"></script>
     <script src="cliente.js"></script>
+    
+    <script>
+        // Funciones auxiliares para disposición
+        function mostrarOpcionesDisposicion() {
+            document.getElementById('layoutModal').style.display = 'flex';
+        }
+        
+        function aplicarPreset(columnas, filas, espaciado) {
+            document.getElementById('numColumnas').value = columnas;
+            document.getElementById('numFilas').value = filas;
+            document.getElementById('espaciado').value = espaciado;
+            actualizarDisposicion();
+            cerrarModal(document.getElementById('layoutModal'));
+        }
+        
+        function aplicarDisposicionPersonalizada() {
+            const columnas = document.getElementById('customColumnas').value;
+            const filas = document.getElementById('customFilas').value;
+            const espaciado = document.getElementById('customEspaciado').value;
+            
+            document.getElementById('numColumnas').value = columnas;
+            document.getElementById('numFilas').value = filas;
+            document.getElementById('espaciado').value = espaciado;
+            actualizarDisposicion();
+            cerrarModal(document.getElementById('layoutModal'));
+        }
+        
+        function actualizarDisposicion() {
+            const columnas = document.getElementById('numColumnas').value;
+            const filas = document.getElementById('numFilas').value;
+            const espaciado = document.getElementById('espaciado').value;
+            
+            // Aquí iría la lógica para actualizar la disposición de las mesas
+            // Por ahora solo mostramos un mensaje
+            const toast = document.getElementById('messageToast');
+            if (toast) {
+                toast.textContent = `Disposición actualizada: ${columnas} columnas × ${filas} filas`;
+                toast.className = 'toast info show';
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            }
+        }
+        
+        function cerrarModal(modal) {
+            modal.style.display = 'none';
+        }
+    </script>
 </body>
 </html>
