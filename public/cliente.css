@@ -127,6 +127,58 @@ body {
     color: var(--text-light);
 }
 
+/* Badge de rol */
+.role-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 5px;
+}
+
+.role-badge.admin {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    color: white;
+}
+
+.role-badge.organizador {
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    color: white;
+}
+
+.role-badge.cliente {
+    background: linear-gradient(135deg, #2196F3, #1565C0);
+    color: white;
+}
+
+/* Información de límite de eventos */
+.event-limit-info {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #ff9800, #ff5722);
+    color: white;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    animation: pulse 2s infinite;
+    display: none;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.8; }
+    100% { opacity: 1; }
+}
+
+.event-limit-info i {
+    font-size: 1rem;
+}
+
 /* Selector de evento */
 .event-selector-container h3 {
     display: flex;
@@ -287,6 +339,143 @@ body {
     background: linear-gradient(to right, var(--primary-color), var(--primary-light));
     border-radius: 4px;
     transition: width 0.5s ease;
+}
+
+/* ===== ESTILOS ADICIONALES PARA 3 ROLES ===== */
+
+/* Panel de estadísticas de eventos */
+.event-stats {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: var(--shadow);
+}
+
+.event-counts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    text-align: center;
+}
+
+.count-item {
+    padding: 15px;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.count-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.count-value {
+    display: block;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.count-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Opciones de disposición */
+.disposicion-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.form-group-small {
+    margin-bottom: 0;
+}
+
+.form-group-small label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.form-group-small input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    background: var(--bg-white);
+    color: var(--text-dark);
+}
+
+.form-group-small input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* Modal de disposición */
+.layout-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.layout-presets h4,
+.layout-custom h4 {
+    font-size: 1rem;
+    color: var(--text-dark);
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.preset-item {
+    padding: 15px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.preset-item:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.preset-visual {
+    margin-bottom: 10px;
+}
+
+.preset-mesa {
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 4px;
+    margin: 0 auto;
+}
+
+/* Botón de finalizar evento */
+#btnFinalizarEvento {
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    color: white;
+}
+
+#btnFinalizarEvento:hover {
+    background: linear-gradient(135deg, #F57C00, #E65100);
 }
 
 /* ===== COLUMNA 2: Área de Mesas (CENTRO) ===== */
@@ -965,6 +1154,22 @@ body {
     border: 1px solid var(--border-color);
 }
 
+.warning-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background: rgba(244, 67, 54, 0.1);
+    border-radius: var(--radius-sm);
+    margin-top: 20px;
+    color: var(--error-color);
+    font-weight: 500;
+}
+
+.warning-box i {
+    font-size: 1.2rem;
+}
+
 /* ===== RESPONSIVE OPTIMIZADO ===== */
 @media (max-width: 768px) {
     /* 1. Cambiar grid por flex vertical */
@@ -1043,6 +1248,14 @@ body {
     .button-group {
         flex-direction: column;
     }
+    
+    .disposicion-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .event-counts {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Móvil pequeño: 1 columna de mesas */
@@ -1082,5 +1295,22 @@ body {
         background: #ffffff !important;
         color: #333333 !important;
         border-color: #e0e0e0 !important;
+    }
+    
+    .event-stats {
+        background: #ffffff !important;
+    }
+    
+    .count-item {
+        background: #f8f9fa !important;
+    }
+    
+    .preset-item {
+        background: #ffffff !important;
+        border-color: #e0e0e0 !important;
+    }
+    
+    .preset-mesa {
+        background: var(--primary-color) !important;
     }
 }
