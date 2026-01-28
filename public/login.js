@@ -1,24 +1,36 @@
 // login.js - Sistema de autenticación para Titi Invita
 
-// Credenciales por defecto
+// Credenciales por defecto con 3 roles
 const USUARIOS_PREDEFINIDOS = [
     {
         id: 1,
         nombre: "Jorge Flores",
-        email: "jorge.flores@titi-app.com",  // ← CON GUION EN EMAIL
-        password: "Titi-apps2026@!",         // ← CON GUION EN CONTRASEÑA
+        email: "jorge.flores@titi-app.com",
+        password: "Titi-apps2026@!",
         rol: "admin",
         activo: true,
-        avatar: "JF"
+        avatar: "JF",
+        limite_eventos: null
     },
     {
         id: 2,
         nombre: "María González",
         email: "cliente@ejemplo.com",
-        password: "Titi-apps2026@!",         // ← CON GUION EN CONTRASEÑA
+        password: "Titi-apps2026@!",
         rol: "cliente",
         activo: true,
-        avatar: "MG"
+        avatar: "MG",
+        limite_eventos: 1
+    },
+    {
+        id: 3,
+        nombre: "Carlos Organizador",
+        email: "organizador@ejemplo.com",
+        password: "Titi-apps2026@!",
+        rol: "organizador",
+        activo: true,
+        avatar: "CO",
+        limite_eventos: null
     }
 ];
 
@@ -63,12 +75,12 @@ function verificarCredenciales(email, password) {
             nombre: usuario.nombre,
             email: usuario.email,
             rol: usuario.rol,
-            avatar: usuario.avatar
+            avatar: usuario.avatar,
+            limite_eventos: usuario.limite_eventos
         }
     };
 }
 
-// ========== CAMBIO IMPORTANTE AQUÍ ==========
 // Validar formato de email (acepta guiones)
 function validarEmail(email) {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -82,7 +94,6 @@ function validarPassword(password) {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.\-_])[A-Za-z\d@$!%*?&.\-_]{8,}$/;
     return regex.test(password);
 }
-// ===========================================
 
 // Guardar sesión en localStorage
 function guardarSesion(usuario, remember) {
@@ -94,8 +105,10 @@ function guardarSesion(usuario, remember) {
     
     if (remember) {
         localStorage.setItem('titi_sesion', JSON.stringify(sesionData));
+        localStorage.setItem('titi_usuario_actual', JSON.stringify(usuario));
     } else {
         sessionStorage.setItem('titi_sesion', JSON.stringify(sesionData));
+        localStorage.setItem('titi_usuario_actual', JSON.stringify(usuario));
     }
 }
 
@@ -121,6 +134,7 @@ function cargarSesionGuardada() {
             } else {
                 localStorage.removeItem('titi_sesion');
                 sessionStorage.removeItem('titi_sesion');
+                localStorage.removeItem('titi_usuario_actual');
             }
         } catch (error) {
             console.error('Error cargando sesión:', error);
@@ -132,12 +146,16 @@ function cargarSesionGuardada() {
 
 // Redireccionar según rol
 function redireccionarPorRol(usuario) {
+    localStorage.setItem('titi_usuario_actual', JSON.stringify(usuario));
+    
     if (usuario.rol === 'admin') {
-        localStorage.setItem('titi_usuario_actual', JSON.stringify(usuario));
         window.location.href = 'admin.html';
-    } else {
-        localStorage.setItem('titi_usuario_actual', JSON.stringify(usuario));
+    } else if (usuario.rol === 'cliente' || usuario.rol === 'organizador') {
+        // Ambos van al cliente.html pero con diferente límite de eventos
         window.location.href = 'cliente.html';
+    } else {
+        // Rol no reconocido
+        window.location.href = 'index.html';
     }
 }
 
@@ -173,7 +191,6 @@ async function handleLogin(event) {
         return;
     }
     
-    // ========== ¡ESTA VALIDACIÓN AHORA ACEPTA GUIÓN! ==========
     if (!validarPassword(password)) {
         showToast('La contraseña debe tener mínimo 8 caracteres, incluyendo mayúsculas, minúsculas, números y símbolos (@$!%*?&.-_)', 'warning');
         passwordInput.focus();
@@ -275,20 +292,35 @@ document.addEventListener('DOMContentLoaded', function() {
             this.value = "jorge.flores@titi-app.com";
             passwordInput.value = "Titi-apps2026@!";
             rememberCheckbox.checked = true;
-            showToast('Credenciales de demo cargadas', 'success');
+            showToast('Credenciales de admin cargadas', 'success');
         });
         
-        // Shortcuts de teclado
+        // Autocompletar cliente con Ctrl+1
         document.addEventListener('keydown', function(event) {
-            // Ctrl + Enter para login rápido
-            if (event.ctrlKey && event.key === 'Enter') {
-                loginForm.requestSubmit();
-            }
-            
-            // F1 para ayuda
-            if (event.key === 'F1') {
+            // Ctrl+1 para cliente
+            if (event.ctrlKey && event.key === '1') {
                 event.preventDefault();
-                showToast('Usa doble click en el campo de email para cargar credenciales demo', 'info');
+                emailInput.value = "cliente@ejemplo.com";
+                passwordInput.value = "Titi-apps2026@!";
+                showToast('Credenciales de cliente cargadas', 'success');
+            }
+            // Ctrl+2 para organizador
+            else if (event.ctrlKey && event.key === '2') {
+                event.preventDefault();
+                emailInput.value = "organizador@ejemplo.com";
+                passwordInput.value = "Titi-apps2026@!";
+                showToast('Credenciales de organizador cargadas', 'success');
+            }
+            // Ctrl+3 para admin
+            else if (event.ctrlKey && event.key === '3') {
+                event.preventDefault();
+                emailInput.value = "jorge.flores@titi-app.com";
+                passwordInput.value = "Titi-apps2026@!";
+                showToast('Credenciales de admin cargadas', 'success');
+            }
+            // Ctrl + Enter para login rápido
+            else if (event.ctrlKey && event.key === 'Enter') {
+                loginForm.requestSubmit();
             }
         });
     }
