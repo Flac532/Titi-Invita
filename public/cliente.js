@@ -1,4 +1,4 @@
-// cliente.js - Sistema de mesas completo para cliente
+// cliente.js - Sistema de mesas completo para cliente con 3 roles
 
 // ===== VARIABLES GLOBALES =====
 let eventosCliente = [];
@@ -8,6 +8,12 @@ let invitados = [];
 let sillaSeleccionada = null;
 let zoomLevel = 1;
 let usuario = null;
+let limiteEventos = null;
+let configuracionDisposicion = {
+    columnas: 4,
+    filas: 2,
+    espaciado: 70
+};
 
 // ===== ELEMENTOS DOM =====
 const eventSelector = document.getElementById('eventSelector');
@@ -21,6 +27,7 @@ const sillasPorMesaInput = document.getElementById('sillasPorMesa');
 const formaMesaSelect = document.getElementById('formaMesa');
 const btnCrearMesas = document.getElementById('btnCrearMesas');
 const btnGuardarEvento = document.getElementById('btnGuardarEvento');
+const btnFinalizarEvento = document.getElementById('btnFinalizarEvento');
 const mesasContainer = document.getElementById('mesasContainer');
 const newEventBtn = document.getElementById('newEventBtn');
 const newEventModal = document.getElementById('newEventModal');
@@ -28,6 +35,9 @@ const logoutBtn = document.getElementById('logoutBtn');
 const userAvatar = document.getElementById('userAvatar');
 const userName = document.getElementById('userName');
 const userRole = document.getElementById('userRole');
+const roleBadge = document.getElementById('roleBadge');
+const eventLimitInfo = document.getElementById('eventLimitInfo');
+const limitText = document.getElementById('limitText');
 const searchGuests = document.getElementById('searchGuests');
 const zoomInBtn = document.getElementById('zoomInBtn');
 const zoomOutBtn = document.getElementById('zoomOutBtn');
@@ -35,12 +45,20 @@ const resetViewBtn = document.getElementById('resetViewBtn');
 const showNamesCheckbox = document.getElementById('showNames');
 const autoSaveCheckbox = document.getElementById('autoSave');
 
+// Elementos de disposición
+const numColumnasInput = document.getElementById('numColumnas');
+const numFilasInput = document.getElementById('numFilas');
+const espaciadoInput = document.getElementById('espaciado');
+
 // Estadísticas
 const statTotalMesas = document.getElementById('statTotalMesas');
 const statTotalSillas = document.getElementById('statTotalSillas');
 const statSillasOcupadas = document.getElementById('statSillasOcupadas');
 const statPorcentajeOcupacion = document.getElementById('statPorcentajeOcupacion');
 const ocupacionBar = document.getElementById('ocupacionBar');
+const totalEventsCount = document.getElementById('totalEventsCount');
+const activeEventsCount = document.getElementById('activeEventsCount');
+const draftEventsCount = document.getElementById('draftEventsCount');
 
 // Lista de invitados
 const guestsList = document.getElementById('guestsList');
@@ -60,9 +78,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Configurar UI con datos del usuario
-    userAvatar.textContent = usuario.avatar || usuario.nombre.substring(0, 2).toUpperCase();
-    userName.textContent = usuario.nombre;
-    userRole.textContent = usuario.rol === 'admin' ? 'Administrador' : 'Cliente';
+    inicializarInterfazUsuario();
+    
+    // Configurar límite de eventos según rol
+    configurarLimiteEventos();
     
     // Cargar datos iniciales
     cargarEventosUsuario();
@@ -74,54 +93,141 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Crear mesas por defecto
     crearMesas();
+    
+    // Verificar límite al cargar
+    verificarLimiteEventos();
 });
 
 // ===== FUNCIONES PRINCIPALES =====
 
-// 1. Cargar eventos del usuario
+function inicializarInterfazUsuario() {
+    // Configurar avatar
+    userAvatar.textContent = usuario.avatar || usuario.nombre.substring(0, 2).toUpperCase();
+    userName.textContent = usuario.nombre;
+    
+    // Configurar rol y badge
+    const roleNames = {
+        'admin': 'Administrador',
+        'cliente': 'Cliente',
+        'organizador': 'Organizador'
+    };
+    const roleColors = {
+        'admin': 'admin',
+        'cliente': 'cliente',
+        'organizador': 'organizador'
+    };
+    
+    userRole.textContent = roleNames[usuario.rol] || usuario.rol;
+    roleBadge.textContent = usuario.rol.toUpperCase();
+    roleBadge.className = `role-badge ${roleColors[usuario.rol]}`;
+    
+    // Configurar límite de eventos
+    limiteEventos = usuario.limite_eventos;
+}
+
+function configurarLimiteEventos() {
+    if (limiteEventos === 1) {
+        // Mostrar información de límite para clientes
+        eventLimitInfo.style.display = 'flex';
+        limitText.textContent = 'Límite: 1 evento activo';
+        
+        // Actualizar mensaje en modal de nuevo evento
+        const limitWarning = document.getElementById('eventLimitWarning');
+        if (limitWarning) {
+            limitWarning.style.display = 'block';
+        }
+    }
+}
+
+// 1. Cargar eventos del usuario según su rol
 function cargarEventosUsuario() {
     // Datos de demo - en producción vendrían de la API
-    eventosCliente = [
-        {
-            id: 1,
-            nombre: 'Boda de Ana y Carlos',
-            descripcion: 'Celebración en jardín botánico',
-            fecha: '2024-06-15',
-            hora: '18:00',
-            ubicacion: 'Jardín Botánico',
-            estado: 'activo',
-            mesas: 8,
-            sillasPorMesa: 8,
-            formaMesa: 'rectangular',
-            configuracion: {}
-        },
-        {
-            id: 2,
-            nombre: 'Conferencia Tech 2024',
-            descripcion: 'Conferencia anual de tecnología',
-            fecha: '2024-07-20',
-            hora: '09:00',
-            ubicacion: 'Centro de Convenciones',
-            estado: 'activo',
-            mesas: 12,
-            sillasPorMesa: 6,
-            formaMesa: 'circular',
-            configuracion: {}
-        },
-        {
-            id: 3,
-            nombre: 'Fiesta de Graduación',
-            descripcion: 'Celebración de graduación universitaria',
-            fecha: '2024-08-10',
-            hora: '20:00',
-            ubicacion: 'Salón de Eventos',
-            estado: 'borrador',
-            mesas: 6,
-            sillasPorMesa: 10,
-            formaMesa: 'rectangular',
-            configuracion: {}
-        }
-    ];
+    let eventosDemo = [];
+    
+    if (usuario.rol === 'cliente') {
+        // Cliente solo ve sus eventos (máximo 1 activo)
+        eventosDemo = [
+            {
+                id: 1,
+                nombre: 'Boda de Ana y Carlos',
+                descripcion: 'Celebración en jardín botánico',
+                fecha: '2024-06-15',
+                hora: '18:00',
+                ubicacion: 'Jardín Botánico',
+                estado: 'activo',
+                mesas: 8,
+                sillasPorMesa: 8,
+                formaMesa: 'rectangular',
+                configuracion: {}
+            }
+        ];
+    } else if (usuario.rol === 'organizador') {
+        // Organizador ve múltiples eventos
+        eventosDemo = [
+            {
+                id: 1,
+                nombre: 'Boda de Ana y Carlos',
+                descripcion: 'Celebración en jardín botánico',
+                fecha: '2024-06-15',
+                hora: '18:00',
+                ubicacion: 'Jardín Botánico',
+                estado: 'activo',
+                mesas: 8,
+                sillasPorMesa: 8,
+                formaMesa: 'rectangular',
+                configuracion: {}
+            },
+            {
+                id: 2,
+                nombre: 'Conferencia Tech 2024',
+                descripcion: 'Conferencia anual de tecnología',
+                fecha: '2024-07-20',
+                hora: '09:00',
+                ubicacion: 'Centro de Convenciones',
+                estado: 'activo',
+                mesas: 12,
+                sillasPorMesa: 6,
+                formaMesa: 'circular',
+                configuracion: {}
+            },
+            {
+                id: 3,
+                nombre: 'Fiesta de Graduación',
+                descripcion: 'Celebración de graduación universitaria',
+                fecha: '2024-08-10',
+                hora: '20:00',
+                ubicacion: 'Salón de Eventos',
+                estado: 'borrador',
+                mesas: 6,
+                sillasPorMesa: 10,
+                formaMesa: 'rectangular',
+                configuracion: {}
+            }
+        ];
+    } else if (usuario.rol === 'admin') {
+        // Admin vería todos, pero admin va a admin.html
+        // Por si acaso, mostramos algunos eventos
+        eventosDemo = [
+            {
+                id: 1,
+                nombre: 'Evento de Administración',
+                descripcion: 'Evento de prueba para admin',
+                fecha: '2024-06-20',
+                hora: '10:00',
+                ubicacion: 'Oficina Principal',
+                estado: 'activo',
+                mesas: 10,
+                sillasPorMesa: 8,
+                formaMesa: 'rectangular',
+                configuracion: {}
+            }
+        ];
+    }
+    
+    eventosCliente = eventosDemo;
+    
+    // Actualizar estadísticas de eventos
+    actualizarEstadisticasEventos();
     
     // Llenar selector de eventos
     eventSelector.innerHTML = '<option value="">Seleccionar Evento...</option>';
@@ -140,6 +246,16 @@ function cargarEventosUsuario() {
         eventSelector.value = eventosCliente[0].id;
         cargarEvento(eventosCliente[0].id);
     }
+}
+
+function actualizarEstadisticasEventos() {
+    const total = eventosCliente.length;
+    const activos = eventosCliente.filter(e => e.estado === 'activo').length;
+    const borradores = eventosCliente.filter(e => e.estado === 'borrador').length;
+    
+    totalEventsCount.textContent = total;
+    activeEventsCount.textContent = activos;
+    draftEventsCount.textContent = borradores;
 }
 
 // 2. Cargar un evento específico
@@ -192,6 +308,21 @@ function crearMesas() {
     mesasContainer.innerHTML = '';
     mesas = [];
     
+    // Obtener configuración de disposición
+    const columnas = parseInt(numColumnasInput.value) || 4;
+    const filas = parseInt(numFilasInput.value) || 2;
+    const espaciado = parseInt(espaciadoInput.value) || 70;
+    
+    // Guardar configuración
+    configuracionDisposicion = { columnas, filas, espaciado };
+    
+    // Actualizar CSS del contenedor
+    mesasContainer.style.gap = `${espaciado}px`;
+    mesasContainer.style.gridTemplateColumns = `repeat(${columnas}, 1fr)`;
+    
+    // Calcular mesas por fila/columna
+    const mesasPorFila = Math.ceil(numMesas / filas);
+    
     // Crear cada mesa
     for (let i = 0; i < numMesas; i++) {
         const mesa = {
@@ -226,7 +357,7 @@ function crearMesas() {
     mostrarMensaje(`${numMesas} mesas creadas con éxito`, 'success');
 }
 
-// 4. Renderizar mesa visual (adaptado de final.html)
+// 4. Renderizar mesa visual
 function crearMesaVisual(mesa) {
     const mesaElement = document.createElement('div');
     mesaElement.className = 'mesa';
@@ -306,7 +437,7 @@ function crearMesaVisual(mesa) {
     mesasContainer.appendChild(mesaElement);
 }
 
-// 5. Calcular posiciones de sillas (de final.html)
+// 5. Calcular posiciones de sillas
 function calcularPosicionesSillas(numSillas, forma) {
     const posiciones = [];
     
@@ -380,7 +511,333 @@ function renderizarMesas() {
     });
 }
 
-// 7. Editar nombre de mesa
+// 7. Verificar límite de eventos
+function verificarLimiteEventos() {
+    if (limiteEventos === 1) {
+        // Contar eventos activos (no borradores)
+        const eventosActivos = eventosCliente.filter(e => e.estado === 'activo').length;
+        
+        if (eventosActivos >= limiteEventos) {
+            // Ocultar botón de nuevo evento si ya tiene el máximo
+            if (newEventBtn) {
+                newEventBtn.style.display = 'none';
+            }
+            
+            // Mostrar mensaje si intenta crear otro
+            const crearBtn = document.getElementById('createEventBtn');
+            if (crearBtn) {
+                crearBtn.onclick = function() {
+                    mostrarMensaje('Cliente solo puede tener 1 evento activo. Finaliza o elimina el actual.', 'error');
+                    cerrarModal(document.getElementById('newEventModal'));
+                    return false;
+                };
+            }
+        } else {
+            // Mostrar botón si aún no alcanzó el límite
+            if (newEventBtn) {
+                newEventBtn.style.display = 'block';
+            }
+        }
+    }
+}
+
+// 8. Crear nuevo evento (con verificación de límite)
+function crearNuevoEvento() {
+    // VERIFICAR LÍMITE ANTES DE CREAR
+    if (limiteEventos === 1) {
+        const eventosActivos = eventosCliente.filter(e => e.estado === 'activo').length;
+        if (eventosActivos >= limiteEventos) {
+            mostrarMensaje('Cliente solo puede tener 1 evento activo. Finaliza o elimina el actual.', 'error');
+            document.getElementById('newEventModal').style.display = 'none';
+            return;
+        }
+    }
+    
+    const nombre = document.getElementById('newEventName').value;
+    const fecha = document.getElementById('newEventDate').value;
+    const hora = document.getElementById('newEventTime').value;
+    const ubicacion = document.getElementById('newEventLocation').value;
+    const tipo = document.getElementById('newEventType').value;
+    const usarPlantilla = document.getElementById('useTemplate').checked;
+    
+    if (!nombre || !fecha) {
+        mostrarMensaje('Nombre y fecha son obligatorios', 'error');
+        return;
+    }
+    
+    const nuevoEvento = {
+        id: eventosCliente.length + 1,
+        nombre: nombre,
+        descripcion: `Evento de tipo ${tipo}`,
+        fecha: fecha,
+        hora: hora || '18:00',
+        ubicacion: ubicacion,
+        tipo: tipo,
+        estado: 'borrador',
+        mesas: usarPlantilla ? 8 : 1,
+        sillasPorMesa: usarPlantilla ? 8 : 6,
+        formaMesa: 'rectangular',
+        configuracion: {}
+    };
+    
+    eventosCliente.push(nuevoEvento);
+    
+    // Agregar al selector
+    const option = document.createElement('option');
+    option.value = nuevoEvento.id;
+    option.textContent = nuevoEvento.nombre + ' (Borrador)';
+    eventSelector.appendChild(option);
+    
+    // Seleccionar el nuevo evento
+    eventSelector.value = nuevoEvento.id;
+    cargarEvento(nuevoEvento.id);
+    
+    // Cerrar modal
+    document.getElementById('newEventModal').style.display = 'none';
+    
+    // Resetear formulario
+    document.getElementById('newEventForm').reset();
+    
+    // Actualizar estadísticas
+    actualizarEstadisticasEventos();
+    
+    mostrarMensaje(`Nuevo evento "${nombre}" creado`, 'success');
+    
+    // Verificar límite después de crear
+    verificarLimiteEventos();
+}
+
+// 9. Finalizar evento
+function finalizarEvento() {
+    if (!eventoActual) {
+        mostrarMensaje('No hay evento seleccionado', 'error');
+        return;
+    }
+    
+    if (confirm(`¿Estás seguro de finalizar el evento "${eventoActual.nombre}"? Esto cambiará su estado a "completado".`)) {
+        eventoActual.estado = 'completado';
+        
+        // Actualizar selector
+        const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
+        if (option) {
+            option.textContent = eventoActual.nombre + ' (Completado)';
+        }
+        
+        // Actualizar estadísticas
+        actualizarEstadisticasEventos();
+        
+        // Si es cliente y finaliza su único evento, habilitar crear nuevo
+        if (limiteEventos === 1) {
+            verificarLimiteEventos();
+        }
+        
+        mostrarMensaje(`Evento "${eventoActual.nombre}" finalizado`, 'success');
+    }
+}
+
+// 10. Configurar event listeners
+function configurarEventListeners() {
+    // Selector de evento
+    eventSelector.addEventListener('change', function() {
+        if (this.value) {
+            cargarEvento(parseInt(this.value));
+        }
+    });
+    
+    // Botón crear mesas
+    btnCrearMesas.addEventListener('click', crearMesas);
+    
+    // Botón guardar evento
+    btnGuardarEvento.addEventListener('click', function() {
+        guardarEvento();
+    });
+    
+    // Botón finalizar evento
+    if (btnFinalizarEvento) {
+        btnFinalizarEvento.addEventListener('click', finalizarEvento);
+    }
+    
+    // Botón nuevo evento
+    newEventBtn.addEventListener('click', function() {
+        document.getElementById('newEventModal').style.display = 'flex';
+    });
+    
+    // Cerrar modal nuevo evento
+    document.querySelector('#newEventModal .modal-close').addEventListener('click', function() {
+        document.getElementById('newEventModal').style.display = 'none';
+    });
+    
+    document.querySelector('#newEventModal .modal-cancel').addEventListener('click', function() {
+        document.getElementById('newEventModal').style.display = 'none';
+    });
+    
+    // Crear evento
+    document.getElementById('createEventBtn').addEventListener('click', function() {
+        crearNuevoEvento();
+    });
+    
+    // Cerrar sesión
+    logoutBtn.addEventListener('click', function() {
+        window.titiAuth.logout();
+    });
+    
+    // Zoom
+    zoomInBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (zoomLevel < 2) {
+            zoomLevel += 0.1;
+            aplicarZoom();
+        }
+    });
+    
+    zoomOutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (zoomLevel > 0.5) {
+            zoomLevel -= 0.1;
+            aplicarZoom();
+        }
+    });
+    
+    resetViewBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        zoomLevel = 1;
+        aplicarZoom();
+    });
+    
+    // Mostrar nombres
+    showNamesCheckbox.addEventListener('change', function() {
+        renderizarMesas();
+    });
+    
+    // Búsqueda de invitados
+    guestSearch.addEventListener('input', actualizarListaInvitados);
+    guestFilter.addEventListener('change', actualizarListaInvitados);
+    
+    // Agregar invitado
+    addGuestBtn.addEventListener('click', function() {
+        agregarInvitado();
+    });
+    
+    // Búsqueda en visualización
+    searchGuests.addEventListener('input', function() {
+        buscarEnMesas(this.value);
+    });
+    
+    // Guardado automático
+    autoSaveCheckbox.addEventListener('change', function() {
+        mostrarMensaje(`Guardado automático ${this.checked ? 'activado' : 'desactivado'}`, 'info');
+    });
+    
+    // Configuración de disposición
+    numColumnasInput.addEventListener('change', actualizarDisposicion);
+    numFilasInput.addEventListener('change', actualizarDisposicion);
+    espaciadoInput.addEventListener('change', actualizarDisposicion);
+    
+    // ===== CORRECCIÓN: Permitir escritura en inputs =====
+    const inputs = [
+        eventNameInput, eventDateInput, eventTimeInput, eventDescriptionInput,
+        numMesasInput, sillasPorMesaInput, searchGuests, guestSearch,
+        numColumnasInput, numFilasInput, espaciadoInput
+    ];
+    
+    inputs.forEach(input => {
+        if (input) {
+            input.addEventListener('keydown', function(e) {
+                e.stopPropagation();
+            });
+        }
+    });
+    
+    // Shortcuts de teclado
+    document.addEventListener('keydown', function(e) {
+        const activeElement = document.activeElement;
+        const isInputFocused = activeElement.tagName === 'INPUT' || 
+                              activeElement.tagName === 'TEXTAREA' || 
+                              activeElement.tagName === 'SELECT';
+        
+        if (isInputFocused) {
+            return;
+        }
+        
+        // Ctrl+S para guardar
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            guardarEvento();
+        }
+        
+        // Ctrl+N para nuevo evento
+        if (e.ctrlKey && e.key === 'n') {
+            e.preventDefault();
+            document.getElementById('newEventModal').style.display = 'flex';
+        }
+        
+        // Ctrl+F para buscar
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            searchGuests.focus();
+        }
+        
+        // Ctrl+E para finalizar evento
+        if (e.ctrlKey && e.key === 'e') {
+            e.preventDefault();
+            finalizarEvento();
+        }
+        
+        // + para zoom in
+        if (e.key === '+' || e.key === '=') {
+            e.preventDefault();
+            if (zoomLevel < 2) {
+                zoomLevel += 0.1;
+                aplicarZoom();
+            }
+        }
+        
+        // - para zoom out
+        if (e.key === '-') {
+            e.preventDefault();
+            if (zoomLevel > 0.5) {
+                zoomLevel -= 0.1;
+                aplicarZoom();
+            }
+        }
+        
+        // 0 para reset zoom
+        if (e.key === '0') {
+            e.preventDefault();
+            zoomLevel = 1;
+            aplicarZoom();
+        }
+    });
+}
+
+// 11. Aplicar zoom
+function aplicarZoom() {
+    document.querySelectorAll('.mesa').forEach(mesa => {
+        mesa.style.transform = `scale(${zoomLevel})`;
+    });
+}
+
+// 12. Actualizar disposición
+function actualizarDisposicion() {
+    const columnas = parseInt(numColumnasInput.value) || 4;
+    const filas = parseInt(numFilasInput.value) || 2;
+    const espaciado = parseInt(espaciadoInput.value) || 70;
+    
+    configuracionDisposicion = { columnas, filas, espaciado };
+    
+    // Actualizar contenedor
+    mesasContainer.style.gap = `${espaciado}px`;
+    mesasContainer.style.gridTemplateColumns = `repeat(${columnas}, 1fr)`;
+    
+    // Si hay mesas, re-renderizar
+    if (mesas.length > 0) {
+        renderizarMesas();
+    }
+    
+    mostrarMensaje(`Disposición actualizada: ${columnas}×${filas}`, 'info');
+}
+
+// 13. Resto de funciones (se mantienen igual que antes)
 function editarNombreMesa(mesaId, elementoInfo) {
     const mesa = mesas.find(m => m.id === mesaId);
     if (!mesa) return;
@@ -430,13 +887,11 @@ function guardarNombreMesa(mesaId, nuevoNombre, elementoInfo) {
     }
 }
 
-// 8. Seleccionar silla
 function seleccionarSilla(mesaId, sillaId) {
     sillaSeleccionada = { mesaId, sillaId };
     mostrarModalSilla(mesaId, sillaId);
 }
 
-// 9. Mostrar modal para silla
 function mostrarModalSilla(mesaId, sillaId) {
     // Crear modal dinámico
     const modal = document.createElement('div');
@@ -543,7 +998,6 @@ function cerrarModal(modal) {
     }, 300);
 }
 
-// 10. Actualizar silla
 function actualizarSilla(mesaId, sillaId, invitadoId, nuevoEstado) {
     const mesa = mesas.find(m => m.id === parseInt(mesaId));
     if (!mesa) return;
@@ -590,7 +1044,6 @@ function actualizarSilla(mesaId, sillaId, invitadoId, nuevoEstado) {
     mostrarMensaje(`Silla ${sillaId} de ${mesa.nombre} actualizada`, 'success');
 }
 
-// 11. Actualizar estadísticas
 function actualizarEstadisticas() {
     let totalSillas = 0;
     let sillasOcupadas = 0;
@@ -613,12 +1066,12 @@ function actualizarEstadisticas() {
     ocupacionBar.style.width = `${porcentaje}%`;
 }
 
-// 12. Guardar configuración del evento
 function guardarConfiguracionEvento() {
     if (!eventoActual) return;
     
     eventoActual.configuracion = {
         mesas: JSON.parse(JSON.stringify(mesas)),
+        disposicion: configuracionDisposicion,
         fechaActualizacion: new Date().toISOString()
     };
     
@@ -636,7 +1089,6 @@ function guardarConfiguracionEvento() {
     }
 }
 
-// 13. Cargar invitados de demo
 function cargarInvitadosDemo() {
     invitados = [
         { id: 1, nombre: 'Ana López', email: 'ana@email.com', telefono: '555-0101', estado: 'confirmado', idMesa: 1, idSilla: 1 },
@@ -652,7 +1104,6 @@ function cargarInvitadosDemo() {
     actualizarListaInvitados();
 }
 
-// 14. Actualizar lista de invitados
 function actualizarListaInvitados() {
     const searchTerm = guestSearch.value.toLowerCase();
     const filterValue = guestFilter.value;
@@ -699,7 +1150,6 @@ function actualizarListaInvitados() {
     });
 }
 
-// 15. Mostrar detalles de invitado
 function mostrarDetallesInvitado(invitadoId) {
     const invitado = invitados.find(i => i.id === invitadoId);
     if (!invitado) return;
@@ -753,12 +1203,128 @@ function mostrarDetallesInvitado(invitadoId) {
     `;
 }
 
-// 16. Funciones auxiliares de invitados
-function editarInvitado(invitadoId) {
-    mostrarMensaje('Funcionalidad de editar invitado en desarrollo', 'info');
+function configurarFechaHora() {
+    const ahora = new Date();
+    const manana = new Date();
+    manana.setDate(ahora.getDate() + 1);
+    
+    // Formato YYYY-MM-DD para input date
+    const formatoFecha = (fecha) => {
+        return fecha.toISOString().split('T')[0];
+    };
+    
+    // Formato HH:MM para input time
+    const formatoHora = (fecha) => {
+        return fecha.getHours().toString().padStart(2, '0') + ':' + 
+               fecha.getMinutes().toString().padStart(2, '0');
+    };
+    
+    // Valores por defecto si están vacíos
+    if (!eventDateInput.value) {
+        eventDateInput.value = formatoFecha(manana);
+    }
+    
+    if (!eventTimeInput.value) {
+        eventTimeInput.value = formatoHora(new Date(manana.setHours(18, 0, 0, 0)));
+    }
 }
 
-function asignarInvitado(invitadoId) {
+function buscarEnMesas(termino) {
+    if (!termino) {
+        // Resetear colores
+        document.querySelectorAll('.silla').forEach(silla => {
+            silla.style.boxShadow = '';
+        });
+        return;
+    }
+    
+    const busqueda = termino.toLowerCase();
+    document.querySelectorAll('.silla').forEach(silla => {
+        const sillaNombre = silla.getAttribute('title') || '';
+        if (sillaNombre.toLowerCase().includes(busqueda)) {
+            silla.style.boxShadow = '0 0 0 3px yellow';
+        } else {
+            silla.style.boxShadow = '';
+        }
+    });
+}
+
+function guardarEvento() {
+    if (!eventoActual) {
+        mostrarMensaje('No hay evento seleccionado', 'error');
+        return;
+    }
+    
+    // Actualizar datos del evento
+    eventoActual.nombre = eventNameInput.value || 'Evento sin nombre';
+    eventoActual.descripcion = eventDescriptionInput.value;
+    eventoActual.fecha = eventDateInput.value;
+    eventoActual.hora = eventTimeInput.value;
+    eventoActual.mesas = parseInt(numMesasInput.value);
+    eventoActual.sillasPorMesa = parseInt(sillasPorMesaInput.value);
+    eventoActual.formaMesa = formaMesaSelect.value;
+    
+    // Guardar configuración
+    guardarConfiguracionEvento();
+    
+    // Actualizar UI
+    currentEventName.textContent = eventoActual.nombre;
+    
+    // Actualizar selector de eventos
+    const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
+    if (option) {
+        option.textContent = eventoActual.nombre;
+        if (eventoActual.estado === 'borrador') {
+            option.textContent += ' (Borrador)';
+        } else if (eventoActual.estado === 'completado') {
+            option.textContent += ' (Completado)';
+        }
+    }
+    
+    mostrarMensaje(`Evento "${eventoActual.nombre}" guardado correctamente`, 'success');
+}
+
+function agregarInvitado() {
+    const nombre = prompt('Nombre del invitado:');
+    if (!nombre) return;
+    
+    const email = prompt('Email (opcional):');
+    const telefono = prompt('Teléfono (opcional):');
+    
+    const nuevoInvitado = {
+        id: invitados.length + 1,
+        nombre: nombre,
+        email: email || null,
+        telefono: telefono || null,
+        estado: 'pendiente',
+        idMesa: null,
+        idSilla: null
+    };
+    
+    invitados.push(nuevoInvitado);
+    actualizarListaInvitados();
+    
+    mostrarMensaje(`Invitado "${nombre}" agregado`, 'success');
+}
+
+function mostrarMensaje(mensaje, tipo = 'info') {
+    const toast = document.getElementById('messageToast');
+    if (!toast) return;
+    
+    toast.textContent = mensaje;
+    toast.className = `toast ${tipo} show`;
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// ===== FUNCIONES GLOBALES PARA HTML =====
+window.editarInvitado = function(invitadoId) {
+    mostrarMensaje('Funcionalidad de editar invitado en desarrollo', 'info');
+};
+
+window.asignarInvitado = function(invitadoId) {
     const invitado = invitados.find(i => i.id === invitadoId);
     if (!invitado) return;
     
@@ -818,361 +1384,6 @@ function asignarInvitado(invitadoId) {
             cerrarModal(modal);
         }
     };
-}
+};
 
-// 17. Configurar fecha y hora
-function configurarFechaHora() {
-    const ahora = new Date();
-    const manana = new Date();
-    manana.setDate(ahora.getDate() + 1);
-    
-    // Formato YYYY-MM-DD para input date
-    const formatoFecha = (fecha) => {
-        return fecha.toISOString().split('T')[0];
-    };
-    
-    // Formato HH:MM para input time
-    const formatoHora = (fecha) => {
-        return fecha.getHours().toString().padStart(2, '0') + ':' + 
-               fecha.getMinutes().toString().padStart(2, '0');
-    };
-    
-    // Valores por defecto si están vacíos
-    if (!eventDateInput.value) {
-        eventDateInput.value = formatoFecha(manana);
-    }
-    
-    if (!eventTimeInput.value) {
-        eventTimeInput.value = formatoHora(new Date(manana.setHours(18, 0, 0, 0)));
-    }
-}
-
-// 18. Configurar event listeners
-function configurarEventListeners() {
-    // Selector de evento
-    eventSelector.addEventListener('change', function() {
-        if (this.value) {
-            cargarEvento(parseInt(this.value));
-        }
-    });
-    
-    // Botón crear mesas
-    btnCrearMesas.addEventListener('click', crearMesas);
-    
-    // Botón guardar evento
-    btnGuardarEvento.addEventListener('click', function() {
-        guardarEvento();
-    });
-    
-    // Botón nuevo evento
-    newEventBtn.addEventListener('click', function() {
-        document.getElementById('newEventModal').style.display = 'flex';
-    });
-    
-    // Cerrar modal nuevo evento
-    document.querySelector('#newEventModal .modal-close').addEventListener('click', function() {
-        document.getElementById('newEventModal').style.display = 'none';
-    });
-    
-    document.querySelector('#newEventModal .modal-cancel').addEventListener('click', function() {
-        document.getElementById('newEventModal').style.display = 'none';
-    });
-    
-    // Crear evento
-    document.getElementById('createEventBtn').addEventListener('click', function() {
-        crearNuevoEvento();
-    });
-    
-    // Cerrar sesión
-    logoutBtn.addEventListener('click', function() {
-        window.titiAuth.logout();
-    });
-    
-    // Zoom
-    zoomInBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (zoomLevel < 2) {
-            zoomLevel += 0.1;
-            aplicarZoom();
-        }
-    });
-    
-    zoomOutBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (zoomLevel > 0.5) {
-            zoomLevel -= 0.1;
-            aplicarZoom();
-        }
-    });
-    
-    resetViewBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        zoomLevel = 1;
-        aplicarZoom();
-    });
-    
-    // Mostrar nombres
-    showNamesCheckbox.addEventListener('change', function() {
-        renderizarMesas();
-    });
-    
-    // Búsqueda de invitados
-    guestSearch.addEventListener('input', actualizarListaInvitados);
-    guestFilter.addEventListener('change', actualizarListaInvitados);
-    
-    // Agregar invitado
-    addGuestBtn.addEventListener('click', function() {
-        agregarInvitado();
-    });
-    
-    // Búsqueda en visualización
-    searchGuests.addEventListener('input', function() {
-        buscarEnMesas(this.value);
-    });
-    
-    // Guardado automático
-    autoSaveCheckbox.addEventListener('change', function() {
-        mostrarMensaje(`Guardado automático ${this.checked ? 'activado' : 'desactivado'}`, 'info');
-    });
-    
-    // ===== CORRECCIÓN: Permitir escritura en inputs =====
-    // Prevenir que el event listener global intercepte teclas en inputs
-    const inputs = [
-        eventNameInput, eventDateInput, eventTimeInput, eventDescriptionInput,
-        numMesasInput, sillasPorMesaInput, searchGuests, guestSearch
-    ];
-    
-    inputs.forEach(input => {
-        if (input) {
-            input.addEventListener('keydown', function(e) {
-                e.stopPropagation();
-            });
-        }
-    });
-    
-    // También para todos los inputs del formulario en el panel de control
-    document.querySelectorAll('.control-panel input, .control-panel select, .control-panel textarea').forEach(input => {
-        input.addEventListener('keydown', function(e) {
-            e.stopPropagation();
-        });
-    });
-    
-    // Y para el modal de nuevo evento
-    document.querySelectorAll('#newEventForm input, #newEventForm select, #newEventForm textarea').forEach(input => {
-        input.addEventListener('keydown', function(e) {
-            e.stopPropagation();
-        });
-    });
-    
-    // Shortcuts de teclado (CORREGIDO)
-    document.addEventListener('keydown', function(e) {
-        // Ignorar shortcuts si el foco está en un input, textarea o select
-        const activeElement = document.activeElement;
-        const isInputFocused = activeElement.tagName === 'INPUT' || 
-                              activeElement.tagName === 'TEXTAREA' || 
-                              activeElement.tagName === 'SELECT';
-        
-        // Si hay un input enfocado, NO ejecutar los shortcuts
-        if (isInputFocused) {
-            return; // Permitir que el input maneje la tecla normalmente
-        }
-        
-        // Ctrl+S para guardar (solo cuando no hay input enfocado)
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            guardarEvento();
-        }
-        
-        // Ctrl+N para nuevo evento (solo cuando no hay input enfocado)
-        if (e.ctrlKey && e.key === 'n') {
-            e.preventDefault();
-            document.getElementById('newEventModal').style.display = 'flex';
-        }
-        
-        // Ctrl+F para buscar (solo cuando no hay input enfocado)
-        if (e.ctrlKey && e.key === 'f') {
-            e.preventDefault();
-            searchGuests.focus();
-        }
-        
-        // + para zoom in (solo cuando no hay input enfocado)
-        if (e.key === '+' || e.key === '=') {
-            e.preventDefault();
-            if (zoomLevel < 2) {
-                zoomLevel += 0.1;
-                aplicarZoom();
-            }
-        }
-        
-        // - para zoom out (solo cuando no hay input enfocado)
-        if (e.key === '-') {
-            e.preventDefault();
-            if (zoomLevel > 0.5) {
-                zoomLevel -= 0.1;
-                aplicarZoom();
-            }
-        }
-        
-        // 0 para reset zoom (solo cuando no hay input enfocado)
-        if (e.key === '0') {
-            e.preventDefault();
-            zoomLevel = 1;
-            aplicarZoom();
-        }
-    });
-}
-
-// 19. Aplicar zoom
-function aplicarZoom() {
-    document.querySelectorAll('.mesa').forEach(mesa => {
-        mesa.style.transform = `scale(${zoomLevel})`;
-    });
-}
-
-// 20. Buscar en mesas
-function buscarEnMesas(termino) {
-    if (!termino) {
-        // Resetear colores
-        document.querySelectorAll('.silla').forEach(silla => {
-            silla.style.boxShadow = '';
-        });
-        return;
-    }
-    
-    const busqueda = termino.toLowerCase();
-    document.querySelectorAll('.silla').forEach(silla => {
-        const sillaNombre = silla.getAttribute('title') || '';
-        if (sillaNombre.toLowerCase().includes(busqueda)) {
-            silla.style.boxShadow = '0 0 0 3px yellow';
-        } else {
-            silla.style.boxShadow = '';
-        }
-    });
-}
-
-// 21. Guardar evento
-function guardarEvento() {
-    if (!eventoActual) {
-        mostrarMensaje('No hay evento seleccionado', 'error');
-        return;
-    }
-    
-    // Actualizar datos del evento
-    eventoActual.nombre = eventNameInput.value || 'Evento sin nombre';
-    eventoActual.descripcion = eventDescriptionInput.value;
-    eventoActual.fecha = eventDateInput.value;
-    eventoActual.hora = eventTimeInput.value;
-    eventoActual.mesas = parseInt(numMesasInput.value);
-    eventoActual.sillasPorMesa = parseInt(sillasPorMesaInput.value);
-    eventoActual.formaMesa = formaMesaSelect.value;
-    
-    // Guardar configuración
-    guardarConfiguracionEvento();
-    
-    // Actualizar UI
-    currentEventName.textContent = eventoActual.nombre;
-    
-    // Actualizar selector de eventos
-    const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
-    if (option) {
-        option.textContent = eventoActual.nombre;
-        if (eventoActual.estado === 'borrador') {
-            option.textContent += ' (Borrador)';
-        }
-    }
-    
-    mostrarMensaje(`Evento "${eventoActual.nombre}" guardado correctamente`, 'success');
-}
-
-// 22. Crear nuevo evento
-function crearNuevoEvento() {
-    const nombre = document.getElementById('newEventName').value;
-    const fecha = document.getElementById('newEventDate').value;
-    const hora = document.getElementById('newEventTime').value;
-    const ubicacion = document.getElementById('newEventLocation').value;
-    const tipo = document.getElementById('newEventType').value;
-    const usarPlantilla = document.getElementById('useTemplate').checked;
-    
-    if (!nombre || !fecha) {
-        mostrarMensaje('Nombre y fecha son obligatorios', 'error');
-        return;
-    }
-    
-    const nuevoEvento = {
-        id: eventosCliente.length + 1,
-        nombre: nombre,
-        descripcion: `Evento de tipo ${tipo}`,
-        fecha: fecha,
-        hora: hora || '18:00',
-        ubicacion: ubicacion,
-        tipo: tipo,
-        estado: 'borrador',
-        mesas: usarPlantilla ? 8 : 1,
-        sillasPorMesa: usarPlantilla ? 8 : 6,
-        formaMesa: 'rectangular',
-        configuracion: {}
-    };
-    
-    eventosCliente.push(nuevoEvento);
-    
-    // Agregar al selector
-    const option = document.createElement('option');
-    option.value = nuevoEvento.id;
-    option.textContent = nuevoEvento.nombre + ' (Borrador)';
-    eventSelector.appendChild(option);
-    
-    // Seleccionar el nuevo evento
-    eventSelector.value = nuevoEvento.id;
-    cargarEvento(nuevoEvento.id);
-    
-    // Cerrar modal
-    document.getElementById('newEventModal').style.display = 'none';
-    
-    // Resetear formulario
-    document.getElementById('newEventForm').reset();
-    
-    mostrarMensaje(`Nuevo evento "${nombre}" creado`, 'success');
-}
-
-// 23. Agregar invitado
-function agregarInvitado() {
-    const nombre = prompt('Nombre del invitado:');
-    if (!nombre) return;
-    
-    const email = prompt('Email (opcional):');
-    const telefono = prompt('Teléfono (opcional):');
-    
-    const nuevoInvitado = {
-        id: invitados.length + 1,
-        nombre: nombre,
-        email: email || null,
-        telefono: telefono || null,
-        estado: 'pendiente',
-        idMesa: null,
-        idSilla: null
-    };
-    
-    invitados.push(nuevoInvitado);
-    actualizarListaInvitados();
-    
-    mostrarMensaje(`Invitado "${nombre}" agregado`, 'success');
-}
-
-// 24. Mostrar mensaje
-function mostrarMensaje(mensaje, tipo = 'info') {
-    const toast = document.getElementById('messageToast');
-    if (!toast) return;
-    
-    toast.textContent = mensaje;
-    toast.className = `toast ${tipo} show`;
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
-}
-
-// ===== FUNCIONES GLOBALES PARA HTML =====
-// Necesarias para que funcionen los onclick en el HTML
-window.editarInvitado = editarInvitado;
-window.asignarInvitado = asignarInvitado;
 window.cerrarModal = cerrarModal;
