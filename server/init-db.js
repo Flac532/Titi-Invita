@@ -18,82 +18,75 @@ const poolConfig = {
   ssl: { 
     rejectUnauthorized: false 
   },
-  connectionTimeoutMillis: 30000
+  connectionTimeoutMillis: 10000,
+  max: 5
 };
 
 async function initDatabase() {
   const pool = new Pool(poolConfig);
-  let client;
   
   try {
-    client = await pool.connect();
     console.log('✅ Conectado a PostgreSQL en Digital Ocean');
     
-    // 1. Leer archivo database.sql (está en ../database/)
+    // 1. Leer archivo database.sql
     const schemaPath = path.join(__dirname, '..', 'database', 'database.sql');
     console.log('📖 Leyendo:', schemaPath);
+    
+    if (!fs.existsSync(schemaPath)) {
+      throw new Error(`Archivo no encontrado: ${schemaPath}`);
+    }
+    
     const schemaSQL = fs.readFileSync(schemaPath, 'utf8');
     
     // 2. Ejecutar esquema
     console.log('🗄️  Ejecutando esquema de base de datos...');
-    await client.query(schemaSQL);
+    await pool.query(schemaSQL);
     console.log('✅ Esquema creado exitosamente');
     
-    // 3. Leer archivo database_seed.sql
-    const seedPath = path.join(__dirname, '..', 'database', 'database_seed.sql');
-    console.log('📖 Leyendo:', seedPath);
-    const seedSQL = fs.readFileSync(seedPath, 'utf8');
+    // 3. Verificar tablas creadas
+    console.log('🔍 Verificando tablas...');
+    const result = await pool.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+      ORDER BY table_name;
+    `);
     
-    // 4. Ejecutar datos de prueba
-    console.log('📥 Insertando datos de prueba...');
-    await client.query(seedSQL);
-    console.log('✅ Datos de prueba insertados');
-    
-    // 5. Verificar datos
-    console.log('🔍 Verificando datos insertados...');
-    const usuarios = await client.query('SELECT COUNT(*) as total FROM usuarios');
-    const eventos = await client.query('SELECT COUNT(*) as total FROM eventos');
-    const mesas = await client.query('SELECT COUNT(*) as total FROM mesas');
-    const invitados = await client.query('SELECT COUNT(*) as total FROM invitados');
+    console.log('📋 Tablas creadas:');
+    result.rows.forEach(row => {
+      console.log(`   - ${row.table_name}`);
+    });
     
     console.log('===========================================');
-    console.log('📊 RESUMEN DE DATOS INICIALIZADOS:');
-    console.log('===========================================');
-    console.log(`👤 Usuarios: ${usuarios.rows[0].total}`);
-    console.log(`🎪 Eventos: ${eventos.rows[0].total}`);
-    console.log(`🪑 Mesas: ${mesas.rows[0].total}`);
-    console.log(`👥 Invitados: ${invitados.rows[0].total}`);
-    console.log('===========================================');
-    console.log('🎉 Base de datos lista para producción!');
+    console.log('🎉 Base de datos inicializada correctamente!');
     console.log('===========================================');
     
   } catch (error) {
     console.error('❌ Error inicializando base de datos:');
     console.error('Mensaje:', error.message);
-    console.error('Código:', error.code);
-    console.error('Detalle:', error.detail);
     
     // Si es error de "tabla ya existe", es normal
-    if (error.code === '42P07') { // duplicate_table
-      console.log('ℹ️  Las tablas ya existen. Continuando...');
-    } else if (error.code === '23505') { // unique_violation
-      console.log('ℹ️  Datos duplicados. Los datos ya existen.');
+    if (error.code === '42P07' || error.message.includes('already exists')) {
+      console.log('ℹ️  Las tablas ya existen. Esto es normal en despliegues posteriores.');
+      console.log('ℹ️  Si necesitas reiniciar, usa: npm run db:reset');
     } else {
-      throw error; // Relanzar error si no es uno de los esperados
+      console.error('Detalle completo:', error);
+      throw error;
     }
     
   } finally {
-    if (client) {
-      client.release();
-      console.log('🔗 Conexión liberada');
-    }
     await pool.end();
+    console.log('🔗 Conexión cerrada');
     console.log('===========================================');
   }
 }
 
 // Ejecutar inicialización
-initDatabase().catch(err => {
-  console.error('💥 Error fatal:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  initDatabase().catch(err => {
+    console.error('💥 Error fatal:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = { initDatabase };
