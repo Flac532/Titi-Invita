@@ -6,7 +6,7 @@ services:
   github:
     branch: main
     deploy_on_push: true
-  source_dir: /
+  source_dir: /server  # ← CORREGIDO
   envs:
   - key: NODE_ENV
     value: production
@@ -31,29 +31,40 @@ services:
     scope: RUN_TIME
     value: ${JWT_SECRET}
   - key: CORS_ORIGIN
-    value: "https://titi-invita.ondigitalocean.app,http://localhost:3000"
+    value: "https://titi-invita.ondigitalocean.app,http://localhost:3000,https://titi-invita-*.ondigitalocean.app"
   http_port: 3000
   instance_count: 1
   instance_size_slug: basic-xxs
-  build_command: npm install
+  build_command: npm install && npm run db:init  # ← CORREGIDO
   run_command: npm start
-  static_sites:
-  - name: titi-invita-frontend
-    github:
-      branch: main
-      deploy_on_push: true
-    source_dir: /public
-    output_dir: /
-    routes:
-    - path: /
-    - path: /login
-    - path: /admin
-    - path: /cliente
-    environment_slug: html
+  health_check:  # ← AGREGADO
+    http_path: /api/health
+    initial_delay_seconds: 120
+    period_seconds: 30
+    timeout_seconds: 10
+    success_threshold: 1
+    failure_threshold: 3
+
+static_sites:
+- name: titi-invita-frontend
+  github:
+    branch: main
+    deploy_on_push: true
+  source_dir: /public
+  output_dir: /
+  routes:
+  - path: /
+  - path: /login
+  - path: /admin
+    preserve_path_prefix: false
+  - path: /cliente
+    preserve_path_prefix: false
+  environment_slug: html
+
 databases:
 - engine: PG
   name: titi-invita-db
   production: true
-  cluster_name: titi-invita-db
-  db_name: defaultdb
-  db_user: titi_admin
+  # cluster_name: titi-invita-db  # ← OPCIONAL: Quitar si da error
+  # db_name: defaultdb           # ← OPCIONAL: Quitar si da error  
+  # db_user: titi_admin          # ← OPCIONAL: Quitar si da error
