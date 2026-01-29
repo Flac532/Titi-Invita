@@ -5,10 +5,11 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "build": "echo 'Build completado para producción'",
     "dev": "nodemon server/server.js",
-    "test": "echo 'No hay tests configurados'",
-    "deploy": "echo 'Configura tu despliegue en digitalocean-app.yaml'"
+    "db:init": "node server/init-db.js",
+    "db:seed": "node server/seed-db.js",
+    "db:reset": "node server/reset-db.js",
+    "test": "echo \"No hay tests configurados\" && exit 0"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -35,9 +36,5 @@
     "nodejs"
   ],
   "author": "Titi Invita Team",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tuusuario/titi-invita.git"
-  }
+  "license": "MIT"
 }
