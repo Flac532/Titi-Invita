@@ -1,7 +1,7 @@
 {
   "name": "titi-invita",
-  "version": "1.0.0",
-  "description": "Sistema completo de control de mesas para eventos",
+  "version": "2.0.0",
+  "description": "Sistema de control de mesas",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -9,8 +9,7 @@
     "db:init": "node init-db.js",
     "db:seed": "node seed-db.js",
     "db:reset": "node reset-db.js",
-    "db:test": "node test-db.js",
-    "test": "echo \"No hay tests configurados\" && exit 0"
+    "db:test": "node test-db.js"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -19,23 +18,12 @@
     "jsonwebtoken": "^9.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "helmet": "^7.0.0"
+    "helmet": "^7.1.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.2"
   },
   "engines": {
-    "node": "18.x",
-    "npm": "9.x"
-  },
-  "keywords": [
-    "eventos",
-    "mesas",
-    "invitados",
-    "organizacion",
-    "postgresql",
-    "nodejs"
-  ],
-  "author": "Titi Invita Team",
-  "license": "MIT"
+    "node": "18.x"
+  }
 }
