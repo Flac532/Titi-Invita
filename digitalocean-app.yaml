@@ -11,12 +11,30 @@ services:
     value: production
   - key: PORT
     value: "3000"
-  # Digital Ocean inyectará estas variables automáticamente
-  # si conectas la database desde el panel
+  # CONFIGURACIÓN DE TU BASE DE DATOS
+  - key: DB_HOST
+    value: "app-dcbdb4b2-d446-4cf7-bee6-40a00a634692-do-user-2165170-0.l.db.ondigitalocean.com"
+  - key: DB_PORT
+    value: "25060"
+  - key: DB_NAME
+    value: "dev-db-975741"
+  - key: DB_USER
+    value: "dev-db-975741"
+  - key: DB_PASSWORD
+    value: "AVNS_lRIHSLrwyt6XMZH4z1O"
+  # JWT CONFIG
+  - key: JWT_SECRET
+    value: "tu_super_secreto_jwt_titi_invita_2026@!"
+  - key: JWT_EXPIRES_IN
+    value: "86400"
+  # CORS
+  - key: CORS_ORIGIN
+    value: "https://titi-invita.ondigitalocean.app"
+  
   http_port: 3000
   instance_count: 1
   instance_size_slug: basic-xxs
-  build_command: npm install && npm run db:init
+  build_command: npm install && npm run db:init && npm run db:seed
   run_command: npm start
   health_check:
     http_path: /api/health
@@ -25,26 +43,3 @@ services:
     timeout_seconds: 10
     success_threshold: 1
     failure_threshold: 3
-
-# OPCIONAL: Si quieres el frontend separado
-static_sites:
-- name: titi-invita-frontend
-  github:
-    branch: main
-    deploy_on_push: true
-  source_dir: /public
-  output_dir: /
-  routes:
-  - path: /
-  - path: /login
-  - path: /admin
-    preserve_path_prefix: false
-  - path: /cliente
-    preserve_path_prefix: false
-  environment_slug: html
-
-# OPCIONAL: Comenta esta sección si ya tienes una database
-# databases:
-# - engine: PG
-#   name: titi-invita-db
-#   production: true
