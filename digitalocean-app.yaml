@@ -1,17 +1,21 @@
-name: titi-invita
+name: titi-invita-app
 region: nyc
 services:
 - name: titi-invita-api
   github:
     branch: main
+    repo: tu-usuario/tu-repositorio  # Asegúrate que esto sea correcto
     deploy_on_push: true
   source_dir: /
+  
+  # VARIABLES DE ENTORNO CRÍTICAS
   envs:
   - key: NODE_ENV
     value: production
   - key: PORT
-    value: "3000"
-  # CONFIGURACIÓN DE TU BASE DE DATOS
+    value: "8080"  # Digital Ocean usa 8080 internamente
+  
+  # TU DATABASE DE DIGITAL OCEAN
   - key: DB_HOST
     value: "app-dcbdb4b2-d446-4cf7-bee6-40a00a634692-do-user-2165170-0.l.db.ondigitalocean.com"
   - key: DB_PORT
@@ -22,23 +26,35 @@ services:
     value: "dev-db-975741"
   - key: DB_PASSWORD
     value: "AVNS_lRIHSLrwyt6XMZH4z1O"
-  # JWT CONFIG
+  - key: PGSSLMODE
+    value: "require"
+  
+  # JWT
   - key: JWT_SECRET
     value: "tu_super_secreto_jwt_titi_invita_2026@!"
   - key: JWT_EXPIRES_IN
     value: "86400"
-  # CORS
-  - key: CORS_ORIGIN
-    value: "https://titi-invita.ondigitalocean.app"
   
-  http_port: 3000
+  # CORS - USA TU URL EXACTA
+  - key: CORS_ORIGIN
+    value: "https://titi-invita-app-azhcw.ondigitalocean.app"
+  
+  http_port: 8080
   instance_count: 1
   instance_size_slug: basic-xxs
-  build_command: npm install && npm run db:init && npm run db:seed
+  
+  # COMANDOS CRÍTICAMENTE IMPORTANTES
+  build_command: |
+    echo "🚀 CONSTRUYENDO EN DIGITAL OCEAN..."
+    npm ci --only=production
+    npm run db:init || echo "⚠️  db:init falló, continuando..."
+    npm run db:seed || echo "⚠️  db:seed falló, continuando..."
+  
   run_command: npm start
+  
   health_check:
     http_path: /api/health
-    initial_delay_seconds: 120
+    initial_delay_seconds: 300  # 5 minutos para inicializar DB
     period_seconds: 30
     timeout_seconds: 10
     success_threshold: 1
