@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Admin Titi Invita</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <style>
+        /* Estilos adicionales para gestión de usuarios */
+        .role-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .role-option {
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .role-option:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .role-option.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(118, 75, 162, 0.1), transparent);
+        }
+        
+        .role-option i {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .role-option.cliente {
+            border-left: 4px solid #2196F3;
+        }
+        
+        .role-option.cliente i {
+            color: #2196F3;
+        }
+        
+        .role-option.organizador {
+            border-left: 4px solid #FF9800;
+        }
+        
+        .role-option.organizador i {
+            color: #FF9800;
+        }
+        
+        .role-option.admin {
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .role-option.admin i {
+            color: #4CAF50;
+        }
+        
+        .role-option small {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-lighter);
+            margin-top: 5px;
+        }
+        
+        .disposicion-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .form-group-small {
+            margin-bottom: 0;
+        }
+        
+        .form-group-small label {
+            font-size: 0.8rem;
+            margin-bottom: 3px;
+        }
+        
+        .form-group-small input {
+            padding: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .user-events-container {
+            background: var(--bg-light);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .user-events-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .user-events-header h4 {
+            margin: 0;
+            color: var(--text-dark);
+        }
+        
+        .empty-events {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-lighter);
+        }
+        
+        .empty-events i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+            color: var(--border-color);
+        }
+        
+        .event-limit-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: linear-gradient(135deg, #ff9800, #ff5722);
+            color: white;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .admin-action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .admin-action-buttons button {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-chair"></i>
+                    <h2>Titi Invita</h2>
+                </div>
+                <p class="role-badge">Administrador</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item">
+                        <a href="admin.html">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="#">
+                            <i class="fas fa-users-cog"></i>
+                            <span>Gestión de Usuarios</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="admin.html#eventosPage" onclick="cambiarPagina('eventos')">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Eventos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="admin.html#configuracionPage" onclick="cambiarPagina('configuracion')">
+                            <i class="fas fa-cog"></i>
+                            <span>Configuración</span>
+                        </a>
+                    </li>
+                    <li class="nav-divider"></li>
+                    <li class="nav-item">
+                        <a href="index.html">
+                            <i class="fas fa-home"></i>
+                            <span>Inicio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Cerrar Sesión</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">JF</div>
+                    <div class="user-details">
+                        <strong id="userName">Jorge Flores</strong>
+                        <small id="userEmail"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0d67627f6a68236b61627f687e4d79647964206c7d7d236e6260">[email&#160;protected]</a></small>
+                    </div>
+                </div>
+                <div class="system-status">
+                    <div class="status-indicator online"></div>
+                    <small>Sistema Online</small>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="menu-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="pageTitle">Gestión de Usuarios</h1>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <button class="btn-icon" id="refreshBtn" title="Actualizar" onclick="cargarUsuarios()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="btn-icon" id="notificationsBtn" title="Notificaciones">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">2</span>
+                        </button>
+                    </div>
+                    <div class="current-time" id="currentTime">
+                        <i class="far fa-clock"></i>
+                        <span>Cargando...</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Gestión de Usuarios -->
+                <div class="page active" id="gestionUsuariosPage">
+                    <div class="page-header">
+                        <h2>
+                            <i class="fas fa-users-cog"></i>
+                            Gestión de Usuarios
+                        </h2>
+                        <div class="page-actions">
+                            <button class="btn-primary" id="btnAgregarUsuario" onclick="abrirModalAgregarUsuario()">
+                                <i class="fas fa-user-plus"></i> Agregar Usuario
+                            </button>
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="buscarUsuario" placeholder="Buscar por nombre o email...">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label for="filtroRol">Rol:</label>
+                            <select id="filtroRol">
+                                <option value="">Todos los roles</option>
+                                <option value="cliente">Cliente</option>
+                                <option value="organizador">Organizador</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filtroEstado">Estado:</label>
+                            <select id="filtroEstado">
+                                <option value="">Todos</option>
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                            </select>
+                        </div>
+                        <button class="btn-secondary" id="btnLimpiarFiltros">
+                            <i class="fas fa-times"></i> Limpiar Filtros
+                        </button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table" id="tablaUsuarios">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Eventos</th>
+                                    <th>Registro</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cuerpoTablaUsuarios">
+                                <!-- Se llenará dinámicamente -->
+                            </tbody>
+                        </table>
+                        
+                        <div class="table-footer">
+                            <div class="pagination-info">
+                                Mostrando <span id="mostrando">0</span> de <span id="total">0</span> usuarios
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="pagination-btn" id="paginaAnterior">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <span class="page-info">Página <span id="paginaActual">1</span></span>
+                                <button class="pagination-btn" id="paginaSiguiente">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Vista de Eventos por Usuario (Admin) -->
+                <div class="page" id="eventosUsuarioPage" style="display: none;">
+                    <div class="page-header">
+                        <h2>
+                            <i class="fas fa-calendar-alt"></i>
+                            Eventos de: <span id="nombreUsuarioSeleccionado"></span>
+                            <span id="rolUsuarioSeleccionado" class="role-badge cliente" style="margin-left: 10px;"></span>
+                        </h2>
+                        <div class="page-actions">
+                            <button class="btn-secondary" id="btnVolverUsuarios">
+                                <i class="fas fa-arrow-left"></i> Volver a Usuarios
+                            </button>
+                            <button class="btn-primary" id="btnCrearEventoUsuario">
+                                <i class="fas fa-calendar-plus"></i> Crear Evento
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="user-info-card">
+                        <div class="user-card-header">
+                            <div class="user-card-avatar" id="avatarUsuarioSeleccionado">AV</div>
+                            <div class="user-card-info">
+                                <h4 id="infoNombreUsuario"></h4>
+                                <p id="infoEmailUsuario"></p>
+                                <p id="infoRegistroUsuario"></p>
+                            </div>
+                            <div class="user-card-stats">
+                                <div class="user-stat">
+                                    <span class="stat-value" id="statTotalEventos">0</span>
+                                    <span class="stat-label">Total Eventos</span>
+                                </div>
+                                <div class="user-stat">
+                                    <span class="stat-value" id="statEventosActivos">0</span>
+                                    <span class="stat-label">Activos</span>
+                                </div>
+                                <div class="user-stat">
+                                    <span class="stat-value" id="statEventosBorrador">0</span>
+                                    <span class="stat-label">Borradores</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="events-grid" id="eventosUsuarioGrid">
+                        <!-- Se llenará dinámicamente -->
+                    </div>
+                    
+                    <div class="empty-events" id="sinEventos" style="display: none;">
+                        <i class="fas fa-calendar-times"></i>
+                        <h3>Este usuario no tiene eventos</h3>
+                        <p>Puedes crear un evento para él haciendo clic en el botón "Crear Evento"</p>
+                    </div>
+                    
+                    <div class="admin-action-buttons">
+                        <button class="btn-secondary" onclick="editarUsuarioActual()">
+                            <i class="fas fa-edit"></i> Editar Usuario
+                        </button>
+                        <button class="btn-secondary" onclick="reiniciarPasswordUsuarioActual()">
+                            <i class="fas fa-key"></i> Reiniciar Contraseña
+                        </button>
+                        <button class="btn-danger" onclick="eliminarUsuarioActual()">
+                            <i class="fas fa-trash-alt"></i> Eliminar Usuario
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal Agregar/Editar Usuario -->
+    <div class="modal" id="modalUsuario">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="tituloModalUsuario">
+                    <i class="fas fa-user-plus"></i>
+                    Agregar Nuevo Usuario
+                </h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formUsuario">
+                    <input type="hidden" id="usuarioId">
+                    
+                    <div class="form-group">
+                        <label for="inputNombre">Nombre Completo *</label>
+                        <input type="text" id="inputNombre" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="inputEmail">Correo Electrónico *</label>
+                        <input type="email" id="inputEmail" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Rol del Usuario *</label>
+                        <div class="role-selector">
+                            <div class="role-option cliente" onclick="seleccionarRol('cliente')">
+                                <i class="fas fa-user"></i>
+                                <div>Cliente</div>
+                                <small>1 evento máximo</small>
+                            </div>
+                            <div class="role-option organizador" onclick="seleccionarRol('organizador')">
+                                <i class="fas fa-users"></i>
+                                <div>Organizador</div>
+                                <small>Eventos ilimitados</small>
+                            </div>
+                            <div class="role-option admin" onclick="seleccionarRol('admin')">
+                                <i class="fas fa-crown"></i>
+                                <div>Administrador</div>
+                                <small>Acceso completo</small>
+                            </div>
+                        </div>
+                        <input type="hidden" id="inputRol" value="cliente" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="inputPassword">Contraseña *</label>
+                        <div class="password-input">
+                            <input type="password" id="inputPassword" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('inputPassword', this)">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="generate-password" onclick="generarContraseña()">
+                                <i class="fas fa-random"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength">
+                            <div class="strength-bar"></div>
+                            <span class="strength-text">Fuerza: --</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="inputEstado">Estado</label>
+                        <select id="inputEstado">
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enviarEmail" checked>
+                        <label for="enviarEmail">Enviar email de bienvenida con credenciales</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModalUsuario()">Cancelar</button>
+                <button class="btn-primary" onclick="guardarUsuario()">
+                    <i class="fas fa-save"></i> Guardar Usuario
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Crear Evento para Usuario -->
+    <div class="modal" id="modalCrearEvento">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-calendar-plus"></i>
+                    Crear Evento para <span id="nombreUsuarioEvento"></span>
+                </h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formCrearEvento">
+                    <div class="form-group">
+                        <label for="eventoNombre">Nombre del Evento *</label>
+                        <input type="text" id="eventoNombre" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="eventoFecha">Fecha *</label>
+                            <input type="date" id="eventoFecha" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="eventoHora">Hora</label>
+                            <input type="time" id="eventoHora">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eventoUbicacion">Ubicación</label>
+                        <input type="text" id="eventoUbicacion" placeholder="Ej: Salón de Eventos Principal">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="eventoTipo">Tipo de Evento</label>
+                        <select id="eventoTipo">
+                            <option value="boda">Boda</option>
+                            <option value="conferencia">Conferencia</option>
+                            <option value="fiesta">Fiesta</option>
+                            <option value="corporativo">Evento Corporativo</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Configuración Inicial</label>
+                        <div class="disposicion-row">
+                            <div class="form-group-small">
+                                <label for="eventoMesas">Mesas</label>
+                                <input type="number" id="eventoMesas" min="1" max="50" value="8">
+                            </div>
+                            <div class="form-group-small">
+                                <label for="eventoSillas">Sillas por Mesa</label>
+                                <input type="number" id="eventoSillas" min="1" max="12" value="8">
+                            </div>
+                            <div class="form-group-small">
+                                <label for="eventoForma">Forma</label>
+                                <select id="eventoForma">
+                                    <option value="rectangular">Rectangular</option>
+                                    <option value="circular">Circular</option>
+                                    <option value="cuadrada">Cuadrada</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="notificarUsuario" checked>
+                        <label for="notificarUsuario">Notificar al usuario sobre el nuevo evento</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModalCrearEvento()">Cancelar</button>
+                <button class="btn-primary" onclick="crearEventoParaUsuarioActual()">
+                    <i class="fas fa-plus"></i> Crear Evento
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Confirmación -->
+    <div class="modal" id="modalConfirmacion">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="tituloConfirmacion"></h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="mensajeConfirmacion"></p>
+                <div class="warning-box" id="advertenciaConfirmacion" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Esta acción no se puede deshacer</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModalConfirmacion()">Cancelar</button>
+                <button class="btn-danger" id="accionConfirmar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast -->
+    <div id="messageToast" class="toast"></div>
+    
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="login.js"></script>
+    <script src="admin-usuarios.js"></script>
+    
+    <script>
+        // Funciones auxiliares para el HTML
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('show');
+            }
+        }
+        
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    button.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    input.type = 'password';
+                    button.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            }
+        }
+        
+        // Actualizar reloj en tiempo real
+        function actualizarReloj() {
+            const ahora = new Date();
+            const tiempo = ahora.toLocaleTimeString('es-ES', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const fecha = ahora.toLocaleDateString('es-ES', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            const reloj = document.getElementById('currentTime');
+            if (reloj) {
+                reloj.innerHTML = `<i class="far fa-clock"></i><span>${tiempo} - ${fecha}</span>`;
+            }
+        }
+        
+        // Iniciar reloj
+        setInterval(actualizarReloj, 1000);
+        actualizarReloj();
+        
+        // Configurar logout
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            window.titiAuth.logout();
+        });
+        
+        // Verificar que el usuario es admin
+        document.addEventListener('DOMContentLoaded', function() {
+            const usuarioStr = localStorage.getItem('titi_usuario_actual');
+            
+            if (!usuarioStr) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                const usuario = JSON.parse(usuarioStr);
+                
+                if (usuario.rol !== 'admin') {
+                    alert('Acceso denegado. Solo administradores pueden acceder a esta sección.');
+                    window.location.href = 'cliente.html';
+                    return;
+                }
+                
+                // Actualizar UI con datos del usuario
+                const avatar = document.getElementById('userAvatar');
+                const nombre = document.getElementById('userName');
+                const email = document.getElementById('userEmail');
+                
+                if (avatar) avatar.textContent = usuario.avatar || usuario.nombre.substring(0, 2).toUpperCase();
+                if (nombre) nombre.textContent = usuario.nombre;
+                if (email) email.textContent = usuario.email;
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                localStorage.clear();
+                window.location.href = 'login.html';
+            }
+        });
+    </script>
+</body>
+</html>
