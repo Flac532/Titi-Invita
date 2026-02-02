@@ -23,14 +23,14 @@ async function seedDatabase() {
     const demoPassword = 'Titi-apps2026@!';
     const passwordHash = await bcrypt.hash(demoPassword, 10);
     
-    console.log('📥 Insertando datos de prueba...');
+    console.log('🔥 Insertando datos de prueba...');
     
-    // Insertar usuarios adicionales
+    // Insertar usuarios adicionales (además de los que ya están en init-db.js)
     await pool.query(`
-      INSERT INTO usuarios (nombre, email, password_hash, rol, activo) 
+      INSERT INTO usuarios (nombre, email, password_hash, rol, activo, limite_eventos, avatar) 
       VALUES 
-        ('María González', 'maria.gonzalez@empresa.com', $1, 'cliente', true),
-        ('Carlos Ruiz', 'carlos.ruiz@eventos.com', $1, 'cliente', true)
+        ('María González Empresa', 'maria.gonzalez@empresa.com', $1, 'cliente', true, 1, 'MG'),
+        ('Carlos Ruiz Eventos', 'carlos.ruiz@eventos.com', $1, 'organizador', true, NULL, 'CR')
       ON CONFLICT (email) DO NOTHING;
     `, [passwordHash]);
     
@@ -50,21 +50,23 @@ async function seedDatabase() {
     });
     
     // Insertar eventos demo
-    await pool.query(`
-      INSERT INTO eventos (id_usuario, nombre, descripcion, fecha_evento, ubicacion, estado, configuracion) 
-      VALUES 
-        ($1, 'Boda de Ana y Luis', 'Boda en jardín con 150 invitados', '2024-06-15', 'Hacienda Los Álamos, CDMX', 'activo', $2),
-        ($3, 'Conferencia Tech 2024', 'Conferencia anual de tecnología', '2024-08-22', 'Centro de Convenciones, GDL', 'activo', $2),
-        ($4, 'Fiesta de 15 años Valentina', 'Quinceañera con tema de princesa', '2024-07-10', 'Salón de Fiestas Diamante', 'activo', $2),
-        ($5, 'Reunión Corporativa Q3', 'Reunión de ventas del tercer trimestre', '2024-09-05', 'Oficinas Centrales, MTY', 'planificando', $2)
-      ON CONFLICT DO NOTHING;
-    `, [
-      usuarios['jorge.flores@titi-app.com'],
-      JSON.stringify({ tema: 'clásico', colores: ['#4F46E5', '#10B981'] }),
-      usuarios['cliente@ejemplo.com'],
-      usuarios['maria.gonzalez@empresa.com'],
-      usuarios['carlos.ruiz@eventos.com']
-    ]);
+    if (usuarios['jorge.flores@titi-app.com']) {
+      await pool.query(`
+        INSERT INTO eventos (id_usuario, nombre, descripcion, fecha_evento, ubicacion, estado, configuracion) 
+        VALUES 
+          ($1, 'Boda de Ana y Luis', 'Boda en jardín con 150 invitados', '2024-06-15', 'Hacienda Los Álamos, CDMX', 'activo', $2),
+          ($3, 'Conferencia Tech 2024', 'Conferencia anual de tecnología', '2024-08-22', 'Centro de Convenciones, GDL', 'activo', $2),
+          ($4, 'Fiesta de 15 años Valentina', 'Quinceañera con tema de princesa', '2024-07-10', 'Salón de Fiestas Diamante', 'activo', $2),
+          ($5, 'Reunión Corporativa Q3', 'Reunión de ventas del tercer trimestre', '2024-09-05', 'Oficinas Centrales, MTY', 'borrador', $2)
+        ON CONFLICT DO NOTHING;
+      `, [
+        usuarios['jorge.flores@titi-app.com'],
+        JSON.stringify({ tema: 'clásico', colores: ['#4F46E5', '#10B981'] }),
+        usuarios['cliente@ejemplo.com'] || usuarios['jorge.flores@titi-app.com'],
+        usuarios['maria.gonzalez@empresa.com'] || usuarios['jorge.flores@titi-app.com'],
+        usuarios['carlos.ruiz@eventos.com'] || usuarios['jorge.flores@titi-app.com']
+      ]);
+    }
     
     // Obtener IDs de eventos
     const eventosResult = await pool.query('SELECT id FROM eventos ORDER BY id LIMIT 4');
@@ -107,16 +109,24 @@ async function seedDatabase() {
         })))
       ]);
       
+      // Obtener ID de la primera mesa
+      const mesasResult = await pool.query(
+        'SELECT id FROM mesas WHERE id_evento = $1 ORDER BY id LIMIT 1',
+        [primerEventoId]
+      );
+      
+      const primeraMesaId = mesasResult.rows[0]?.id;
+      
       // Insertar invitados demo
       await pool.query(`
         INSERT INTO invitados (id_evento, nombre, email, telefono, notas, id_mesa, silla_numero, estado) 
         VALUES 
-          ($1, 'Ana López', 'ana.lopez@email.com', '5512345678', 'Novia', 1, 1, 'confirmado'),
-          ($1, 'Carlos Ruiz', 'carlos.ruiz@email.com', '5512345679', 'Novio', 1, 2, 'confirmado'),
+          ($1, 'Ana López', 'ana.lopez@email.com', '5512345678', 'Novia', $2, 1, 'confirmado'),
+          ($1, 'Carlos Ruiz', 'carlos.ruiz@email.com', '5512345679', 'Novio', $2, 2, 'confirmado'),
           ($1, 'María González', 'maria.gonzalez@email.com', '5512345680', 'Madrina', NULL, NULL, 'pendiente'),
           ($1, 'Pedro Hernández', 'pedro.hernandez@email.com', '5512345681', 'Padrino', NULL, NULL, 'pendiente')
         ON CONFLICT DO NOTHING;
-      `, [primerEventoId]);
+      `, [primerEventoId, primeraMesaId]);
     }
     
     // Verificar datos
@@ -131,8 +141,10 @@ async function seedDatabase() {
     console.log(`🪑 Mesas: ${mesasCount.rows[0].total}`);
     console.log(`👥 Invitados: ${invitadosCount.rows[0].total}`);
     
-    console.log('🔑 CREDENCIALES DE PRUEBA:');
-    console.log('   Email: jorge.flores@titi-app.com');
+    console.log('\n🔑 CREDENCIALES DE PRUEBA:');
+    console.log('   Admin: jorge.flores@titi-app.com');
+    console.log('   Cliente: cliente@ejemplo.com');
+    console.log('   Organizador: organizador@ejemplo.com');
     console.log('   Contraseña: Titi-apps2026@!');
     
   } catch (error) {
@@ -140,6 +152,7 @@ async function seedDatabase() {
       console.log('ℹ️  Los datos demo ya existen.');
     } else {
       console.error('❌ Error:', error.message);
+      console.error('Stack:', error.stack);
     }
   } finally {
     await pool.end();
