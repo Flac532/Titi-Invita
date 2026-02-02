@@ -1,97 +1,59 @@
 name: titi-invita-app
 region: nyc
+
 services:
 - name: titi-invita-api
+  
+  # Configuración del repositorio GitHub
   github:
     branch: main
-    repo: tu-usuario/tu-repositorio  # CAMBIA POR TU REPO REAL
+    repo: tu-usuario/titi-invita
     deploy_on_push: true
+  
+  # Directorio raíz
   source_dir: /
   
   # Variables de entorno
   envs:
   - key: NODE_ENV
     value: production
+  
   - key: PORT
     value: "8080"
   
-  # Database Digital Ocean
+  # PostgreSQL DigitalOcean
   - key: DB_HOST
-    value: "app-dcbdb4b2-d446-4cf7-bee6-40a00a634692-do-user-2165170-0.l.db.ondigitalocean.com"
+    value: app-dcbdb4b2-d446-4cf7-bee6-40a00a634692-do-user-2165170-0.l.db.ondigitalocean.com
+  
   - key: DB_PORT
     value: "25060"
+  
   - key: DB_NAME
-    value: "dev-db-975741"
+    value: dev-db-975741
+  
   - key: DB_USER
-    value: "dev-db-975741"
+    value: dev-db-975741
+  
   - key: DB_PASSWORD
-    value: "AVNS_lRIHSLrwyt6XMZH4z1O"
-  - key: PGSSLMODE
-    value: "require"
+    value: AVNS_lRIHSLrwyt6XMZH4z1O
   
-  # JWT
+  # JWT Secret
   - key: JWT_SECRET
-    value: "tu_super_secreto_jwt_titi_invita_2026@!"
-  - key: JWT_EXPIRES_IN
-    value: "86400"
+    value: TitiInvita2026SecretKey!ChangeThisInProduction
   
-  # CORS
-  - key: CORS_ORIGIN
-    value: "https://titi-invita-app-azhcw.ondigitalocean.app"
-  
+  # Configuración del servicio
   http_port: 8080
   instance_count: 1
   instance_size_slug: basic-xxs
   
-  # Comandos de build optimizados
-  build_command: |
-    echo "🚀 CONSTRUYENDO EN DIGITAL OCEAN..."
-    npm ci --only=production
-    
-    # Crear estructura de carpetas si no existe
-    mkdir -p public database
-    
-    # Copiar archivos estáticos si existen
-    if [ -f "index.html" ]; then
-      cp index.html public/
-    fi
-    
-    if [ -f "login.html" ]; then
-      cp login.html public/
-    fi
-    
-    if [ -f "cliente.html" ]; then
-      cp cliente.html public/
-    fi
-    
-    if [ -f "admin.html" ]; then
-      cp admin.html public/
-    fi
-    
-    # Copiar archivos CSS y JS si existen
-    if [ -f "login.css" ]; then
-      cp login.css public/
-    fi
-    
-    if [ -f "login.js" ]; then
-      cp login.js public/
-    fi
-    
-    if [ -f "cliente.css" ]; then
-      cp cliente.css public/
-    fi
-    
-    if [ -f "cliente.js" ]; then
-      cp cliente.js public/
-    fi
-    
-    echo "✅ Build completado"
-  
+  # Comandos de build y ejecución
+  build_command: npm ci --only=production
   run_command: npm start
   
+  # Health check
   health_check:
     http_path: /api/health
-    initial_delay_seconds: 180  # 3 minutos para inicializar
+    initial_delay_seconds: 180
     period_seconds: 30
     timeout_seconds: 10
     success_threshold: 1
