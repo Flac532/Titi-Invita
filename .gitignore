@@ -16,6 +16,7 @@ package-lock.json
 .env.test.local
 .env.production.local
 .env*.local
+exampleenv.txt
 
 # ============================================
 # LOGS
@@ -78,6 +79,7 @@ dist/
 build/
 .coverage
 .nyc_output
+.cache/
 
 # ============================================
 # SSL Y CERTIFICADOS
@@ -92,3 +94,26 @@ build/
 # ============================================
 docker-compose.override.yml
 .docker/
+
+# ============================================
+# SISTEMA
+# ============================================
+.session.vim
+.netrwhist
+*~
+# Auto-generated tag files
+tags
+/tags
+
+# ============================================
+# COVERAGE
+# ============================================
+coverage/
+.nyc_output/
+lcov.info
+
+# ============================================
+# EDITORES
+# ============================================
+*.sublime-*
+.komodotools/
