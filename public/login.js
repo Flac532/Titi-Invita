@@ -41,8 +41,8 @@ function validarEmail(email) {
 }
 
 function validarPassword(password) {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.\-_])[A-Za-z\d@$!%*?&.\-_]{8,}$/;
-    return regex.test(password);
+    // Validación más flexible - mínimo 8 caracteres
+    return password.length >= 8;
 }
 
 // ===== MODO OSCURO =====
