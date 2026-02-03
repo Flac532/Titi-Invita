@@ -1,60 +1,69 @@
 name: titi-invita-app
 region: nyc
-
 services:
 - name: titi-invita-api
-  
-  # Configuración del repositorio GitHub
   github:
     branch: main
-    repo: tu-usuario/titi-invita
+    repo: tu-usuario/tu-repositorio  # CAMBIA POR TU REPO REAL
     deploy_on_push: true
-  
-  # Directorio raíz
   source_dir: /
   
   # Variables de entorno
   envs:
   - key: NODE_ENV
     value: production
-  
   - key: PORT
     value: "8080"
   
-  # PostgreSQL DigitalOcean
+  # Database Digital Ocean
   - key: DB_HOST
-    value: app-dcbdb4b2-d446-4cf7-bee6-40a00a634692-do-user-2165170-0.l.db.ondigitalocean.com
-  
+    value: "app-dcbdb4b2-d446-4cf7-bee6-40a00a634692-do-user-2165170-0.l.db.ondigitalocean.com"
   - key: DB_PORT
     value: "25060"
-  
   - key: DB_NAME
-    value: dev-db-975741
-  
+    value: "dev-db-975741"
   - key: DB_USER
-    value: dev-db-975741
-  
+    value: "dev-db-975741"
   - key: DB_PASSWORD
-    value: AVNS_lRIHSLrwyt6XMZH4z1O
+    value: "AVNS_lRIHSLrwyt6XMZH4z1O"
+  - key: PGSSLMODE
+    value: "require"
   
-  # JWT Secret
+  # JWT
   - key: JWT_SECRET
-    value: TitiInvita2026SecretKey!ChangeThisInProduction
+    value: "tu_super_secreto_jwt_titi_invita_2026@!"
+  - key: JWT_EXPIRES_IN
+    value: "86400"
   
-  # Configuración del servicio
+  # CORS
+  - key: CORS_ORIGIN
+    value: "https://titi-invita-app-azhcw.ondigitalocean.app"
+  
   http_port: 8080
   instance_count: 1
   instance_size_slug: basic-xxs
   
-  # Comandos de build y ejecución
-  build_command: npm ci --only=production
-  run_command: npm start
+  # Comandos de build optimizados
+  build_command: |
+    echo "🚀 CONSTRUYENDO EN DIGITAL OCEAN..."
+    rm -f package-lock.json
+    npm install --production
+    
+    # Crear carpeta public y copiar TODO lo estático de un golpe
+    mkdir -p public
+    for f in index.html login.html login.css login.js cliente.html cliente.css cliente.js admin.html admin.css admin.js admin-usuario.html admin-usuario.js; do
+      [ -f "$f" ] && cp "$f" public/
+    done
+    
+    echo "✅ Build completado — archivos en public/:"
+    ls public/
   
-  # Health check
+  run_command: node server.js
+  
   health_check:
     http_path: /api/health
-    initial_delay_seconds: 180
-    period_seconds: 30
+    initial_delay_seconds: 30
+    period_seconds: 15
     timeout_seconds: 10
     success_threshold: 1
-    failure_threshold: 3
+    failure_threshold: 5
