@@ -69,8 +69,23 @@ const guestDetails = document.getElementById('guestDetails');
 
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', function() {
-    // Cargar usuario actual
-    usuario = window.titiAuth?.obtenerUsuarioActual();
+    // Cargar usuario actual directamente de localStorage (no depender de titiAuth)
+    const usuarioStr = localStorage.getItem('titi_usuario_actual') || sessionStorage.getItem('titi_usuario_actual');
+    
+    if (!usuarioStr) {
+        console.log('❌ No hay usuario en storage, redirigiendo a login');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    try {
+        usuario = JSON.parse(usuarioStr);
+        console.log('✅ Usuario cargado:', usuario);
+    } catch (error) {
+        console.error('❌ Error parseando usuario:', error);
+        window.location.href = 'login.html';
+        return;
+    }
     
     if (!usuario) {
         window.location.href = 'login.html';
@@ -678,7 +693,13 @@ function configurarEventListeners() {
     
     // Cerrar sesión
     logoutBtn.addEventListener('click', function() {
-        window.titiAuth.logout();
+        localStorage.removeItem('titi_token');
+        localStorage.removeItem('titi_sesion');
+        localStorage.removeItem('titi_usuario_actual');
+        sessionStorage.removeItem('titi_token');
+        sessionStorage.removeItem('titi_sesion');
+        sessionStorage.removeItem('titi_usuario_actual');
+        window.location.href = 'login.html';
     });
     
     // Zoom
