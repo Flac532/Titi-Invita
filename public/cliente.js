@@ -180,6 +180,18 @@ async function cargarEventosUsuario() {
     try {
         mostrarMensaje('Cargando eventos...', 'info');
         
+        // Debug: decodificar token para ver quién está logueado
+        const token = getToken();
+        if (token) {
+            try {
+                const parts = token.split('.');
+                const payload = JSON.parse(atob(parts[1]));
+                console.log('🎫 Token usuario:', JSON.stringify(payload));
+            } catch(e) { console.log('⚠️ No se pudo decodificar token'); }
+        } else {
+            console.log('⚠️ NO HAY TOKEN');
+        }
+        
         const response = await fetch(`${API_BASE}/eventos-usuario`, {
             headers: getAuthHeaders()
         });
@@ -1176,10 +1188,20 @@ async function guardarConfiguracionEvento() {
                 if (contentType && contentType.includes('application/json')) {
                     const err = await mesasResponse.json();
                     errMsg = err.error || errMsg;
+                    // Si el servidor envió debug info, logearlo
+                    if (err.debug) {
+                        console.error('🔍 DEBUG del servidor:', JSON.stringify(err.debug));
+                        console.error('⚠️ El evento ' + err.debug.eventId + ' pertenece a usuario ' + err.debug.eventUserId + ' pero el token tiene usuario ' + err.debug.tokenUserId);
+                    }
                 }
             } catch(e) { /* ignore parse errors */ }
             console.error('❌ Error guardando mesas:', mesasResponse.status, errMsg);
-            mostrarMensaje(errMsg, 'error');
+            
+            if (mesasResponse.status === 404) {
+                mostrarMensaje('Evento no autorizado. Crea un nuevo evento.', 'error');
+            } else {
+                mostrarMensaje(errMsg, 'error');
+            }
             return;
         }
         
