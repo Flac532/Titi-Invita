@@ -3,159 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Titi Invita</title>
+    <title>Login – Titi Invita</title>
     <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Botón de modo oscuro -->
-    <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
-        <i class="fas fa-moon"></i>
-    </button>
+<div class="split-layout">
 
-    <div class="login-container">
-        <div class="login-header">
-            <div class="logo">
+    <!-- ════ PANEL IZQUIERDO ════ -->
+    <div class="split-left">
+        <div class="deco-arcs">
+            <svg viewBox="0 0 600 900" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                    <linearGradient id="arcFade" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="white" stop-opacity="0.12"/>
+                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <path d="M 620 950 A 500 500 0 0 1 120 450" fill="none" stroke="url(#arcFade)" stroke-width="1.2"/>
+                <path d="M 660 950 A 560 560 0 0 1 100 370" fill="none" stroke="url(#arcFade)" stroke-width="1"/>
+                <path d="M 700 950 A 620 620 0 0 1 80 290" fill="none" stroke="url(#arcFade)" stroke-width="0.9"/>
+                <path d="M 740 950 A 680 680 0 0 1 60 210" fill="none" stroke="url(#arcFade)" stroke-width="0.8"/>
+                <path d="M -40 -30  A 320 320 0 0 0 300 200" fill="none" stroke="url(#arcFade)" stroke-width="0.9"/>
+                <path d="M -60 -50  A 380 380 0 0 0 340 240" fill="none" stroke="url(#arcFade)" stroke-width="0.7"/>
+            </svg>
+        </div>
+
+        <div class="split-left-inner">
+            <div class="split-logo">
                 <i class="fas fa-chair"></i>
                 <h1>Titi Invita</h1>
             </div>
-            <h2>Sistema de Control de Mesas</h2>
-            <p>Bienvenido, por favor inicia sesión</p>
+            <h2 class="split-headline">Hola<br><span>Titi Invita</span> 👋</h2>
+            <p class="split-tagline">
+                Organiza tus eventos de manera profesional.<br>
+                Asigna mesas, gestiona invitados y ahorra tiempo.
+            </p>
         </div>
-        
-        <form id="loginForm" class="login-form">
-            <div class="form-group">
-                <label for="email">
-                    <i class="fas fa-envelope"></i> Correo Electrónico
-                </label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    placeholder="usuario@ejemplo.com"
-                    autocomplete="email"
-                    required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">
-                    <i class="fas fa-lock"></i> Contraseña
-                </label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    placeholder="************"
-                    autocomplete="current-password"
-                    required>
-            </div>
-            
-            <div class="form-options">
-                <label class="checkbox">
-                    <input type="checkbox" id="remember">
-                    <span>Recordar sesión</span>
-                </label>
-                <a href="#" class="forgot-password" id="forgotPasswordLink">
-                    ¿Olvidaste tu contraseña?
-                </a>
-            </div>
-            
-            <button type="submit" class="btn-login" id="loginButton">
-                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-            </button>
-            
-            <div class="login-links">
-                <a href="index.html">
-                    <i class="fas fa-arrow-left"></i> Volver al inicio
-                </a>
-            </div>
-        </form>
-        
-        <div class="credentials-demo">
-            <h4><i class="fas fa-key"></i> Credenciales de Prueba</h4>
-            
-            <div class="credential-item admin">
-                <strong>Administrador</strong>
-                <p>Email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c3a9acb1a4a6eda5afacb1a6b083b7aab7aaeea2b3b3eda0acae">[email&#160;protected]</a></p>
-                <p>Contraseña: Titi-apps2026@!</p>
-            </div>
-            
-            <div class="credential-item organizador">
-                <strong>Organizador</strong>
-                <p>Email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="79160b1e18171003181d160b391c131c14091516571a1614">[email&#160;protected]</a></p>
-                <p>Contraseña: Titi-apps2026@!</p>
-            </div>
-            
-            <div class="credential-item cliente">
-                <strong>Cliente</strong>
-                <p>Email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6f0c03060a011b0a2f0a050a021f0300410c0002">[email&#160;protected]</a></p>
-                <p>Contraseña: Titi-apps2026@!</p>
-            </div>
-            
-            <div class="shortcut-hint">
-                <i class="fas fa-lightbulb"></i> Doble click en email para cargar admin
-            </div>
-        </div>
-        
-        <div class="login-footer">
-            <p>&copy; 2026 Titi Invita</p>
-        </div>
+        <footer class="split-footer-left">&copy; 2026 Titi Invita. Todos los derechos reservados.</footer>
     </div>
-    
-    <!-- Modal de recuperación de contraseña -->
-    <div id="forgotPasswordModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Cambiar Contraseña</h3>
-                <button type="button" class="modal-close" id="closeForgotModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="forgotPasswordForm">
-                    <div class="form-group">
-                        <label for="resetEmail">
-                            <i class="fas fa-envelope"></i> Email
-                        </label>
-                        <input 
-                            type="email" 
-                            id="resetEmail" 
-                            placeholder="tu@email.com"
-                            required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="newPassword">
-                            <i class="fas fa-key"></i> Nueva Contraseña
-                        </label>
-                        <input 
-                            type="password" 
-                            id="newPassword" 
-                            placeholder="Mínimo 8 caracteres"
-                            required>
-                        <div class="input-hint">Mínimo 8 caracteres, mayúsculas, minúsculas, números y símbolos</div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="confirmPassword">
-                            <i class="fas fa-check"></i> Confirmar Contraseña
-                        </label>
-                        <input 
-                            type="password" 
-                            id="confirmPassword" 
-                            placeholder="Repite la contraseña"
-                            required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" id="cancelForgotBtn">Cancelar</button>
-                <button type="button" class="btn-login" id="resetPasswordBtn">
-                    <i class="fas fa-save"></i> Cambiar Contraseña
+
+    <!-- ════ PANEL DERECHO – formulario login ════ -->
+    <div class="split-right">
+        <div class="split-right-inner">
+
+            <h3 class="login-welcome">¡Bienvenido de vuelta!</h3>
+            <p class="login-sub">Inicia sesión para continuar</p>
+
+            <form id="loginForm">
+                <div class="field">
+                    <label for="email"><i class="fas fa-envelope"></i> Correo electrónico</label>
+                    <input type="email" id="email" placeholder="usuario@ejemplo.com" required autocomplete="email">
+                </div>
+
+                <div class="field">
+                    <label for="password"><i class="fas fa-lock"></i> Contraseña</label>
+                    <input type="password" id="password" placeholder="••••••••••••" required autocomplete="current-password">
+                </div>
+
+                <div class="field-row">
+                    <label class="chk">
+                        <input type="checkbox" id="remember">
+                        <span>Recordar datos</span>
+                    </label>
+                    <a href="#" id="forgotPasswordLink" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <button type="submit" class="btn-login-new" id="loginButton">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
                 </button>
+            </form>
+
+            <!-- credenciales de prueba (clickables → auto-fill) -->
+            <div class="creds-box">
+                <p class="creds-title"><i class="fas fa-key"></i> Credenciales de prueba — clic para usar</p>
+                <div class="creds-row" onclick="fillCred('jorge.flores@titi-app.com')">
+                    <span class="creds-badge admin">Admin</span>
+                    <span class="creds-email">jorge.flores@titi-app.com</span>
+                </div>
+                <div class="creds-row" onclick="fillCred('organizador@ejemplo.com')">
+                    <span class="creds-badge organizador">Organizador</span>
+                    <span class="creds-email">organizador@ejemplo.com</span>
+                </div>
+                <div class="creds-row" onclick="fillCred('cliente@ejemplo.com')">
+                    <span class="creds-badge cliente">Cliente</span>
+                    <span class="creds-email">cliente@ejemplo.com</span>
+                </div>
+                <p class="creds-pw">Contraseña para todos: <strong>Titi-apps2026@!</strong></p>
             </div>
+
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Volver al inicio</a>
         </div>
     </div>
-    
-    <div id="messageToast" class="toast"></div>
-    
-    <script src="api-config.js"></script>
-    <script src="login.js"></script>
+
+</div>
+
+<!-- ════ MODAL – recuperar / cambiar contraseña ════ -->
+<div class="modal-forgot" id="forgotPasswordModal">
+    <div class="modal-forgot-box">
+        <button class="modal-forgot-close" id="closeForgotModal">&times;</button>
+        <h4><i class="fas fa-key"></i> Cambiar contraseña</h4>
+
+        <div class="field">
+            <label>Correo registrado</label>
+            <input type="email" id="resetEmail" placeholder="tu@correo.com">
+        </div>
+        <div class="field">
+            <label>Nueva contraseña</label>
+            <input type="password" id="newPassword" placeholder="••••••••••••">
+        </div>
+        <div class="field">
+            <label>Confirmar contraseña</label>
+            <input type="password" id="confirmPassword" placeholder="••••••••••••">
+        </div>
+
+        <div class="modal-forgot-btns">
+            <button class="btn-forgot-cancel" id="cancelForgotBtn">Cancelar</button>
+            <button class="btn-forgot-ok"      id="resetPasswordBtn"><i class="fas fa-save"></i> Cambiar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="messageToast" class="toast"></div>
+
+<script src="login.js"></script>
+<script>
+    // Auto-fill credenciales al hacer clic en una fila
+    function fillCred(email) {
+        document.getElementById('email').value   = email;
+        document.getElementById('password').value = 'Titi-apps2026@!';
+        document.getElementById('remember').checked = true;
+        document.getElementById('email').focus();
+    }
+</script>
 </body>
 </html>
