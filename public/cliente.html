@@ -114,17 +114,11 @@
                 </div>
                 
                 <div class="header-actions">
-                    <button class="btn-icon" id="shareBtn" title="Compartir Vista">
-                        <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="btn-icon" id="helpBtn" title="Ayuda">
-                        <i class="fas fa-question-circle"></i>
+                    <button class="btn-icon" id="fullscreenBtn" title="Pantalla Completa">
+                        <i class="fas fa-expand"></i>
                     </button>
                     <button class="btn-icon" id="logoutBtn" title="Cerrar Sesión">
                         <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                    <button class="btn-icon" id="fullscreenBtn" title="Pantalla Completa">
-                        <i class="fas fa-expand"></i>
                     </button>
                 </div>
             </div>
@@ -177,7 +171,7 @@
                         <span class="count-value" id="activeEventsCount">1</span>
                         <span class="count-label">Activos</span>
                     </div>
-                    <div class="count-item">
+                    <div class="count-item" id="draftCountItem" style="display:none;">
                         <span class="count-value" id="draftEventsCount">0</span>
                         <span class="count-label">Borradores</span>
                     </div>
@@ -202,9 +196,6 @@
                     </button>
                     <button class="btn-icon" id="resetViewBtn" title="Restablecer Vista">
                         <i class="fas fa-expand-arrows-alt"></i>
-                    </button>
-                    <button class="btn-icon" id="changeLayoutBtn" title="Cambiar Disposición" onclick="mostrarOpcionesDisposicion()">
-                        <i class="fas fa-th"></i>
                     </button>
                 </div>
             </div>
@@ -323,8 +314,8 @@
                         <button class="btn-secondary" id="btnGuardarEvento">
                             <i class="fas fa-save"></i> Guardar Cambios
                         </button>
-                        <button class="btn-secondary" id="btnFinalizarEvento" title="Finalizar Evento">
-                            <i class="fas fa-flag-checkered"></i> Finalizar
+                        <button class="btn-danger" id="btnEliminarEvento" title="Eliminar Evento">
+                            <i class="fas fa-trash-alt"></i> Eliminar
                         </button>
                     </div>
                 </div>
@@ -358,17 +349,7 @@
                         <!-- Lista de invitados se generará aquí -->
                     </div>
                     
-                    <div class="guest-actions">
-                        <button class="btn-secondary btn-small" id="importGuestsBtn">
-                            <i class="fas fa-file-import"></i> Importar CSV
-                        </button>
-                        <button class="btn-secondary btn-small" id="exportGuestsBtn">
-                            <i class="fas fa-file-export"></i> Exportar Lista
-                        </button>
-                        <button class="btn-secondary btn-small" id="sendInvitationsBtn">
-                            <i class="fas fa-envelope"></i> Enviar Invitaciones
-                        </button>
-                    </div>
+
                 </div>
                 
                 <div class="panel-section guest-details-section">
@@ -445,71 +426,7 @@
         </div>
     </div>
     
-    <!-- Modal Opciones de Disposición -->
-    <div class="modal" id="layoutModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-th"></i> Configurar Disposición</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="layout-options">
-                    <div class="layout-presets">
-                        <h4>Disposiciones Predefinidas</h4>
-                        <div class="preset-grid">
-                            <div class="preset-item" onclick="aplicarPreset(4, 2, 70)">
-                                <div class="preset-visual" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                </div>
-                                <span>4x2</span>
-                            </div>
-                            <div class="preset-item" onclick="aplicarPreset(3, 3, 80)">
-                                <div class="preset-visual" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                </div>
-                                <span>3x3</span>
-                            </div>
-                            <div class="preset-item" onclick="aplicarPreset(5, 2, 60)">
-                                <div class="preset-visual" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                </div>
-                                <span>5x2</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="layout-custom">
-                        <h4>Personalizado</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="customColumnas">Columnas</label>
-                                <input type="range" id="customColumnas" min="1" max="10" value="4" oninput="document.getElementById('columnasValue').textContent = this.value">
-                                <span id="columnasValue">4</span>
-                            </div>
-                            <div class="form-group">
-                                <label for="customFilas">Filas</label>
-                                <input type="range" id="customFilas" min="1" max="10" value="2" oninput="document.getElementById('filasValue').textContent = this.value">
-                                <span id="filasValue">2</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="customEspaciado">Espaciado (px)</label>
-                            <input type="range" id="customEspaciado" min="20" max="150" value="70" oninput="document.getElementById('espaciadoValue').textContent = this.value + 'px'">
-                            <span id="espaciadoValue">70px</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModal(document.getElementById('layoutModal'))">Cancelar</button>
-                <button class="btn-primary" onclick="aplicarDisposicionPersonalizada()">Aplicar</button>
-            </div>
-        </div>
-    </div>
+
     
     <!-- Toast -->
     <div id="messageToast" class="toast"></div>
@@ -518,48 +435,8 @@
     <script src="cliente.js"></script>
     
     <script>
-        // Funciones auxiliares para disposición
-        function mostrarOpcionesDisposicion() {
-            document.getElementById('layoutModal').style.display = 'flex';
-        }
-        
-        function aplicarPreset(columnas, filas, espaciado) {
-            document.getElementById('numColumnas').value = columnas;
-            document.getElementById('numFilas').value = filas;
-            document.getElementById('espaciado').value = espaciado;
-            actualizarDisposicion();
-            cerrarModal(document.getElementById('layoutModal'));
-        }
-        
-        function aplicarDisposicionPersonalizada() {
-            const columnas = document.getElementById('customColumnas').value;
-            const filas = document.getElementById('customFilas').value;
-            const espaciado = document.getElementById('customEspaciado').value;
-            
-            document.getElementById('numColumnas').value = columnas;
-            document.getElementById('numFilas').value = filas;
-            document.getElementById('espaciado').value = espaciado;
-            actualizarDisposicion();
-            cerrarModal(document.getElementById('layoutModal'));
-        }
-        
-        function actualizarDisposicion() {
-            const columnas = document.getElementById('numColumnas').value;
-            const filas = document.getElementById('numFilas').value;
-            const espaciado = document.getElementById('espaciado').value;
-            
-            // Aquí iría la lógica para actualizar la disposición de las mesas
-            // Por ahora solo mostramos un mensaje
-            const toast = document.getElementById('messageToast');
-            if (toast) {
-                toast.textContent = `Disposición actualizada: ${columnas} columnas × ${filas} filas`;
-                toast.className = 'toast info show';
-                setTimeout(() => toast.classList.remove('show'), 2000);
-            }
-        }
-        
         function cerrarModal(modal) {
-            modal.style.display = 'none';
+            if (modal) modal.style.display = 'none';
         }
     </script>
 </body>
