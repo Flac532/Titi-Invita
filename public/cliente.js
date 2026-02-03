@@ -1195,7 +1195,6 @@ async function guardarConfiguracionEvento() {
         mostrarMensaje('Error de conexión al guardar', 'error');
     }
 }
-}
 
 function cargarInvitadosDemo() {
     invitados = [
