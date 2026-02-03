@@ -122,6 +122,15 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Verificar límite al cargar
     verificarLimiteEventos();
+
+    // Fallback: si después de todo no hay mesas visibles, crearlas
+    setTimeout(() => {
+        console.log('⏰ Fallback check. mesas.length=' + mesas.length + ' mesasContainer.children=' + (mesasContainer ? mesasContainer.children.length : 'NULL'));
+        if (!mesasContainer || mesasContainer.children.length === 0) {
+            console.log('⚠️ FALLBACK: Forzando crearMesas()');
+            crearMesas();
+        }
+    }, 2000);
 });
 
 // ===== FUNCIONES PRINCIPALES =====
@@ -183,18 +192,20 @@ async function cargarEventosUsuario() {
         }
         
         const data = await response.json();
-        console.log('✅ Eventos cargados de la API:', data);
+        console.log('✅ Eventos cargados de la API:', JSON.stringify(data));
         
         eventosCliente = data.eventos || data || [];
+        console.log('📊 Cantidad de eventos:', eventosCliente.length);
         
         actualizarEstadisticasEventos();
         actualizarSelectorEventos();
         
         if (eventosCliente.length > 0) {
+            console.log('🎯 Seleccionando evento:', eventosCliente[0].id, eventosCliente[0].nombre);
             eventSelector.value = eventosCliente[0].id;
             await cargarEvento(eventosCliente[0].id);
         } else {
-            // No hay eventos, crear uno automáticamente
+            console.log('⚠️ No hay eventos, creando automático...');
             await crearEventoAutomatico();
         }
         
@@ -298,15 +309,19 @@ async function cargarEvento(eventoId) {
     
     // Cargar mesas desde la API
     try {
+        console.log('📨 Fetching mesas para evento:', eventoId);
         const response = await fetch(`${API_BASE}/eventos/${eventoId}/mesas`, {
             headers: getAuthHeaders()
         });
         
+        console.log('📩 Mesas response status:', response.status);
+        
         if (response.ok) {
             const data = await response.json();
-            console.log('✅ Mesas cargadas:', data);
+            console.log('✅ Mesas data:', JSON.stringify(data));
             
             if (data.mesas && data.mesas.length > 0) {
+                console.log('🪑 Renderizando', data.mesas.length, 'mesas desde API');
                 mesas = data.mesas.map(m => ({
                     id: m.id,
                     nombre: m.nombre,
@@ -315,15 +330,15 @@ async function cargarEvento(eventoId) {
                 }));
                 renderizarMesas();
             } else {
-                // No hay mesas, crear por defecto
+                console.log('🆕 No hay mesas en API, llamando crearMesas()');
                 crearMesas();
             }
         } else {
-            console.log('No hay mesas en API, creando por defecto');
+            console.log('❌ Mesas endpoint error, llamando crearMesas()');
             crearMesas();
         }
     } catch (error) {
-        console.error('Error cargando mesas:', error);
+        console.error('💥 Error cargando mesas:', error);
         crearMesas();
     }
     
@@ -338,13 +353,18 @@ function crearMesas() {
     const sillasPorMesa = parseInt(sillasPorMesaInput.value);
     const formaMesa = formaMesaSelect.value;
     
+    console.log('🏗️ crearMesas llamada. numMesas=' + numMesas + ' sillasPorMesa=' + sillasPorMesa + ' forma=' + formaMesa);
+    console.log('🏗️ mesasContainer:', mesasContainer, 'innerHTML length antes:', mesasContainer ? mesasContainer.innerHTML.length : 'NULL');
+    
     // Validaciones
     if (numMesas < 1 || numMesas > 50) {
+        console.log('❌ Validación fallida: numMesas=' + numMesas);
         mostrarMensaje('El número de mesas debe estar entre 1 y 50', 'error');
         return;
     }
     
     if (sillasPorMesa < 1 || sillasPorMesa > 12) {
+        console.log('❌ Validación fallida: sillasPorMesa=' + sillasPorMesa);
         mostrarMensaje('Las sillas por mesa deben estar entre 1 y 12', 'error');
         return;
     }
@@ -393,6 +413,8 @@ function crearMesas() {
     
     // Actualizar estadísticas
     actualizarEstadisticas();
+    
+    console.log('✅ crearMesas DONE. mesas.length=' + mesas.length + ' mesasContainer.children=' + mesasContainer.children.length);
     
     // Guardar en evento actual si existe
     if (eventoActual) {
