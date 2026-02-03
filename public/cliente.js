@@ -391,25 +391,20 @@ function crearMesaVisual(mesa) {
     mesasContainer.appendChild(el);
 }
 
-// ── silla como SVG top-view ──
+// ── silla ──
 function crearSillaElement(mesa, silla, idx, posiciones) {
     const el = document.createElement('div');
     el.className  = `silla estado-${silla.estado}`;
     el.dataset.mesaId  = mesa.id;
     el.dataset.sillaId = silla.id;
+    el.textContent = silla.id;
     el.draggable = true;
     if (silla.nombre && showNamesCheckbox.checked) el.setAttribute('title', silla.nombre);
 
-    // SVG interior: respaldo (rectángulo redondeado arriba) + asiento (cuadrado)
-    el.innerHTML = `<svg viewBox="0 0 28 34" width="28" height="34" class="silla-svg">
-        <rect class="silla-respaldo" x="2" y="0" width="24" height="14" rx="4" ry="4"/>
-        <rect class="silla-asiento" x="1" y="13" width="26" height="20" rx="3" ry="3"/>
-    </svg>`;
-
     // posición + rotación
     const pos = posiciones[idx];
-    el.style.left = `calc(${pos.x}% - 14px)`;
-    el.style.top  = `calc(${pos.y}% - 17px)`;
+    el.style.left = `calc(${pos.x}% - 16px)`;
+    el.style.top  = `calc(${pos.y}% - 20px)`;
     if (mesa.forma === 'rectangular' || mesa.forma === 'cuadrada') {
         if      (pos.y < 25)  el.style.transform = 'rotate(180deg)';
         else if (pos.y > 75)  el.style.transform = 'rotate(0deg)';
