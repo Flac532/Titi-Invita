@@ -416,11 +416,6 @@ function crearMesas() {
     
     console.log('✅ crearMesas DONE. mesas.length=' + mesas.length + ' mesasContainer.children=' + mesasContainer.children.length);
     
-    // Guardar en evento actual si existe
-    if (eventoActual) {
-        guardarConfiguracionEvento();
-    }
-    
     mostrarMensaje(`${numMesas} mesas creadas con éxito`, 'success');
 }
 
@@ -1142,6 +1137,13 @@ function actualizarEstadisticas() {
 async function guardarConfiguracionEvento() {
     if (!eventoActual) return;
     
+    const token = getToken();
+    if (!token) {
+        mostrarMensaje('Sesión expirada. Por favor inicia sesión de nuevo.', 'error');
+        setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+        return;
+    }
+
     eventoActual.configuracion = {
         mesas: JSON.parse(JSON.stringify(mesas)),
         disposicion: configuracionDisposicion,
@@ -1160,12 +1162,28 @@ async function guardarConfiguracionEvento() {
             body: JSON.stringify({ mesas: mesas })
         });
         
-        if (mesasResponse.ok) {
-            console.log('✅ Mesas guardadas en la API');
-        } else {
-            const err = await mesasResponse.json();
-            console.error('❌ Error guardando mesas:', err);
+        if (mesasResponse.status === 401) {
+            console.warn('⚠️ Token expirado (401). Redirigiendo a login...');
+            mostrarMensaje('Sesión expirada. Por favor inicia sesión de nuevo.', 'error');
+            setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+            return;
         }
+        
+        if (!mesasResponse.ok) {
+            let errMsg = 'Error guardando mesas';
+            try {
+                const contentType = mesasResponse.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const err = await mesasResponse.json();
+                    errMsg = err.error || errMsg;
+                }
+            } catch(e) { /* ignore parse errors */ }
+            console.error('❌ Error guardando mesas:', mesasResponse.status, errMsg);
+            mostrarMensaje(errMsg, 'error');
+            return;
+        }
+        
+        console.log('✅ Mesas guardadas en la API');
         
         // 2. Guardar datos del evento en la API
         const eventoResponse = await fetch(`${API_BASE}/eventos/${eventoActual.id}`, {
@@ -1183,10 +1201,9 @@ async function guardarConfiguracionEvento() {
         
         if (eventoResponse.ok) {
             console.log('✅ Evento guardado en la API');
-            mostrarMensaje('Cambios guardados', 'success');
+            mostrarMensaje('Cambios guardados ✓', 'success');
         } else {
-            const err = await eventoResponse.json();
-            console.error('❌ Error guardando evento:', err);
+            console.error('❌ Error guardando evento:', eventoResponse.status);
             mostrarMensaje('Error guardando evento', 'error');
         }
         
