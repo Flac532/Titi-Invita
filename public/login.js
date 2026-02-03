@@ -61,7 +61,9 @@ function toggleTheme() {
 }
 
 function updateThemeIcon(theme) {
+    if (!themeToggle) return;
     const icon = themeToggle.querySelector('i');
+    if (!icon) return;
     if (theme === 'dark') {
         icon.className = 'fas fa-sun';
     } else {
