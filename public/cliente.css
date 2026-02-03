@@ -1591,3 +1591,275 @@ body {
         background: var(--primary-color) !important;
     }
 }
+
+/* ============================================================
+   CONTADOR POR MESA
+   ============================================================ */
+.mesa-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    padding: 2px 0 4px;
+    flex-wrap: wrap;
+}
+.mesa-header .mesa-info {
+    margin: 0;
+    padding: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #5d4037;
+    cursor: pointer;
+    flex: 1;
+    text-align: center;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mesa-header .mesa-info:hover { color: #3e2723; text-decoration: underline; }
+
+.mesa-contador {
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: #efebe9;
+    color: #5d4037;
+    border-radius: 10px;
+    padding: 1px 7px;
+    border: 1px solid #d7ccc8;
+    white-space: nowrap;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+.mesa-contador.llena {
+    background: linear-gradient(135deg, #FFD700, #FFC107);
+    color: #fff;
+    border-color: #FFB300;
+    box-shadow: 0 0 6px rgba(255,193,7,0.5);
+}
+
+/* ============================================================
+   MESA LLENA – borde dorado
+   ============================================================ */
+.mesa.mesa-llena {
+    outline: 2px solid #FFD700;
+    outline-offset: 3px;
+    border-radius: 8px;
+}
+
+/* ============================================================
+   BOTÓN COLOR DE ZONA
+   ============================================================ */
+.btn-color-mesa {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+}
+.btn-color-mesa:hover { transform: scale(1.2); box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+
+/* ============================================================
+   PICKER DE COLORES
+   ============================================================ */
+.color-picker-popup {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 8px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+    z-index: 999;
+    width: 118px;
+}
+.color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+.color-swatch:hover { transform: scale(1.25); box-shadow: 0 2px 6px rgba(0,0,0,0.45); }
+
+/* ============================================================
+   DRAG & DROP – estados visuales
+   ============================================================ */
+.silla.dragging {
+    opacity: 0.45;
+    transform: scale(0.9) !important;
+    transition: opacity 0.15s, transform 0.15s;
+}
+.silla.drop-target-silla {
+    box-shadow: 0 0 0 3px #42a5f5, 0 0 10px rgba(66,165,245,0.5) !important;
+}
+.mesa-grafica.drop-target {
+    filter: brightness(1.15);
+    box-shadow: inset 0 0 0 3px rgba(66,165,245,0.7);
+}
+
+/* ============================================================
+   ANIMACIÓN SILLA – pulso al cambiar estado
+   ============================================================ */
+@keyframes sillaPulso {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.35); }
+    65%  { transform: scale(0.92); }
+    100% { transform: scale(1); }
+}
+.silla.silla-cambio {
+    animation: sillaPulso 0.38s cubic-bezier(.4,0,.2,1) forwards !important;
+}
+
+/* ============================================================
+   HISTORIAL
+   ============================================================ */
+.historial-section { max-height: 200px; overflow: hidden; display: flex; flex-direction: column; }
+.historial-section .panel-section { overflow: hidden; display: flex; flex-direction: column; height: 100%; }
+.historial-section h3 { flex-shrink: 0; }
+.historial-lista {
+    overflow-y: auto;
+    flex: 1;
+    max-height: 140px;
+    padding: 0 2px;
+}
+.historial-lista::-webkit-scrollbar { width: 5px; }
+.historial-lista::-webkit-scrollbar-thumb { background: #bcaaa4; border-radius: 3px; }
+
+.historial-empty {
+    color: #a1887f;
+    font-size: 0.78rem;
+    text-align: center;
+    padding: 18px 0;
+    font-style: italic;
+}
+.historial-item {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    transition: background 0.2s;
+}
+.historial-item:hover { background: #efebe9; }
+.historial-hora {
+    color: #a1887f;
+    font-weight: 600;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.historial-texto { color: #5d4037; line-height: 1.35; }
+
+/* ============================================================
+   BOTÓN REPORTE en mesas-controls
+   ============================================================ */
+.btn-reporte { background: linear-gradient(135deg, #5d4037, #4e342e) !important; }
+.btn-reporte:hover { background: linear-gradient(135deg, #6d4c41, #5d4037) !important; }
+
+/* ============================================================
+   REPORTE MODAL
+   ============================================================ */
+.modal-reporte .modal-body.reporte-body { overflow-y: auto; max-height: calc(88vh - 120px); padding: 24px; }
+
+.reporte-titulo { text-align: center; margin-bottom: 18px; }
+.reporte-titulo h2 { margin: 0 0 4px; font-size: 1.35rem; color: #3e2723; }
+.reporte-fecha { margin: 0; color: #8d6e63; font-size: 0.88rem; }
+
+.reporte-resumen {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+}
+.reporte-res-item { text-align: center; }
+.reporte-res-num   { display: block; font-size: 1.45rem; font-weight: 700; color: #5d4037; }
+.reporte-res-label { font-size: 0.76rem; color: #8d6e63; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.reporte-mesa {
+    border: 1px solid #efebe9;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+.reporte-mesa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fafafa;
+    padding: 8px 12px;
+    border-left: 4px solid #8B4513;
+}
+.reporte-mesa-nombre { font-weight: 700; color: #4e342e; font-size: 0.92rem; }
+.reporte-mesa-stats  { font-size: 0.78rem; color: #8d6e63; }
+
+.reporte-invitados-lista { list-style: none; margin: 0; padding: 0; }
+.reporte-inv-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 14px;
+    border-bottom: 1px solid #f5f5f5;
+}
+.reporte-inv-item:last-child { border-bottom: none; }
+.reporte-inv-nombre { font-size: 0.87rem; color: #333; }
+.reporte-inv-estado { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+
+.reporte-sin-invitados { color: #a1887f; font-size: 0.82rem; padding: 8px 14px; font-style: italic; margin: 0; }
+.reporte-libres       { color: #bcaaa4; font-size: 0.76rem; padding: 3px 14px 7px; margin: 0; }
+
+.reporte-sin-asignar .reporte-mesa-header { background: #fafafa; }
+
+.reporte-header { display: flex; justify-content: space-between; align-items: center; }
+.reporte-header h3 { margin: 0; }
+.reporte-header-btns { display: flex; gap: 8px; align-items: center; }
+
+.btn-imprimir {
+    background: linear-gradient(135deg, #1565C0, #0D47A1) !important;
+    color: #fff !important;
+}
+.btn-imprimir:hover { background: linear-gradient(135deg, #1976D2, #1565C0) !important; }
+
+/* ============================================================
+   @media PRINT – solo sale el reporte
+   ============================================================ */
+@media print {
+    body * { visibility: hidden; }
+    #print-reporte, #print-reporte * { visibility: visible; }
+    #print-reporte {
+        position: absolute;
+        left: 0; top: 0;
+        width: 100%;
+        padding: 32px 40px;
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .reporte-titulo h2 { font-size: 1.4rem; }
+    .reporte-resumen { gap: 32px; margin-bottom: 28px; }
+    .reporte-mesa { margin-bottom: 16px; }
+    .reporte-inv-item { padding: 5px 14px; }
+}
+
+/* ============================================================
+   RESPONSIVE ADDITIONS (historial + reporte botón)
+   ============================================================ */
+@media (max-width: 768px) {
+    .historial-section { max-height: 160px; }
+    .color-picker-popup { width: 100px; }
+}
+@media (max-width: 480px) {
+    .reporte-resumen { gap: 12px; }
+    .btn-imprimir { padding: 6px 10px; font-size: 0.8rem; }
+    .color-picker-popup { width: 86px; }
+    .mesa-contador { font-size: 0.68rem; padding: 1px 5px; }
+}
