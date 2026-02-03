@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 
@@ -448,30 +448,26 @@ app.put('/api/eventos/:id', verificarToken, async (req, res) => {
     
     const { nombre, descripcion, fecha_evento, ubicacion, estado, configuracion } = req.body;
     
-    // Serializar configuracion si es objeto
-    const configJson = configuracion ? (typeof configuracion === 'string' ? configuracion : JSON.stringify(configuracion)) : null;
-    // fecha_evento puede llegar vacía
-    const fechaEvento = fecha_evento || null;
-    
     const result = await pool.query(
       `UPDATE eventos 
-       SET nombre = COALESCE($2, nombre),
-           descripcion = COALESCE($3, descripcion),
-           fecha_evento = COALESCE($4::DATE, fecha_evento),
-           ubicacion = COALESCE($5, ubicacion),
-           estado = COALESCE($6, estado),
-           configuracion = COALESCE($7::JSONB, configuracion),
+       SET nombre = COALESCE($3, nombre),
+           descripcion = COALESCE($4, descripcion),
+           fecha_evento = COALESCE($5, fecha_evento),
+           ubicacion = COALESCE($6, ubicacion),
+           estado = COALESCE($7, estado),
+           configuracion = COALESCE($8, configuracion),
            fecha_actualizacion = CURRENT_TIMESTAMP
        WHERE id = $1 
        RETURNING *`,
       [
         eventId,
-        nombre || null,
-        descripcion || null,
-        fechaEvento,
-        ubicacion || null,
-        estado || null,
-        configJson
+        userId,
+        nombre,
+        descripcion,
+        fecha_evento,
+        ubicacion,
+        estado,
+        configuracion
       ]
     );
     
@@ -543,16 +539,14 @@ app.put('/api/eventos/:id/mesas', verificarToken, async (req, res) => {
     const eventId = parseInt(req.params.id);
     const userId = req.usuario.id;
     const userRole = req.usuario.rol;
-    const { mesas } = req.body;
-    
-    console.log(`📝 PUT /mesas → eventId=${eventId}, userId=${userId} (from token), rol=${userRole}, email=${req.usuario.email}`);
+    const { mesas } = req.body; // Array de mesas
     
     // Verificar permisos
     let checkQuery;
     if (userRole === 'admin') {
-      checkQuery = `SELECT id, id_usuario FROM eventos WHERE id = $1`;
+      checkQuery = `SELECT id FROM eventos WHERE id = $1`;
     } else {
-      checkQuery = `SELECT id, id_usuario FROM eventos WHERE id = $1 AND id_usuario = $2`;
+      checkQuery = `SELECT id FROM eventos WHERE id = $1 AND id_usuario = $2`;
     }
     
     const checkResult = await pool.query(
@@ -560,17 +554,10 @@ app.put('/api/eventos/:id/mesas', verificarToken, async (req, res) => {
       userRole === 'admin' ? [eventId] : [eventId, userId]
     );
     
-    console.log(`📝 Permission check result: ${checkResult.rows.length} rows found`);
-    
-    // Si no encontró con filtro, buscar sin filtro para ver a quién pertenece
     if (checkResult.rows.length === 0) {
-      const debugQuery = await pool.query('SELECT id, id_usuario FROM eventos WHERE id = $1', [eventId]);
-      console.log(`🔍 DEBUG: Evento ${eventId} existe=${debugQuery.rows.length > 0}, id_usuario=${debugQuery.rows[0]?.id_usuario}, token_userId=${userId}`);
-      
       return res.status(404).json({ 
         success: false,
-        error: 'Evento no encontrado o no autorizado',
-        debug: { eventId, tokenUserId: userId, eventUserId: debugQuery.rows[0]?.id_usuario }
+        error: 'Evento no encontrado o no autorizado'
       });
     }
     
@@ -845,6 +832,135 @@ app.get('/api/protegido', verificarToken, async (req, res) => {
       success: false,
       error: 'Error interno' 
     });
+  }
+});
+
+// Eliminar evento
+app.delete('/api/eventos/:id', verificarToken, async (req, res) => {
+  try {
+    const eventId   = parseInt(req.params.id);
+    const userId   = req.usuario.id;
+    const userRole  = req.usuario.rol;
+
+    // Verificar permisos
+    const checkQuery = userRole === 'admin'
+      ? `SELECT id FROM eventos WHERE id = $1`
+      : `SELECT id FROM eventos WHERE id = $1 AND id_usuario = $2`;
+
+    const checkResult = await pool.query(
+      checkQuery,
+      userRole === 'admin' ? [eventId] : [eventId, userId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Evento no encontrado o no autorizado'
+      });
+    }
+
+    // Borrar invitados, mesas y evento en orden
+    await pool.query('DELETE FROM invitados WHERE id_evento = $1', [eventId]);
+    await pool.query('DELETE FROM mesas WHERE id_evento = $1',    [eventId]);
+    await pool.query('DELETE FROM eventos WHERE id = $1',         [eventId]);
+
+    res.json({
+      success: true,
+      message: 'Evento eliminado exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error eliminando evento:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error eliminando evento'
+    });
+  }
+});
+
+// Cambiar contraseña (usado por modal "olvidaste contraseña" en login)
+app.post('/api/auth/change-password', async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email y nueva contraseña requeridos'
+      });
+    }
+
+    // Buscar usuario
+    const result = await pool.query(
+      'SELECT id FROM usuarios WHERE email = $1',
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Email no encontrado'
+      });
+    }
+
+    // Hashear nueva contraseña
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    await pool.query(
+      'UPDATE usuarios SET password_hash = $1 WHERE email = $2',
+      [hashedPassword, email]
+    );
+
+    res.json({
+      success: true,
+      message: 'Contraseña cambiada exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error cambiando contraseña:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno al cambiar contraseña'
+    });
+  }
+});
+
+// Eliminar invitado específico
+app.delete('/api/eventos/:eventoId/invitados/:invitadoId', verificarToken, async (req, res) => {
+  try {
+    const eventoId   = parseInt(req.params.eventoId);
+    const invitadoId = parseInt(req.params.invitadoId);
+    const userId    = req.usuario.id;
+    const userRole   = req.usuario.rol;
+
+    const checkQuery = userRole === 'admin'
+      ? `SELECT id FROM eventos WHERE id = $1`
+      : `SELECT id FROM eventos WHERE id = $1 AND id_usuario = $2`;
+
+    const checkResult = await pool.query(
+      checkQuery,
+      userRole === 'admin' ? [eventoId] : [eventoId, userId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Evento no encontrado' });
+    }
+
+    const result = await pool.query(
+      'DELETE FROM invitados WHERE id = $1 AND id_evento = $2 RETURNING id',
+      [invitadoId, eventoId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Invitado no encontrado' });
+    }
+
+    res.json({ success: true, message: 'Invitado eliminado' });
+
+  } catch (error) {
+    console.error('Error eliminando invitado:', error);
+    res.status(500).json({ success: false, error: 'Error eliminando invitado' });
   }
 });
 
