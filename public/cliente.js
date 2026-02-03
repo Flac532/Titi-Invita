@@ -178,7 +178,7 @@ async function cargarEventosUsuario() {
         if (!response.ok) {
             console.error('Error cargando eventos, status:', response.status);
             eventosCliente = [];
-            actualizarSelectorEventos();
+            await crearEventoAutomatico();
             return;
         }
         
@@ -194,14 +194,64 @@ async function cargarEventosUsuario() {
             eventSelector.value = eventosCliente[0].id;
             await cargarEvento(eventosCliente[0].id);
         } else {
-            mostrarMensaje('No tienes eventos. ¡Crea uno nuevo!', 'info');
+            // No hay eventos, crear uno automáticamente
+            await crearEventoAutomatico();
         }
         
     } catch (error) {
         console.error('❌ Error cargando eventos:', error);
         mostrarMensaje('Error cargando eventos', 'error');
         eventosCliente = [];
-        actualizarSelectorEventos();
+        await crearEventoAutomatico();
+    }
+}
+
+// Crear un evento por defecto si el usuario no tiene ninguno
+async function crearEventoAutomatico() {
+    try {
+        console.log('🆕 Creando evento automático...');
+        
+        const response = await fetch(`${API_BASE}/eventos`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({
+                nombre: 'Mi Evento',
+                descripcion: 'Mi primer evento',
+                fecha_evento: new Date().toISOString().split('T')[0],
+                ubicacion: '',
+                estado: 'borrador'
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Evento creado:', data);
+            
+            const nuevoEvento = data.evento || data;
+            eventosCliente = [nuevoEvento];
+            eventoActual = nuevoEvento;
+            
+            actualizarSelectorEventos();
+            eventSelector.value = nuevoEvento.id;
+            
+            // Llenar formulario
+            eventNameInput.value = nuevoEvento.nombre;
+            eventDescriptionInput.value = nuevoEvento.descripcion || '';
+            eventDateInput.value = nuevoEvento.fecha_evento || '';
+            
+            // Crear mesas por defecto
+            crearMesas();
+            
+            mostrarMensaje('Evento creado automáticamente', 'success');
+        } else {
+            const err = await response.json();
+            console.error('Error creando evento:', err);
+            // Si falla la API, crear mesas de demo local
+            crearMesas();
+        }
+    } catch (error) {
+        console.error('Error creando evento automático:', error);
+        crearMesas();
     }
 }
 
