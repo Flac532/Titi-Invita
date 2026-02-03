@@ -41,7 +41,7 @@ const sillasPorMesaInput = document.getElementById('sillasPorMesa');
 const formaMesaSelect = document.getElementById('formaMesa');
 const btnCrearMesas = document.getElementById('btnCrearMesas');
 const btnGuardarEvento = document.getElementById('btnGuardarEvento');
-const btnFinalizarEvento = document.getElementById('btnFinalizarEvento');
+const btnEliminarEvento = document.getElementById('btnEliminarEvento');
 const mesasContainer = document.getElementById('mesasContainer');
 const newEventBtn = document.getElementById('newEventBtn');
 const newEventModal = document.getElementById('newEventModal');
@@ -119,6 +119,33 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Configurar event listeners
     configurarEventListeners();
+    
+    // Fullscreen
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    fullscreenBtn.querySelector('i').classList.remove('fa-expand');
+                    fullscreenBtn.querySelector('i').classList.add('fa-compress');
+                    fullscreenBtn.title = 'Salir Pantalla Completa';
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    fullscreenBtn.querySelector('i').classList.remove('fa-compress');
+                    fullscreenBtn.querySelector('i').classList.add('fa-expand');
+                    fullscreenBtn.title = 'Pantalla Completa';
+                });
+            }
+        });
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                fullscreenBtn.querySelector('i').classList.remove('fa-compress');
+                fullscreenBtn.querySelector('i').classList.add('fa-expand');
+                fullscreenBtn.title = 'Pantalla Completa';
+            }
+        });
+    }
     
     // Verificar límite al cargar
     verificarLimiteEventos();
@@ -681,32 +708,88 @@ function crearNuevoEvento() {
     verificarLimiteEventos();
 }
 
-// 9. Finalizar evento
-function finalizarEvento() {
+// 9. Eliminar evento con modal de confirmación personalizado
+function eliminarEvento() {
     if (!eventoActual) {
         mostrarMensaje('No hay evento seleccionado', 'error');
         return;
     }
     
-    if (confirm(`¿Estás seguro de finalizar el evento "${eventoActual.nombre}"? Esto cambiará su estado a "completado".`)) {
-        eventoActual.estado = 'completado';
+    // Modal de confirmación personalizado
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'modalConfirmEliminar';
+    modal.innerHTML = `
+        <div class="modal-content modal-confirm" style="max-width: 440px;">
+            <div class="modal-confirm-icon">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h3 class="modal-confirm-title">¿Eliminar evento?</h3>
+            <p class="modal-confirm-msg">Estás a punto de eliminar <strong>"${eventoActual.nombre}"</strong>. Esta acción no puede ser revertida y se eliminará toda la información del evento, incluyendo mesas e invitados.</p>
+            <div class="modal-confirm-actions">
+                <button class="btn-confirm-cancel" id="btnConfirmCancel">Cancelar</button>
+                <button class="btn-confirm-delete" id="btnConfirmDelete">Sí, eliminar</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    // Cancelar
+    modal.querySelector('#btnConfirmCancel').onclick = () => {
+        modal.style.display = 'none';
+        setTimeout(() => modal.remove(), 300);
+    };
+    
+    // Confirmar eliminación
+    modal.querySelector('#btnConfirmDelete').onclick = async () => {
+        modal.style.display = 'none';
+        setTimeout(() => modal.remove(), 300);
         
-        // Actualizar selector
-        const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
-        if (option) {
-            option.textContent = eventoActual.nombre + ' (Completado)';
+        try {
+            const response = await fetch(`${API_BASE}/eventos/${eventoActual.id}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+            
+            if (response.ok) {
+                // Quitar del array local
+                eventosCliente = eventosCliente.filter(e => e.id !== eventoActual.id);
+                eventoActual = null;
+                actualizarSelectorEventos();
+                actualizarEstadisticasEventos();
+                
+                if (eventosCliente.length > 0) {
+                    eventSelector.value = eventosCliente[0].id;
+                    await cargarEvento(eventosCliente[0].id);
+                } else {
+                    // No quedan eventos → crear uno automático
+                    mesasContainer.innerHTML = '';
+                    mesas = [];
+                    eventNameInput.value = '';
+                    eventDescriptionInput.value = '';
+                    await crearEventoAutomatico();
+                }
+                
+                mostrarMensaje('Evento eliminado exitosamente', 'success');
+                verificarLimiteEventos();
+            } else {
+                const err = await response.json().catch(() => ({}));
+                mostrarMensaje(err.error || 'Error eliminando evento', 'error');
+            }
+        } catch (error) {
+            console.error('Error eliminando evento:', error);
+            mostrarMensaje('Error de conexión al eliminar', 'error');
         }
-        
-        // Actualizar estadísticas
-        actualizarEstadisticasEventos();
-        
-        // Si es cliente y finaliza su único evento, habilitar crear nuevo
-        if (limiteEventos === 1) {
-            verificarLimiteEventos();
+    };
+    
+    // Cerrar al click fuera
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            setTimeout(() => modal.remove(), 300);
         }
-        
-        mostrarMensaje(`Evento "${eventoActual.nombre}" finalizado`, 'success');
-    }
+    };
 }
 
 // 10. Configurar event listeners
@@ -726,9 +809,9 @@ function configurarEventListeners() {
         guardarEvento();
     });
     
-    // Botón finalizar evento
-    if (btnFinalizarEvento) {
-        btnFinalizarEvento.addEventListener('click', finalizarEvento);
+    // Botón eliminar evento
+    if (btnEliminarEvento) {
+        btnEliminarEvento.addEventListener('click', eliminarEvento);
     }
     
     // Botón nuevo evento
@@ -843,24 +926,6 @@ function configurarEventListeners() {
         if (e.ctrlKey && e.key === 's') {
             e.preventDefault();
             guardarEvento();
-        }
-        
-        // Ctrl+N para nuevo evento
-        if (e.ctrlKey && e.key === 'n') {
-            e.preventDefault();
-            document.getElementById('newEventModal').style.display = 'flex';
-        }
-        
-        // Ctrl+F para buscar
-        if (e.ctrlKey && e.key === 'f') {
-            e.preventDefault();
-            searchGuests.focus();
-        }
-        
-        // Ctrl+E para finalizar evento
-        if (e.ctrlKey && e.key === 'e') {
-            e.preventDefault();
-            finalizarEvento();
         }
         
         // + para zoom in
@@ -1430,26 +1495,95 @@ async function guardarEvento() {
 
 
 function agregarInvitado() {
-    const nombre = prompt('Nombre del invitado:');
-    if (!nombre) return;
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content modal-agregar-invitado" style="max-width: 460px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Agregar Invitado</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="ai-nombre">Nombre completo <span style="color:#e53935;">*</span></label>
+                    <input type="text" id="ai-nombre" placeholder="Ej: Ana López" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="ai-email">Correo electrónico</label>
+                    <input type="email" id="ai-email" placeholder="ana@correo.com" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="ai-telefono">Teléfono</label>
+                    <input type="tel" id="ai-telefono" placeholder="Ej: 55 1234 5678" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Estado de confirmación</label>
+                    <div class="estado-radio-group">
+                        <label class="estado-radio" data-estado="pendiente">
+                            <input type="radio" name="ai-estado" value="pendiente" checked>
+                            <span class="estado-radio-label"><i class="fas fa-clock"></i> Pendiente</span>
+                        </label>
+                        <label class="estado-radio" data-estado="confirmado">
+                            <input type="radio" name="ai-estado" value="confirmado">
+                            <span class="estado-radio-label"><i class="fas fa-check-circle"></i> Confirmado</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="ai-error" class="form-error" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary modal-cancel-ai">Cancelar</button>
+                <button class="btn-primary btn-guardar-ai"><i class="fas fa-plus"></i> Agregar</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    modal.querySelector('#ai-nombre').focus();
     
-    const email = prompt('Email (opcional):');
-    const telefono = prompt('Teléfono (opcional):');
+    const cerrar = () => { modal.style.display = 'none'; setTimeout(() => modal.remove(), 300); };
     
-    const nuevoInvitado = {
-        id: invitados.length + 1,
-        nombre: nombre,
-        email: email || null,
-        telefono: telefono || null,
-        estado: 'pendiente',
-        idMesa: null,
-        idSilla: null
+    modal.querySelector('.modal-close').onclick = cerrar;
+    modal.querySelector('.modal-cancel-ai').onclick = cerrar;
+    modal.onclick = (e) => { if (e.target === modal) cerrar(); };
+    
+    modal.querySelector('.btn-guardar-ai').onclick = () => {
+        const nombre = modal.querySelector('#ai-nombre').value.trim();
+        const email = modal.querySelector('#ai-email').value.trim();
+        const telefono = modal.querySelector('#ai-telefono').value.trim();
+        const estado = modal.querySelector('input[name="ai-estado"]:checked').value;
+        const errorDiv = modal.querySelector('#ai-error');
+        
+        if (!nombre) {
+            errorDiv.textContent = 'El nombre es obligatorio.';
+            errorDiv.style.display = 'block';
+            modal.querySelector('#ai-nombre').focus();
+            return;
+        }
+        
+        // Validar email si se proporcionó
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            errorDiv.textContent = 'El correo no es válido.';
+            errorDiv.style.display = 'block';
+            modal.querySelector('#ai-email').focus();
+            return;
+        }
+        
+        const nuevoInvitado = {
+            id: invitados.length > 0 ? Math.max(...invitados.map(i => i.id)) + 1 : 1,
+            nombre: nombre,
+            email: email || null,
+            telefono: telefono || null,
+            estado: estado,
+            idMesa: null,
+            idSilla: null
+        };
+        
+        invitados.push(nuevoInvitado);
+        actualizarListaInvitados();
+        mostrarMensaje(`Invitado "${nombre}" agregado`, 'success');
+        cerrar();
     };
-    
-    invitados.push(nuevoInvitado);
-    actualizarListaInvitados();
-    
-    mostrarMensaje(`Invitado "${nombre}" agregado`, 'success');
 }
 
 function mostrarMensaje(mensaje, tipo = 'info') {
@@ -1466,7 +1600,93 @@ function mostrarMensaje(mensaje, tipo = 'info') {
 
 // ===== FUNCIONES GLOBALES PARA HTML =====
 window.editarInvitado = function(invitadoId) {
-    mostrarMensaje('Funcionalidad de editar invitado en desarrollo', 'info');
+    const invitado = invitados.find(i => i.id === invitadoId);
+    if (!invitado) return;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content modal-agregar-invitado" style="max-width: 460px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Editar Invitado</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="ei-nombre">Nombre completo <span style="color:#e53935;">*</span></label>
+                    <input type="text" id="ei-nombre" value="${invitado.nombre}" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="ei-email">Correo electrónico</label>
+                    <input type="email" id="ei-email" value="${invitado.email || ''}" placeholder="correo@ejemplo.com" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="ei-telefono">Teléfono</label>
+                    <input type="tel" id="ei-telefono" value="${invitado.telefono || ''}" placeholder="Ej: 55 1234 5678" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Estado de confirmación</label>
+                    <div class="estado-radio-group">
+                        <label class="estado-radio" data-estado="pendiente">
+                            <input type="radio" name="ei-estado" value="pendiente" ${invitado.estado === 'pendiente' ? 'checked' : ''}>
+                            <span class="estado-radio-label"><i class="fas fa-clock"></i> Pendiente</span>
+                        </label>
+                        <label class="estado-radio" data-estado="asignado">
+                            <input type="radio" name="ei-estado" value="asignado" ${invitado.estado === 'asignado' ? 'checked' : ''}>
+                            <span class="estado-radio-label"><i class="fas fa-chair"></i> Asignado</span>
+                        </label>
+                        <label class="estado-radio" data-estado="confirmado">
+                            <input type="radio" name="ei-estado" value="confirmado" ${invitado.estado === 'confirmado' ? 'checked' : ''}>
+                            <span class="estado-radio-label"><i class="fas fa-check-circle"></i> Confirmado</span>
+                        </label>
+                    </div>
+                </div>
+                <div id="ei-error" class="form-error" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary modal-cancel-ei">Cancelar</button>
+                <button class="btn-primary btn-guardar-ei"><i class="fas fa-save"></i> Guardar cambios</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    const cerrar = () => { modal.style.display = 'none'; setTimeout(() => modal.remove(), 300); };
+    modal.querySelector('.modal-close').onclick = cerrar;
+    modal.querySelector('.modal-cancel-ei').onclick = cerrar;
+    modal.onclick = (e) => { if (e.target === modal) cerrar(); };
+    
+    modal.querySelector('.btn-guardar-ei').onclick = () => {
+        const nombre = modal.querySelector('#ei-nombre').value.trim();
+        const email = modal.querySelector('#ei-email').value.trim();
+        const telefono = modal.querySelector('#ei-telefono').value.trim();
+        const estado = modal.querySelector('input[name="ei-estado"]:checked').value;
+        const errorDiv = modal.querySelector('#ei-error');
+        
+        if (!nombre) {
+            errorDiv.textContent = 'El nombre es obligatorio.';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            errorDiv.textContent = 'El correo no es válido.';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        // Aplicar cambios al objeto
+        invitado.nombre = nombre;
+        invitado.email = email || null;
+        invitado.telefono = telefono || null;
+        invitado.estado = estado;
+        
+        // Actualizar lista y detalles
+        actualizarListaInvitados();
+        mostrarDetallesInvitado(invitadoId);
+        mostrarMensaje('Invitado actualizado', 'success');
+        cerrar();
+    };
 };
 
 window.asignarInvitado = function(invitadoId) {
