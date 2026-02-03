@@ -3,82 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Titi Invita - Sistema de Control de Mesas</title>
+    <title>Titi Invita</title>
     <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="welcome-page">
-    <!-- Botón de modo oscuro -->
-    <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
-        <i class="fas fa-moon"></i>
-    </button>
+<body>
+<div class="split-layout">
 
-    <div class="welcome-container">
-        <div class="welcome-header">
-            <div class="logo">
+    <!-- ════ PANEL IZQUIERDO ════ -->
+    <div class="split-left">
+        <div class="deco-arcs">
+            <svg viewBox="0 0 600 900" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                    <linearGradient id="arcFade" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="white" stop-opacity="0.12"/>
+                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <path d="M 620 950 A 500 500 0 0 1 120 450" fill="none" stroke="url(#arcFade)" stroke-width="1.2"/>
+                <path d="M 660 950 A 560 560 0 0 1 100 370" fill="none" stroke="url(#arcFade)" stroke-width="1"/>
+                <path d="M 700 950 A 620 620 0 0 1 80 290" fill="none" stroke="url(#arcFade)" stroke-width="0.9"/>
+                <path d="M 740 950 A 680 680 0 0 1 60 210" fill="none" stroke="url(#arcFade)" stroke-width="0.8"/>
+                <path d="M -40 -30  A 320 320 0 0 0 300 200" fill="none" stroke="url(#arcFade)" stroke-width="0.9"/>
+                <path d="M -60 -50  A 380 380 0 0 0 340 240" fill="none" stroke="url(#arcFade)" stroke-width="0.7"/>
+            </svg>
+        </div>
+
+        <div class="split-left-inner">
+            <div class="split-logo">
                 <i class="fas fa-chair"></i>
                 <h1>Titi Invita</h1>
             </div>
-            <h2>Sistema de Control de Mesas para Eventos</h2>
-            <p class="tagline">Organiza tus eventos de manera profesional y eficiente</p>
+            <h2 class="split-headline">Hola<br><span>Titi Invita</span> 👋</h2>
+            <p class="split-tagline">
+                Organiza tus eventos de manera profesional.<br>
+                Asigna mesas, gestiona invitados y ahorra tiempo con una herramienta pensada para ti.
+            </p>
         </div>
-        
-        <div class="welcome-features">
-            <div class="feature-card">
-                <i class="fas fa-users"></i>
-                <h3>Gestión de Invitados</h3>
-                <p>Asigna y controla la ubicación de cada invitado</p>
-            </div>
-            
-            <div class="feature-card">
-                <i class="fas fa-table"></i>
-                <h3>Diseño de Mesas</h3>
-                <p>Mesas rectangulares, circulares y cuadradas</p>
-            </div>
-            
-            <div class="feature-card">
-                <i class="fas fa-chart-bar"></i>
-                <h3>Reportes</h3>
-                <p>Estadísticas y resúmenes de ocupación</p>
-            </div>
-        </div>
-        
-        <div class="welcome-actions">
-            <a href="login.html" class="btn-primary">
-                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-            </a>
-        </div>
-        
-        <footer class="welcome-footer">
-            <p>&copy; 2026 Titi Invita</p>
-        </footer>
+        <footer class="split-footer-left">&copy; 2026 Titi Invita. Todos los derechos reservados.</footer>
     </div>
-    
-    <script>
-        // Modo oscuro en index
-        const themeToggle = document.getElementById('themeToggle');
-        
-        function initTheme() {
-            const savedTheme = localStorage.getItem('titi_theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            updateThemeIcon(savedTheme);
-        }
-        
-        function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme');
-            const newTheme = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('titi_theme', newTheme);
-            updateThemeIcon(newTheme);
-        }
-        
-        function updateThemeIcon(theme) {
-            const icon = themeToggle.querySelector('i');
-            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        }
-        
-        themeToggle.addEventListener('click', toggleTheme);
-        initTheme();
-    </script>
+
+    <!-- ════ PANEL DERECHO ════ -->
+    <div class="split-right">
+        <div class="split-right-inner">
+            <h3 class="idx-welcome">¡Bienvenido!</h3>
+            <p class="idx-sub">Descubre todo lo que puedes hacer con Titi Invita</p>
+
+            <div class="idx-features">
+                <div class="idx-feat">
+                    <div class="idx-feat-icon" style="background:rgba(118,75,162,.1); color:#764ba2;"><i class="fas fa-users"></i></div>
+                    <div>
+                        <h4>Gestión de Invitados</h4>
+                        <p>Asigna y controla la ubicación de cada invitado en tiempo real.</p>
+                    </div>
+                </div>
+                <div class="idx-feat">
+                    <div class="idx-feat-icon" style="background:rgba(245,166,35,.12); color:#f5a623;"><i class="fas fa-table"></i></div>
+                    <div>
+                        <h4>Diseño de Mesas</h4>
+                        <p>Mesas rectangulares, circulares y cuadradas con drag &amp; drop.</p>
+                    </div>
+                </div>
+                <div class="idx-feat">
+                    <div class="idx-feat-icon" style="background:rgba(76,175,80,.12); color:#4CAF50;"><i class="fas fa-file-alt"></i></div>
+                    <div>
+                        <h4>Reportes</h4>
+                        <p>Genera reportes de ocupación e imprésamelos al final del día.</p>
+                    </div>
+                </div>
+            </div>
+
+            <a href="login.html" class="btn-cta"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a>
+        </div>
+    </div>
+
+</div>
 </body>
 </html>
