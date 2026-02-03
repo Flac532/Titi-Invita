@@ -448,26 +448,30 @@ app.put('/api/eventos/:id', verificarToken, async (req, res) => {
     
     const { nombre, descripcion, fecha_evento, ubicacion, estado, configuracion } = req.body;
     
+    // Serializar configuracion si es objeto
+    const configJson = configuracion ? (typeof configuracion === 'string' ? configuracion : JSON.stringify(configuracion)) : null;
+    // fecha_evento puede llegar vacía
+    const fechaEvento = fecha_evento || null;
+    
     const result = await pool.query(
       `UPDATE eventos 
-       SET nombre = COALESCE($3, nombre),
-           descripcion = COALESCE($4, descripcion),
-           fecha_evento = COALESCE($5, fecha_evento),
-           ubicacion = COALESCE($6, ubicacion),
-           estado = COALESCE($7, estado),
-           configuracion = COALESCE($8, configuracion),
+       SET nombre = COALESCE($2, nombre),
+           descripcion = COALESCE($3, descripcion),
+           fecha_evento = COALESCE($4::DATE, fecha_evento),
+           ubicacion = COALESCE($5, ubicacion),
+           estado = COALESCE($6, estado),
+           configuracion = COALESCE($7::JSONB, configuracion),
            fecha_actualizacion = CURRENT_TIMESTAMP
        WHERE id = $1 
        RETURNING *`,
       [
         eventId,
-        userId,
-        nombre,
-        descripcion,
-        fecha_evento,
-        ubicacion,
-        estado,
-        configuracion
+        nombre || null,
+        descripcion || null,
+        fechaEvento,
+        ubicacion || null,
+        estado || null,
+        configJson
       ]
     );
     
