@@ -468,15 +468,22 @@ body {
     margin: 0 auto;
 }
 
+/* Botón de finalizar evento */
+#btnFinalizarEvento {
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    color: white;
+}
 
+#btnFinalizarEvento:hover {
+    background: linear-gradient(135deg, #F57C00, #E65100);
+}
 
 /* ===== COLUMNA 2: Área de Mesas (CENTRO) ===== */
 .mesas-area {
     display: flex;
     flex-direction: column;
     background: var(--bg-light);
-    overflow: auto;
-    min-height: 0;
+    overflow: hidden;
 }
 
 /* Header de mesas */
@@ -1163,215 +1170,6 @@ body {
     font-size: 1.2rem;
 }
 
-/* ===== BOTÓN ELIMINAR (DANGER) ===== */
-.btn-danger {
-    padding: 11px 16px;
-    border-radius: var(--radius-sm);
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    flex: 1;
-    font-size: 0.9rem;
-    background: linear-gradient(135deg, #ef5350, #e53935);
-    color: white;
-    transition: var(--transition);
-}
-
-.btn-danger:hover {
-    background: linear-gradient(135deg, #e53935, #c62828);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(229, 57, 53, 0.35);
-}
-
-/* ===== MODAL CONFIRMACIÓN ELIMINAR ===== */
-.modal-confirm {
-    text-align: center;
-    padding: 0;
-}
-
-.modal-confirm-icon {
-    width: 72px;
-    height: 72px;
-    background: linear-gradient(135deg, #ffebee, #ffcdd2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 32px auto 20px;
-}
-
-.modal-confirm-icon i {
-    font-size: 1.8rem;
-    color: #e53935;
-}
-
-.modal-confirm-title {
-    font-size: 1.4rem;
-    color: var(--text-dark);
-    margin: 0 0 12px;
-    font-weight: 700;
-}
-
-.modal-confirm-msg {
-    font-size: 0.92rem;
-    color: var(--text-light);
-    line-height: 1.55;
-    padding: 0 28px;
-    margin: 0 0 28px;
-}
-
-.modal-confirm-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    padding: 0 24px 28px;
-}
-
-.btn-confirm-cancel {
-    padding: 10px 24px;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
-    background: var(--bg-light);
-    color: var(--text-dark);
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.btn-confirm-cancel:hover {
-    background: var(--border-color);
-}
-
-.btn-confirm-delete {
-    padding: 10px 24px;
-    border-radius: var(--radius-sm);
-    border: none;
-    background: linear-gradient(135deg, #ef5350, #e53935);
-    color: white;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.btn-confirm-delete:hover {
-    background: linear-gradient(135deg, #e53935, #c62828);
-    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.35);
-}
-
-/* ===== MODAL AGREGAR / EDITAR INVITADO ===== */
-.modal-agregar-invitado .modal-body .form-group {
-    margin-bottom: 18px;
-}
-
-.modal-agregar-invitado .modal-body .form-group label {
-    display: block;
-    margin-bottom: 7px;
-    font-weight: 600;
-    color: var(--text-dark);
-    font-size: 0.88rem;
-}
-
-.modal-agregar-invitado .modal-body .form-group input {
-    width: 100%;
-    padding: 11px 14px;
-    border: 1.5px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    font-size: 0.93rem;
-    color: var(--text-dark);
-    background: var(--bg-white);
-    transition: border-color 0.2s, box-shadow 0.2s;
-    box-sizing: border-box;
-}
-
-.modal-agregar-invitado .modal-body .form-group input:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.12);
-}
-
-.modal-agregar-invitado .modal-body .form-group input::placeholder {
-    color: #aaa;
-}
-
-/* Radio group de estados */
-.estado-radio-group {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 6px;
-}
-
-.estado-radio {
-    flex: 1;
-    min-width: 100px;
-    display: flex;
-    align-items: center;
-    gap: 0;
-    cursor: pointer;
-    border: 1.5px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    transition: border-color 0.2s, background 0.2s;
-    background: var(--bg-light);
-}
-
-.estado-radio input[type="radio"] {
-    display: none;
-}
-
-.estado-radio-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-    padding: 9px 6px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--text-light);
-    transition: color 0.2s;
-}
-
-.estado-radio-label i {
-    font-size: 0.9rem;
-}
-
-/* Estados activos del radio */
-.estado-radio[data-estado="pendiente"] .estado-radio-label i { color: #9E9E9E; }
-.estado-radio[data-estado="asignado"] .estado-radio-label i { color: #f44336; }
-.estado-radio[data-estado="confirmado"] .estado-radio-label i { color: #4CAF50; }
-
-.estado-radio:has(input:checked) {
-    border-color: var(--primary-color);
-    background: rgba(118, 75, 162, 0.06);
-}
-
-.estado-radio:has(input:checked) .estado-radio-label {
-    color: var(--primary-color);
-}
-
-.estado-radio:hover {
-    border-color: var(--primary-light);
-}
-
-/* Error en formularios modales */
-.form-error {
-    margin-top: 10px;
-    padding: 9px 13px;
-    background: #fff3f3;
-    border: 1px solid #ffcdd2;
-    border-radius: var(--radius-sm);
-    color: #e53935;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
-
 /* ===== RESPONSIVE OPTIMIZADO ===== */
 @media (max-width: 768px) {
     /* 1. Cambiar grid por flex vertical */
@@ -1381,7 +1179,8 @@ body {
         height: auto;
     }
     
-    /* 2. Orden mobile: selector → mesas → config → invitados */
+    /* 2. Orden de las secciones: */
+    /* Primero: Panel de evento (logo, usuario, selector) */
     .event-panel {
         order: 1;
         width: 100%;
@@ -1390,161 +1189,85 @@ body {
         padding: 15px;
     }
     
-    .mesas-area {
+    /* Segundo: Configuración del evento (antes parte de columna 3) */
+    .config-section {
         order: 2;
         width: 100%;
         border-bottom: 1px solid var(--border-color);
-        min-height: 420px;
-    }
-
-    .right-panel {
-        display: contents;
-    }
-    
-    .config-section {
-        order: 3;
-        width: 100%;
-        max-height: none;
-        border-bottom: 1px solid var(--border-color);
         padding: 15px;
     }
     
+    /* Tercero: Área de mesas (centro) */
+    .mesas-area {
+        order: 3;
+        width: 100%;
+        border-bottom: 1px solid var(--border-color);
+        min-height: 500px;
+    }
+    
+    /* Cuarto: Invitados (resto de columna 3) */
     .guests-section {
         order: 4;
         width: 100%;
-        max-height: none;
         padding: 15px;
     }
     
-    /* 3. Ocultar secciones del sidebar que no son necesarias en mobile */
-    .event-panel .quick-stats,
-    .event-panel .event-stats {
-        display: none;
-    }
-
-    /* 4. Ajustar mesas para móvil */
-    .mesas-container {
-        gap: 40px 30px !important;
-        padding: 20px !important;
-        justify-content: center;
+    /* 3. Reorganizar panel derecho */
+    .right-panel {
+        display: contents; /* Hace que los hijos sean hijos directos del grid */
     }
     
-    .mesa {
-        flex-shrink: 0;
+    /* 4. Ajustar mesas para móvil */
+    .mesas-container {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 30px !important;
+        padding: 20px !important;
     }
-
-    /* 5. Ajustar tamaños de mesas */
+    
+    /* 5. Ajustar tamaños */
     .mesa-rectangular {
         width: 160px;
         height: 90px;
     }
     
     .mesa-circular {
-        width: 110px;
-        height: 110px;
+        width: 120px;
+        height: 120px;
     }
     
     .mesa-cuadrada {
-        width: 130px;
-        height: 130px;
+        width: 140px;
+        height: 140px;
     }
     
     /* 6. Ajustar formularios */
-    .right-panel .form-row,
     .form-row {
         grid-template-columns: 1fr;
     }
     
-    .right-panel .button-group,
     .button-group {
         flex-direction: column;
     }
     
     .disposicion-row {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
-
-    /* 7. Estadísticas eventos: 2 columnas */
+    
     .event-counts {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    /* 8. Mesas header compacto */
-    .mesas-header {
-        padding: 12px 15px;
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .search-box {
-        min-width: unset;
-    }
-
-    .mesas-controls {
-        justify-content: center;
-    }
-
-    /* 9. Footer mesas */
-    .mesas-footer {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 12px 15px;
-    }
-
-    /* 10. Guest list taller en mobile */
-    .guests-list {
-        max-height: 280px;
-    }
-
-    /* 11. Radio group en mobile */
-    .estado-radio-group {
-        gap: 6px;
-    }
-
-    .estado-radio {
-        min-width: 80px;
+        grid-template-columns: 1fr;
     }
 }
 
-/* Móvil pequeño */
+/* Móvil pequeño: 1 columna de mesas */
 @media (max-width: 480px) {
     .mesas-container {
-        gap: 35px 20px !important;
-        padding: 15px !important;
+        grid-template-columns: 1fr !important;
+        gap: 35px !important;
     }
     
-    .mesa-rectangular {
-        width: 140px;
-        height: 80px;
-    }
-
-    .mesa-circular {
-        width: 100px;
-        height: 100px;
-    }
-
-    .mesa-cuadrada {
-        width: 115px;
-        height: 115px;
-    }
-
-    .modal-confirm-actions {
-        flex-direction: column;
-        padding: 0 20px 24px;
-    }
-
-    .estado-radio-group {
-        flex-direction: column;
-    }
-
-    .estado-radio {
-        min-width: unset;
-        width: 100%;
-    }
-
-    /* Header actions centrados */
-    .header-actions {
-        justify-content: center;
+    .mesa {
+        max-width: 200px;
+        margin: 0 auto;
     }
 }
 
