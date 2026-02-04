@@ -759,15 +759,26 @@ function configurarEventListeners() {
             console.log('✅ Configurando logout');
             logoutBtn.addEventListener('click', function() {
                 console.log('🚪 Click en logout');
-                if (confirm('¿Cerrar sesión?')) {
-                    limpiarSesion();
-                    window.location.href = 'login.html';
-                }
+                // Mostrar modal de confirmación
+                document.getElementById('logoutConfirmModal').style.display = 'flex';
             });
         } else {
             console.error('❌ No se encontró logoutBtn');
         }
     } catch (e) { console.error('❌ Error en logout:', e); }
+    
+    // Botón confirmar logout en el modal
+    try {
+        const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+        if (confirmLogoutBtn) {
+            confirmLogoutBtn.addEventListener('click', function() {
+                console.log('✅ Logout confirmado');
+                cerrarModal(document.getElementById('logoutConfirmModal'));
+                limpiarSesion();
+                window.location.href = 'login.html';
+            });
+        }
+    } catch (e) { console.error('❌ Error en confirmLogoutBtn:', e); }
     
     try {
         // Fullscreen
