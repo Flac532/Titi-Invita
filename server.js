@@ -450,18 +450,17 @@ app.put('/api/eventos/:id', verificarToken, async (req, res) => {
     
     const result = await pool.query(
       `UPDATE eventos 
-       SET nombre = COALESCE($3, nombre),
-           descripcion = COALESCE($4, descripcion),
-           fecha_evento = COALESCE($5, fecha_evento),
-           ubicacion = COALESCE($6, ubicacion),
-           estado = COALESCE($7, estado),
-           configuracion = COALESCE($8, configuracion),
+       SET nombre = COALESCE($2, nombre),
+           descripcion = COALESCE($3, descripcion),
+           fecha_evento = COALESCE($4, fecha_evento),
+           ubicacion = COALESCE($5, ubicacion),
+           estado = COALESCE($6, estado),
+           configuracion = COALESCE($7, configuracion),
            fecha_actualizacion = CURRENT_TIMESTAMP
        WHERE id = $1 
        RETURNING *`,
       [
         eventId,
-        userId,
         nombre,
         descripcion,
         fecha_evento,
