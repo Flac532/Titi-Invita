@@ -1,17 +1,20 @@
 // cliente.js - Sistema de mesas completo para cliente con 3 roles
 
 // ===== CONFIGURACIÓN API =====
-const API_BASE = typeof API_URL !== 'undefined' ? API_URL : '/api';
+const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
+console.log('🔗 API configurada:', API_BASE);
 
-function getToken() {
+// ===== FUNCIONES DE AUTENTICACIÓN =====
+function obtenerToken() {
     return localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
 }
 
-function getAuthHeaders() {
-    return {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`
-    };
+function limpiarSesion() {
+    localStorage.removeItem('titi_token');
+    localStorage.removeItem('titi_sesion');
+    localStorage.removeItem('titi_usuario_actual');
+    sessionStorage.removeItem('titi_token');
+    sessionStorage.removeItem('titi_sesion');
 }
 
 // ===== VARIABLES GLOBALES =====
@@ -26,7 +29,7 @@ let limiteEventos = null;
 let configuracionDisposicion = {
     columnas: 4,
     filas: 2,
-    espaciado: 70
+    espaciado: 150
 };
 
 // ===== ELEMENTOS DOM =====
@@ -41,7 +44,7 @@ const sillasPorMesaInput = document.getElementById('sillasPorMesa');
 const formaMesaSelect = document.getElementById('formaMesa');
 const btnCrearMesas = document.getElementById('btnCrearMesas');
 const btnGuardarEvento = document.getElementById('btnGuardarEvento');
-const btnEliminarEvento = document.getElementById('btnEliminarEvento');
+const btnFinalizarEvento = document.getElementById('btnFinalizarEvento');
 const mesasContainer = document.getElementById('mesasContainer');
 const newEventBtn = document.getElementById('newEventBtn');
 const newEventModal = document.getElementById('newEventModal');
@@ -82,26 +85,21 @@ const addGuestBtn = document.getElementById('addGuestBtn');
 const guestDetails = document.getElementById('guestDetails');
 
 // ===== INICIALIZACIÓN =====
-document.addEventListener('DOMContentLoaded', async function() {
-    // Cargar usuario actual directamente de localStorage
-    const usuarioStr = localStorage.getItem('titi_usuario_actual') || sessionStorage.getItem('titi_usuario_actual');
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar usuario actual desde localStorage directamente
+    const usuarioStr = localStorage.getItem('titi_usuario_actual');
     
     if (!usuarioStr) {
-        console.log('❌ No hay usuario en storage, redirigiendo a login');
-        window.location.href = 'login.html';
-        return;
-    }
-
-    try {
-        usuario = JSON.parse(usuarioStr);
-        console.log('✅ Usuario cargado:', usuario);
-    } catch (error) {
-        console.error('❌ Error parseando usuario:', error);
+        console.log('❌ No hay usuario en localStorage, redirigiendo a login');
         window.location.href = 'login.html';
         return;
     }
     
-    if (!usuario) {
+    try {
+        usuario = JSON.parse(usuarioStr);
+        console.log('✅ Usuario cargado:', usuario.nombre, usuario.rol);
+    } catch (error) {
+        console.error('❌ Error parseando usuario:', error);
         window.location.href = 'login.html';
         return;
     }
@@ -112,52 +110,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Configurar límite de eventos según rol
     configurarLimiteEventos();
     
-    // Cargar datos desde la API
-    await cargarEventosUsuario();
+    // Cargar datos iniciales
+    cargarEventosUsuario();
     cargarInvitadosDemo();
     configurarFechaHora();
     
     // Configurar event listeners
     configurarEventListeners();
     
-    // Fullscreen
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-    if (fullscreenBtn) {
-        fullscreenBtn.addEventListener('click', function() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => {
-                    fullscreenBtn.querySelector('i').classList.remove('fa-expand');
-                    fullscreenBtn.querySelector('i').classList.add('fa-compress');
-                    fullscreenBtn.title = 'Salir Pantalla Completa';
-                });
-            } else {
-                document.exitFullscreen().then(() => {
-                    fullscreenBtn.querySelector('i').classList.remove('fa-compress');
-                    fullscreenBtn.querySelector('i').classList.add('fa-expand');
-                    fullscreenBtn.title = 'Pantalla Completa';
-                });
-            }
-        });
-        document.addEventListener('fullscreenchange', () => {
-            if (!document.fullscreenElement) {
-                fullscreenBtn.querySelector('i').classList.remove('fa-compress');
-                fullscreenBtn.querySelector('i').classList.add('fa-expand');
-                fullscreenBtn.title = 'Pantalla Completa';
-            }
-        });
-    }
+    // Crear mesas por defecto
+    crearMesas();
     
     // Verificar límite al cargar
     verificarLimiteEventos();
-
-    // Fallback: si después de todo no hay mesas visibles, crearlas
-    setTimeout(() => {
-        console.log('⏰ Fallback check. mesas.length=' + mesas.length + ' mesasContainer.children=' + (mesasContainer ? mesasContainer.children.length : 'NULL'));
-        if (!mesasContainer || mesasContainer.children.length === 0) {
-            console.log('⚠️ FALLBACK: Forzando crearMesas()');
-            crearMesas();
-        }
-    }, 2000);
 });
 
 // ===== FUNCIONES PRINCIPALES =====
@@ -201,123 +166,56 @@ function configurarLimiteEventos() {
     }
 }
 
-
-// 1. Cargar eventos del usuario desde la API
+// 1. Cargar eventos del usuario según su rol
 async function cargarEventosUsuario() {
+    const token = obtenerToken();
+    
+    if (!token) {
+        console.log('❌ No hay token');
+        return;
+    }
+    
     try {
-        mostrarMensaje('Cargando eventos...', 'info');
-        
-        // Debug: decodificar token para ver quién está logueado
-        const token = getToken();
-        if (token) {
-            try {
-                const parts = token.split('.');
-                const payload = JSON.parse(atob(parts[1]));
-                console.log('🎫 Token usuario:', JSON.stringify(payload));
-            } catch(e) { console.log('⚠️ No se pudo decodificar token'); }
-        } else {
-            console.log('⚠️ NO HAY TOKEN');
-        }
+        console.log('📡 Cargando eventos...');
         
         const response = await fetch(`${API_BASE}/eventos-usuario`, {
-            headers: getAuthHeaders()
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         });
-        
-        if (!response.ok) {
-            console.error('Error cargando eventos, status:', response.status);
-            eventosCliente = [];
-            await crearEventoAutomatico();
-            return;
-        }
         
         const data = await response.json();
-        console.log('✅ Eventos cargados de la API:', JSON.stringify(data));
+        console.log('📊 Eventos:', data);
         
-        eventosCliente = data.eventos || data || [];
-        console.log('📊 Cantidad de eventos:', eventosCliente.length);
-        
-        actualizarEstadisticasEventos();
-        actualizarSelectorEventos();
-        
-        if (eventosCliente.length > 0) {
-            console.log('🎯 Seleccionando evento:', eventosCliente[0].id, eventosCliente[0].nombre);
-            eventSelector.value = eventosCliente[0].id;
-            await cargarEvento(eventosCliente[0].id);
+        if (response.ok && data.success) {
+            eventosCliente = data.eventos || [];
+            
+            // Llenar selector
+            eventSelector.innerHTML = '<option value="">Seleccionar evento...</option>';
+            eventosCliente.forEach(evento => {
+                const option = document.createElement('option');
+                option.value = evento.id;
+                option.textContent = evento.nombre;
+                eventSelector.appendChild(option);
+            });
+            
+            // Cargar primer evento
+            if (eventosCliente.length > 0) {
+                await cargarEvento(eventosCliente[0].id);
+            }
+            
+            actualizarEstadisticasEventos();
         } else {
-            console.log('⚠️ No hay eventos, creando automático...');
-            await crearEventoAutomatico();
-        }
-        
-    } catch (error) {
-        console.error('❌ Error cargando eventos:', error);
-        mostrarMensaje('Error cargando eventos', 'error');
-        eventosCliente = [];
-        await crearEventoAutomatico();
-    }
-}
-
-// Crear un evento por defecto si el usuario no tiene ninguno
-async function crearEventoAutomatico() {
-    try {
-        console.log('🆕 Creando evento automático...');
-        
-        const response = await fetch(`${API_BASE}/eventos`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({
-                nombre: 'Mi Evento',
-                descripcion: 'Mi primer evento',
-                fecha_evento: new Date().toISOString().split('T')[0],
-                ubicacion: '',
-                estado: 'borrador'
-            })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('✅ Evento creado:', data);
-            
-            const nuevoEvento = data.evento || data;
-            eventosCliente = [nuevoEvento];
-            eventoActual = nuevoEvento;
-            
-            actualizarSelectorEventos();
-            eventSelector.value = nuevoEvento.id;
-            
-            // Llenar formulario
-            eventNameInput.value = nuevoEvento.nombre;
-            eventDescriptionInput.value = nuevoEvento.descripcion || '';
-            eventDateInput.value = nuevoEvento.fecha_evento || '';
-            
-            // Crear mesas por defecto
-            crearMesas();
-            
-            mostrarMensaje('Evento creado automáticamente', 'success');
-        } else {
-            const err = await response.json();
-            console.error('Error creando evento:', err);
-            // Si falla la API, crear mesas de demo local
-            crearMesas();
+            console.error('❌ Error:', data.message);
+            mostrarMensaje(data.message || 'Error cargando eventos', 'error');
         }
     } catch (error) {
-        console.error('Error creando evento automático:', error);
-        crearMesas();
+        console.error('❌ Error:', error);
+        mostrarMensaje('Error de conexión', 'error');
     }
 }
-
-function actualizarSelectorEventos() {
-    eventSelector.innerHTML = '<option value="">Seleccionar Evento...</option>';
-    eventosCliente.forEach(evento => {
-        const option = document.createElement('option');
-        option.value = evento.id;
-        option.textContent = evento.nombre;
-        if (evento.estado === 'borrador') {
-            option.textContent += ' (Borrador)';
-        }
-        eventSelector.appendChild(option);
-    });
-}
-
 
 function actualizarEstadisticasEventos() {
     const total = eventosCliente.length;
@@ -331,58 +229,56 @@ function actualizarEstadisticasEventos() {
 
 // 2. Cargar un evento específico
 async function cargarEvento(eventoId) {
-    const evento = eventosCliente.find(e => e.id == eventoId);
-    if (!evento) return;
+    const token = obtenerToken();
+    eventoActual = eventosCliente.find(e => e.id === eventoId);
     
-    eventoActual = evento;
-    currentEventName.textContent = evento.nombre;
-    
-    // Llenar formulario con datos del evento
-    eventNameInput.value = evento.nombre || '';
-    eventDescriptionInput.value = evento.descripcion || '';
-    eventDateInput.value = evento.fecha_evento || evento.fecha || '';
-    eventTimeInput.value = evento.hora_evento || evento.hora || '';
-    numMesasInput.value = evento.num_mesas || evento.mesas || 8;
-    sillasPorMesaInput.value = evento.sillas_por_mesa || evento.sillasPorMesa || 8;
-    formaMesaSelect.value = evento.forma_mesa || evento.formaMesa || 'rectangular';
-    
-    // Cargar mesas desde la API
-    try {
-        console.log('📨 Fetching mesas para evento:', eventoId);
-        const response = await fetch(`${API_BASE}/eventos/${eventoId}/mesas`, {
-            headers: getAuthHeaders()
-        });
-        
-        console.log('📩 Mesas response status:', response.status);
-        
-        if (response.ok) {
-            const data = await response.json();
-            console.log('✅ Mesas data:', JSON.stringify(data));
-            
-            if (data.mesas && data.mesas.length > 0) {
-                console.log('🪑 Renderizando', data.mesas.length, 'mesas desde API');
-                mesas = data.mesas.map(m => ({
-                    id: m.id,
-                    nombre: m.nombre,
-                    forma: m.forma,
-                    sillas: typeof m.sillas === 'string' ? JSON.parse(m.sillas) : (m.sillas || [])
-                }));
-                renderizarMesas();
-            } else {
-                console.log('🆕 No hay mesas en API, llamando crearMesas()');
-                crearMesas();
-            }
-        } else {
-            console.log('❌ Mesas endpoint error, llamando crearMesas()');
-            crearMesas();
-        }
-    } catch (error) {
-        console.error('💥 Error cargando mesas:', error);
-        crearMesas();
+    if (!eventoActual) {
+        console.log('❌ Evento no encontrado');
+        return;
     }
     
-    // Actualizar estadísticas
-    actualizarEstadisticas();
+    console.log('📂 Cargando evento:', eventoActual.nombre);
+    
+    // Actualizar UI
+    currentEventName.textContent = eventoActual.nombre;
+    eventNameInput.value = eventoActual.nombre || '';
+    eventDescriptionInput.value = eventoActual.descripcion || '';
+    
+    if (eventoActual.fecha_evento) {
+        const fecha = new Date(eventoActual.fecha_evento);
+        eventDateInput.value = fecha.toISOString().split('T')[0];
+        eventTimeInput.value = fecha.toTimeString().slice(0,5);
+    }
+    
+    // Cargar mesas desde API
+    try {
+        const response = await fetch(`${API_BASE}/eventos/${eventoId}/mesas`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        console.log('📊 Mesas:', data);
+        
+        if (response.ok && data.success) {
+            mesas = data.mesas || [];
+            
+            // Si no hay mesas, crear por defecto
+            if (mesas.length === 0) {
+                crearMesas();
+            } else {
+                renderizarMesas();
+            }
+            
+            actualizarEstadisticas();
+        }
+    } catch (error) {
+        console.error('❌ Error cargando mesas:', error);
+        crearMesas();
+    }
 }
 
 
@@ -392,18 +288,13 @@ function crearMesas() {
     const sillasPorMesa = parseInt(sillasPorMesaInput.value);
     const formaMesa = formaMesaSelect.value;
     
-    console.log('🏗️ crearMesas llamada. numMesas=' + numMesas + ' sillasPorMesa=' + sillasPorMesa + ' forma=' + formaMesa);
-    console.log('🏗️ mesasContainer:', mesasContainer, 'innerHTML length antes:', mesasContainer ? mesasContainer.innerHTML.length : 'NULL');
-    
     // Validaciones
     if (numMesas < 1 || numMesas > 50) {
-        console.log('❌ Validación fallida: numMesas=' + numMesas);
         mostrarMensaje('El número de mesas debe estar entre 1 y 50', 'error');
         return;
     }
     
     if (sillasPorMesa < 1 || sillasPorMesa > 12) {
-        console.log('❌ Validación fallida: sillasPorMesa=' + sillasPorMesa);
         mostrarMensaje('Las sillas por mesa deben estar entre 1 y 12', 'error');
         return;
     }
@@ -453,7 +344,10 @@ function crearMesas() {
     // Actualizar estadísticas
     actualizarEstadisticas();
     
-    console.log('✅ crearMesas DONE. mesas.length=' + mesas.length + ' mesasContainer.children=' + mesasContainer.children.length);
+    // Guardar en evento actual si existe
+    if (eventoActual) {
+        guardarConfiguracionEvento();
+    }
     
     mostrarMensaje(`${numMesas} mesas creadas con éxito`, 'success');
 }
@@ -548,7 +442,7 @@ function calcularPosicionesSillas(numSillas, forma) {
         const sillasRestantes = Math.max(0, numSillas - sillasLadosCortos);
         const sillasPorLadoLargo = Math.floor(sillasRestantes / 2);
         const sillasImpares = sillasRestantes % 2;
-        const margenLateral = 20;
+        const margenLateral = 17;
         const margenVertical = 15;
         
         // Lados cortos
@@ -708,96 +602,71 @@ function crearNuevoEvento() {
     verificarLimiteEventos();
 }
 
-// 9. Eliminar evento con modal de confirmación personalizado
-function eliminarEvento() {
+// 9. Finalizar evento
+async function eliminarEvento() {
     if (!eventoActual) {
         mostrarMensaje('No hay evento seleccionado', 'error');
         return;
     }
     
-    // Modal de confirmación personalizado
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.id = 'modalConfirmEliminar';
-    modal.innerHTML = `
-        <div class="modal-content modal-confirm" style="max-width: 440px;">
-            <div class="modal-confirm-icon">
-                <i class="fas fa-trash-alt"></i>
-            </div>
-            <h3 class="modal-confirm-title">¿Eliminar evento?</h3>
-            <p class="modal-confirm-msg">Estás a punto de eliminar <strong>"${eventoActual.nombre}"</strong>. Esta acción no puede ser revertida y se eliminará toda la información del evento, incluyendo mesas e invitados.</p>
-            <div class="modal-confirm-actions">
-                <button class="btn-confirm-cancel" id="btnConfirmCancel">Cancelar</button>
-                <button class="btn-confirm-delete" id="btnConfirmDelete">Sí, eliminar</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    modal.style.display = 'flex';
+    if (!confirm(`⚠️ ¿Estás seguro de ELIMINAR el evento "${eventoActual.nombre}"?\n\nEsta acción NO se puede deshacer y borrará todas las mesas e invitados asociados.`)) {
+        return;
+    }
     
-    // Cancelar
-    modal.querySelector('#btnConfirmCancel').onclick = () => {
-        modal.style.display = 'none';
-        setTimeout(() => modal.remove(), 300);
-    };
+    const eventoId = eventoActual.id;
+    const token = obtenerToken();
     
-    // Confirmar eliminación
-    modal.querySelector('#btnConfirmDelete').onclick = async () => {
-        modal.style.display = 'none';
-        setTimeout(() => modal.remove(), 300);
+    try {
+        console.log('🗑️ Eliminando evento:', eventoId);
         
-        try {
-            const response = await fetch(`${API_BASE}/eventos/${eventoActual.id}`, {
-                method: 'DELETE',
-                headers: getAuthHeaders()
-            });
-            
-            if (response.ok) {
-                // Quitar del array local
-                eventosCliente = eventosCliente.filter(e => e.id !== eventoActual.id);
-                eventoActual = null;
-                actualizarSelectorEventos();
-                actualizarEstadisticasEventos();
-                
-                if (eventosCliente.length > 0) {
-                    eventSelector.value = eventosCliente[0].id;
-                    await cargarEvento(eventosCliente[0].id);
-                } else {
-                    // No quedan eventos → crear uno automático
-                    mesasContainer.innerHTML = '';
-                    mesas = [];
-                    eventNameInput.value = '';
-                    eventDescriptionInput.value = '';
-                    await crearEventoAutomatico();
-                }
-                
-                mostrarMensaje('Evento eliminado exitosamente', 'success');
-                verificarLimiteEventos();
-            } else {
-                const err = await response.json().catch(() => ({}));
-                mostrarMensaje(err.error || 'Error eliminando evento', 'error');
+        const response = await fetch(`${API_BASE}/eventos/${eventoId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-        } catch (error) {
-            console.error('Error eliminando evento:', error);
-            mostrarMensaje('Error de conexión al eliminar', 'error');
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            mostrarMensaje(`Evento "${eventoActual.nombre}" eliminado`, 'success');
+            
+            eventosCliente = eventosCliente.filter(e => e.id !== eventoId);
+            const option = eventSelector.querySelector(`option[value="${eventoId}"]`);
+            if (option) option.remove();
+            
+            eventoActual = null;
+            mesas = [];
+            invitados = [];
+            mesasContainer.innerHTML = '';
+            
+            actualizarEstadisticasEventos();
+            
+            if (limiteEventos === 1) {
+                verificarLimiteEventos();
+            }
+            
+            if (eventosCliente.length > 0) {
+                cargarEvento(eventosCliente[0].id);
+            } else {
+                currentEventName.textContent = 'Sin eventos';
+            }
+        } else {
+            mostrarMensaje(data.message || 'Error eliminando evento', 'error');
         }
-    };
-    
-    // Cerrar al click fuera
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            modal.style.display = 'none';
-            setTimeout(() => modal.remove(), 300);
-        }
-    };
+    } catch (error) {
+        console.error('❌ Error:', error);
+        mostrarMensaje('Error de conexión', 'error');
+    }
 }
 
 // 10. Configurar event listeners
 function configurarEventListeners() {
     // Selector de evento
-    eventSelector.addEventListener('change', async function() {
+    eventSelector.addEventListener('change', function() {
         if (this.value) {
-            await cargarEvento(parseInt(this.value));
+            cargarEvento(parseInt(this.value));
         }
     });
     
@@ -809,9 +678,9 @@ function configurarEventListeners() {
         guardarEvento();
     });
     
-    // Botón eliminar evento
-    if (btnEliminarEvento) {
-        btnEliminarEvento.addEventListener('click', eliminarEvento);
+    // Botón finalizar evento
+    if (btnFinalizarEvento) {
+        btnFinalizarEvento.addEventListener('click', eliminarEvento);
     }
     
     // Botón nuevo evento
@@ -835,13 +704,7 @@ function configurarEventListeners() {
     
     // Cerrar sesión
     logoutBtn.addEventListener('click', function() {
-        localStorage.removeItem('titi_token');
-        localStorage.removeItem('titi_sesion');
-        localStorage.removeItem('titi_usuario_actual');
-        sessionStorage.removeItem('titi_token');
-        sessionStorage.removeItem('titi_sesion');
-        sessionStorage.removeItem('titi_usuario_actual');
-        window.location.href = 'login.html';
+        limpiarSesion();
     });
     
     // Zoom
@@ -926,6 +789,24 @@ function configurarEventListeners() {
         if (e.ctrlKey && e.key === 's') {
             e.preventDefault();
             guardarEvento();
+        }
+        
+        // Ctrl+N para nuevo evento
+        if (e.ctrlKey && e.key === 'n') {
+            e.preventDefault();
+            document.getElementById('newEventModal').style.display = 'flex';
+        }
+        
+        // Ctrl+F para buscar
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            searchGuests.focus();
+        }
+        
+        // Ctrl+E para finalizar evento
+        if (e.ctrlKey && e.key === 'e') {
+            e.preventDefault();
+            finalizarEvento();
         }
         
         // + para zoom in
@@ -1212,91 +1093,64 @@ function actualizarEstadisticas() {
 }
 
 async function guardarConfiguracionEvento() {
-    if (!eventoActual) return;
-    
-    const token = getToken();
-    if (!token) {
-        mostrarMensaje('Sesión expirada. Por favor inicia sesión de nuevo.', 'error');
-        setTimeout(() => { window.location.href = 'login.html'; }, 2000);
+    if (!eventoActual) {
+        console.log('⚠️ No hay evento');
         return;
     }
-
-    eventoActual.configuracion = {
-        mesas: JSON.parse(JSON.stringify(mesas)),
-        disposicion: configuracionDisposicion,
-        fechaActualizacion: new Date().toISOString()
-    };
     
-    eventoActual.mesas = mesas.length;
-    eventoActual.sillasPorMesa = mesas.length > 0 ? mesas[0].sillas.length : 0;
-    eventoActual.formaMesa = mesas.length > 0 ? mesas[0].forma : 'rectangular';
+    const token = obtenerToken();
+    if (!token) {
+        mostrarMensaje('Error: No autenticado', 'error');
+        return;
+    }
     
     try {
-        // 1. Guardar mesas en la API
+        console.log('💾 Guardando...');
+        
+        // 1. Guardar mesas
         const mesasResponse = await fetch(`${API_BASE}/eventos/${eventoActual.id}/mesas`, {
             method: 'PUT',
-            headers: getAuthHeaders(),
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({ mesas: mesas })
         });
         
-        if (mesasResponse.status === 401) {
-            console.warn('⚠️ Token expirado (401). Redirigiendo a login...');
-            mostrarMensaje('Sesión expirada. Por favor inicia sesión de nuevo.', 'error');
-            setTimeout(() => { window.location.href = 'login.html'; }, 2000);
-            return;
+        if (mesasResponse.ok) {
+            console.log('✅ Mesas guardadas');
         }
         
-        if (!mesasResponse.ok) {
-            let errMsg = 'Error guardando mesas';
-            try {
-                const contentType = mesasResponse.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    const err = await mesasResponse.json();
-                    errMsg = err.error || errMsg;
-                    // Si el servidor envió debug info, logearlo
-                    if (err.debug) {
-                        console.error('🔍 DEBUG del servidor:', JSON.stringify(err.debug));
-                        console.error('⚠️ El evento ' + err.debug.eventId + ' pertenece a usuario ' + err.debug.eventUserId + ' pero el token tiene usuario ' + err.debug.tokenUserId);
-                    }
-                }
-            } catch(e) { /* ignore parse errors */ }
-            console.error('❌ Error guardando mesas:', mesasResponse.status, errMsg);
-            
-            if (mesasResponse.status === 404) {
-                mostrarMensaje('Evento no autorizado. Crea un nuevo evento.', 'error');
-            } else {
-                mostrarMensaje(errMsg, 'error');
-            }
-            return;
-        }
-        
-        console.log('✅ Mesas guardadas en la API');
-        
-        // 2. Guardar datos del evento en la API
+        // 2. Guardar evento
         const eventoResponse = await fetch(`${API_BASE}/eventos/${eventoActual.id}`, {
             method: 'PUT',
-            headers: getAuthHeaders(),
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
-                nombre: eventoActual.nombre,
-                descripcion: eventoActual.descripcion,
-                fecha_evento: eventoActual.fecha_evento || eventoActual.fecha,
-                ubicacion: eventoActual.ubicacion,
-                estado: eventoActual.estado,
-                configuracion: eventoActual.configuracion
+                nombre: eventNameInput.value || eventoActual.nombre,
+                descripcion: eventDescriptionInput.value || '',
+                fecha_evento: eventDateInput.value ? `${eventDateInput.value}T${eventTimeInput.value || '00:00'}:00` : null,
+                configuracion: JSON.stringify({
+                    mesas: mesas.length,
+                    disposicion: configuracionDisposicion
+                })
             })
         });
         
         if (eventoResponse.ok) {
-            console.log('✅ Evento guardado en la API');
-            mostrarMensaje('Cambios guardados ✓', 'success');
+            console.log('✅ Evento guardado');
+            mostrarMensaje('Cambios guardados', 'success');
         } else {
-            console.error('❌ Error guardando evento:', eventoResponse.status);
-            mostrarMensaje('Error guardando evento', 'error');
+            const err = await eventoResponse.json();
+            console.error('❌ Error:', err);
+            mostrarMensaje('Error guardando', 'error');
         }
         
     } catch (error) {
-        console.error('❌ Error en guardarConfiguracionEvento:', error);
-        mostrarMensaje('Error de conexión al guardar', 'error');
+        console.error('❌ Error:', error);
+        mostrarMensaje('Error de conexión', 'error');
     }
 }
 
@@ -1460,23 +1314,23 @@ function buscarEnMesas(termino) {
     });
 }
 
-async function guardarEvento() {
+function guardarEvento() {
     if (!eventoActual) {
         mostrarMensaje('No hay evento seleccionado', 'error');
         return;
     }
     
-    // Actualizar datos del evento desde el formulario
+    // Actualizar datos del evento
     eventoActual.nombre = eventNameInput.value || 'Evento sin nombre';
     eventoActual.descripcion = eventDescriptionInput.value;
-    eventoActual.fecha_evento = eventDateInput.value;
-    eventoActual.hora_evento = eventTimeInput.value;
-    eventoActual.num_mesas = parseInt(numMesasInput.value);
-    eventoActual.sillas_por_mesa = parseInt(sillasPorMesaInput.value);
-    eventoActual.forma_mesa = formaMesaSelect.value;
+    eventoActual.fecha = eventDateInput.value;
+    eventoActual.hora = eventTimeInput.value;
+    eventoActual.mesas = parseInt(numMesasInput.value);
+    eventoActual.sillasPorMesa = parseInt(sillasPorMesaInput.value);
+    eventoActual.formaMesa = formaMesaSelect.value;
     
-    // Guardar en la API (mesas + evento)
-    await guardarConfiguracionEvento();
+    // Guardar configuración
+    guardarConfiguracionEvento();
     
     // Actualizar UI
     currentEventName.textContent = eventoActual.nombre;
@@ -1491,99 +1345,31 @@ async function guardarEvento() {
             option.textContent += ' (Completado)';
         }
     }
+    
+    mostrarMensaje(`Evento "${eventoActual.nombre}" guardado correctamente`, 'success');
 }
 
-
 function agregarInvitado() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-        <div class="modal-content modal-agregar-invitado" style="max-width: 460px;">
-            <div class="modal-header">
-                <h3><i class="fas fa-user-plus"></i> Agregar Invitado</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="ai-nombre">Nombre completo <span style="color:#e53935;">*</span></label>
-                    <input type="text" id="ai-nombre" placeholder="Ej: Ana López" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label for="ai-email">Correo electrónico</label>
-                    <input type="email" id="ai-email" placeholder="ana@correo.com" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label for="ai-telefono">Teléfono</label>
-                    <input type="tel" id="ai-telefono" placeholder="Ej: 55 1234 5678" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label>Estado de confirmación</label>
-                    <div class="estado-radio-group">
-                        <label class="estado-radio" data-estado="pendiente">
-                            <input type="radio" name="ai-estado" value="pendiente" checked>
-                            <span class="estado-radio-label"><i class="fas fa-clock"></i> Pendiente</span>
-                        </label>
-                        <label class="estado-radio" data-estado="confirmado">
-                            <input type="radio" name="ai-estado" value="confirmado">
-                            <span class="estado-radio-label"><i class="fas fa-check-circle"></i> Confirmado</span>
-                        </label>
-                    </div>
-                </div>
-                <div id="ai-error" class="form-error" style="display:none;"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary modal-cancel-ai">Cancelar</button>
-                <button class="btn-primary btn-guardar-ai"><i class="fas fa-plus"></i> Agregar</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    modal.style.display = 'flex';
-    modal.querySelector('#ai-nombre').focus();
+    const nombre = prompt('Nombre del invitado:');
+    if (!nombre) return;
     
-    const cerrar = () => { modal.style.display = 'none'; setTimeout(() => modal.remove(), 300); };
+    const email = prompt('Email (opcional):');
+    const telefono = prompt('Teléfono (opcional):');
     
-    modal.querySelector('.modal-close').onclick = cerrar;
-    modal.querySelector('.modal-cancel-ai').onclick = cerrar;
-    modal.onclick = (e) => { if (e.target === modal) cerrar(); };
-    
-    modal.querySelector('.btn-guardar-ai').onclick = () => {
-        const nombre = modal.querySelector('#ai-nombre').value.trim();
-        const email = modal.querySelector('#ai-email').value.trim();
-        const telefono = modal.querySelector('#ai-telefono').value.trim();
-        const estado = modal.querySelector('input[name="ai-estado"]:checked').value;
-        const errorDiv = modal.querySelector('#ai-error');
-        
-        if (!nombre) {
-            errorDiv.textContent = 'El nombre es obligatorio.';
-            errorDiv.style.display = 'block';
-            modal.querySelector('#ai-nombre').focus();
-            return;
-        }
-        
-        // Validar email si se proporcionó
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            errorDiv.textContent = 'El correo no es válido.';
-            errorDiv.style.display = 'block';
-            modal.querySelector('#ai-email').focus();
-            return;
-        }
-        
-        const nuevoInvitado = {
-            id: invitados.length > 0 ? Math.max(...invitados.map(i => i.id)) + 1 : 1,
-            nombre: nombre,
-            email: email || null,
-            telefono: telefono || null,
-            estado: estado,
-            idMesa: null,
-            idSilla: null
-        };
-        
-        invitados.push(nuevoInvitado);
-        actualizarListaInvitados();
-        mostrarMensaje(`Invitado "${nombre}" agregado`, 'success');
-        cerrar();
+    const nuevoInvitado = {
+        id: invitados.length + 1,
+        nombre: nombre,
+        email: email || null,
+        telefono: telefono || null,
+        estado: 'pendiente',
+        idMesa: null,
+        idSilla: null
     };
+    
+    invitados.push(nuevoInvitado);
+    actualizarListaInvitados();
+    
+    mostrarMensaje(`Invitado "${nombre}" agregado`, 'success');
 }
 
 function mostrarMensaje(mensaje, tipo = 'info') {
@@ -1600,93 +1386,7 @@ function mostrarMensaje(mensaje, tipo = 'info') {
 
 // ===== FUNCIONES GLOBALES PARA HTML =====
 window.editarInvitado = function(invitadoId) {
-    const invitado = invitados.find(i => i.id === invitadoId);
-    if (!invitado) return;
-    
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-        <div class="modal-content modal-agregar-invitado" style="max-width: 460px;">
-            <div class="modal-header">
-                <h3><i class="fas fa-edit"></i> Editar Invitado</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="ei-nombre">Nombre completo <span style="color:#e53935;">*</span></label>
-                    <input type="text" id="ei-nombre" value="${invitado.nombre}" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label for="ei-email">Correo electrónico</label>
-                    <input type="email" id="ei-email" value="${invitado.email || ''}" placeholder="correo@ejemplo.com" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label for="ei-telefono">Teléfono</label>
-                    <input type="tel" id="ei-telefono" value="${invitado.telefono || ''}" placeholder="Ej: 55 1234 5678" autocomplete="off">
-                </div>
-                <div class="form-group">
-                    <label>Estado de confirmación</label>
-                    <div class="estado-radio-group">
-                        <label class="estado-radio" data-estado="pendiente">
-                            <input type="radio" name="ei-estado" value="pendiente" ${invitado.estado === 'pendiente' ? 'checked' : ''}>
-                            <span class="estado-radio-label"><i class="fas fa-clock"></i> Pendiente</span>
-                        </label>
-                        <label class="estado-radio" data-estado="asignado">
-                            <input type="radio" name="ei-estado" value="asignado" ${invitado.estado === 'asignado' ? 'checked' : ''}>
-                            <span class="estado-radio-label"><i class="fas fa-chair"></i> Asignado</span>
-                        </label>
-                        <label class="estado-radio" data-estado="confirmado">
-                            <input type="radio" name="ei-estado" value="confirmado" ${invitado.estado === 'confirmado' ? 'checked' : ''}>
-                            <span class="estado-radio-label"><i class="fas fa-check-circle"></i> Confirmado</span>
-                        </label>
-                    </div>
-                </div>
-                <div id="ei-error" class="form-error" style="display:none;"></div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary modal-cancel-ei">Cancelar</button>
-                <button class="btn-primary btn-guardar-ei"><i class="fas fa-save"></i> Guardar cambios</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    modal.style.display = 'flex';
-    
-    const cerrar = () => { modal.style.display = 'none'; setTimeout(() => modal.remove(), 300); };
-    modal.querySelector('.modal-close').onclick = cerrar;
-    modal.querySelector('.modal-cancel-ei').onclick = cerrar;
-    modal.onclick = (e) => { if (e.target === modal) cerrar(); };
-    
-    modal.querySelector('.btn-guardar-ei').onclick = () => {
-        const nombre = modal.querySelector('#ei-nombre').value.trim();
-        const email = modal.querySelector('#ei-email').value.trim();
-        const telefono = modal.querySelector('#ei-telefono').value.trim();
-        const estado = modal.querySelector('input[name="ei-estado"]:checked').value;
-        const errorDiv = modal.querySelector('#ei-error');
-        
-        if (!nombre) {
-            errorDiv.textContent = 'El nombre es obligatorio.';
-            errorDiv.style.display = 'block';
-            return;
-        }
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            errorDiv.textContent = 'El correo no es válido.';
-            errorDiv.style.display = 'block';
-            return;
-        }
-        
-        // Aplicar cambios al objeto
-        invitado.nombre = nombre;
-        invitado.email = email || null;
-        invitado.telefono = telefono || null;
-        invitado.estado = estado;
-        
-        // Actualizar lista y detalles
-        actualizarListaInvitados();
-        mostrarDetallesInvitado(invitadoId);
-        mostrarMensaje('Invitado actualizado', 'success');
-        cerrar();
-    };
+    mostrarMensaje('Funcionalidad de editar invitado en desarrollo', 'info');
 };
 
 window.asignarInvitado = function(invitadoId) {
