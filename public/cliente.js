@@ -1350,25 +1350,40 @@ function guardarEvento() {
 }
 
 function agregarInvitado() {
-    const nombre = prompt('Nombre del invitado:');
-    if (!nombre) return;
+    // Limpiar formulario
+    document.getElementById('guestName').value = '';
+    document.getElementById('guestEmail').value = '';
+    document.getElementById('guestPhone').value = '';
+    document.querySelector('input[name="guestStatus"][value="pendiente"]').checked = true;
     
-    const email = prompt('Email (opcional):');
-    const telefono = prompt('Teléfono (opcional):');
+    // Mostrar modal
+    document.getElementById('addGuestModal').style.display = 'flex';
+}
+
+function guardarNuevoInvitado() {
+    const nombre = document.getElementById('guestName').value.trim();
+    const email = document.getElementById('guestEmail').value.trim();
+    const telefono = document.getElementById('guestPhone').value.trim();
+    const estado = document.querySelector('input[name="guestStatus"]:checked').value;
+    
+    if (!nombre) {
+        mostrarMensaje('El nombre es obligatorio', 'error');
+        return;
+    }
     
     const nuevoInvitado = {
         id: invitados.length + 1,
         nombre: nombre,
         email: email || null,
         telefono: telefono || null,
-        estado: 'pendiente',
+        estado: estado,
         idMesa: null,
         idSilla: null
     };
     
     invitados.push(nuevoInvitado);
     actualizarListaInvitados();
-    
+    cerrarModal(document.getElementById('addGuestModal'));
     mostrarMensaje(`Invitado "${nombre}" agregado`, 'success');
 }
 
@@ -1386,8 +1401,53 @@ function mostrarMensaje(mensaje, tipo = 'info') {
 
 // ===== FUNCIONES GLOBALES PARA HTML =====
 window.editarInvitado = function(invitadoId) {
-    mostrarMensaje('Funcionalidad de editar invitado en desarrollo', 'info');
+    const invitado = invitados.find(i => i.id === invitadoId);
+    if (!invitado) {
+        mostrarMensaje('Invitado no encontrado', 'error');
+        return;
+    }
+    
+    // Llenar formulario con datos actuales
+    document.getElementById('editGuestId').value = invitado.id;
+    document.getElementById('editGuestName').value = invitado.nombre;
+    document.getElementById('editGuestEmail').value = invitado.email || '';
+    document.getElementById('editGuestPhone').value = invitado.telefono || '';
+    document.querySelector(`input[name="editGuestStatus"][value="${invitado.estado}"]`).checked = true;
+    
+    // Mostrar modal
+    document.getElementById('editGuestModal').style.display = 'flex';
 };
+
+function guardarEdicionInvitado() {
+    const id = parseInt(document.getElementById('editGuestId').value);
+    const nombre = document.getElementById('editGuestName').value.trim();
+    const email = document.getElementById('editGuestEmail').value.trim();
+    const telefono = document.getElementById('editGuestPhone').value.trim();
+    const estado = document.querySelector('input[name="editGuestStatus"]:checked').value;
+    
+    if (!nombre) {
+        mostrarMensaje('El nombre es obligatorio', 'error');
+        return;
+    }
+    
+    const invitado = invitados.find(i => i.id === id);
+    if (invitado) {
+        invitado.nombre = nombre;
+        invitado.email = email || null;
+        invitado.telefono = telefono || null;
+        invitado.estado = estado;
+        
+        actualizarListaInvitados();
+        cerrarModal(document.getElementById('editGuestModal'));
+        mostrarMensaje(`Invitado "${nombre}" actualizado`, 'success');
+    }
+}
+
+function cerrarModal(modal) {
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
 
 window.asignarInvitado = function(invitadoId) {
     const invitado = invitados.find(i => i.id === invitadoId);
