@@ -545,15 +545,27 @@ function crearNuevoEvento() {
         }
     }
     
-    const nombre = document.getElementById('newEventName').value;
+    const nombre = document.getElementById('newEventName').value.trim();
     const fecha = document.getElementById('newEventDate').value;
     const hora = document.getElementById('newEventTime').value;
     const ubicacion = document.getElementById('newEventLocation').value;
     const tipo = document.getElementById('newEventType').value;
-    const usarPlantilla = document.getElementById('useTemplate').checked;
+    const numMesas = parseInt(document.getElementById('newEventMesas').value) || 8;
+    const sillasPorMesa = parseInt(document.getElementById('newEventSillas').value) || 8;
+    const formaMesa = document.getElementById('newEventForma').value;
     
     if (!nombre || !fecha) {
         mostrarMensaje('Nombre y fecha son obligatorios', 'error');
+        return;
+    }
+    
+    if (numMesas < 1 || numMesas > 50) {
+        mostrarMensaje('El número de mesas debe estar entre 1 y 50', 'error');
+        return;
+    }
+    
+    if (sillasPorMesa < 2 || sillasPorMesa > 20) {
+        mostrarMensaje('Las sillas por mesa deben estar entre 2 y 20', 'error');
         return;
     }
     
@@ -565,10 +577,10 @@ function crearNuevoEvento() {
         hora: hora || '18:00',
         ubicacion: ubicacion,
         tipo: tipo,
-        estado: 'borrador',
-        mesas: usarPlantilla ? 8 : 1,
-        sillasPorMesa: usarPlantilla ? 8 : 6,
-        formaMesa: 'rectangular',
+        estado: 'activo', // Siempre activo, no hay borradores
+        mesas: numMesas,
+        sillasPorMesa: sillasPorMesa,
+        formaMesa: formaMesa,
         configuracion: {}
     };
     
@@ -577,7 +589,7 @@ function crearNuevoEvento() {
     // Agregar al selector
     const option = document.createElement('option');
     option.value = nuevoEvento.id;
-    option.textContent = nuevoEvento.nombre + ' (Borrador)';
+    option.textContent = nuevoEvento.nombre;
     eventSelector.appendChild(option);
     
     // Seleccionar el nuevo evento
@@ -586,9 +598,6 @@ function crearNuevoEvento() {
     
     // Cerrar modal
     document.getElementById('newEventModal').style.display = 'none';
-    
-    // Resetear formulario
-    document.getElementById('newEventForm').reset();
     
     // Actualizar estadísticas
     actualizarEstadisticasEventos();
@@ -701,8 +710,25 @@ function configurarEventListeners() {
     
     // Cerrar sesión
     logoutBtn.addEventListener('click', function() {
-        limpiarSesion();
+        if (confirm('¿Cerrar sesión?')) {
+            limpiarSesion();
+            window.location.href = 'login.html';
+        }
     });
+    
+    // Fullscreen
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                fullscreenBtn.querySelector('i').className = 'fas fa-compress';
+            } else {
+                document.exitFullscreen();
+                fullscreenBtn.querySelector('i').className = 'fas fa-expand';
+            }
+        });
+    }
     
     // Zoom
     zoomInBtn.addEventListener('click', function(e) {
