@@ -427,16 +427,7 @@ function crearMesaVisual(mesa) {
     
     // Contenedor para las sillas
     const sillasContainer = document.createElement('div');
-    sillasContainer.className = 'sillas-container';
-    
-    // Agregar clase específica según la forma
-    if (mesa.forma === 'circular') {
-        sillasContainer.classList.add('circular-sillas');
-    } else if (mesa.forma === 'rectangular') {
-        sillasContainer.classList.add('rectangular-sillas');
-    } else if (mesa.forma === 'cuadrada') {
-        sillasContainer.classList.add('cuadrada-sillas');
-    }
+    sillasContainer.className = `sillas-container ${mesa.forma}-sillas`;
     
     // Calcular posiciones de las sillas según la forma de la mesa
     const posiciones = calcularPosicionesSillas(mesa.sillas.length, mesa.forma);
@@ -501,7 +492,7 @@ function calcularPosicionesSillas(numSillas, forma) {
         const sillasRestantes = Math.max(0, numSillas - sillasLadosCortos);
         const sillasPorLadoLargo = Math.floor(sillasRestantes / 2);
         const sillasImpares = sillasRestantes % 2;
-        const margenLateral = 15; // Reducido de 20 a 15 para que las sillas estén más juntas
+        const margenLateral = 17;
         const margenVertical = 15;
         
         // Lados cortos
@@ -512,20 +503,21 @@ function calcularPosicionesSillas(numSillas, forma) {
         
         // Lados largos
         if (sillasPorLadoLargo > 0) {
-            // Espaciado más compacto para que las sillas se vean mejor distribuidas
-            const anchoUtil = anchoContenedor - (margenLateral * 2);
-            const espacioEntreSillas = sillasPorLadoLargo > 1 ? anchoUtil / (sillasPorLadoLargo - 1) : 0;
+            const distancia = anchoContenedor - (margenLateral * 2);
+            const divisor = Math.max(sillasPorLadoLargo - 1, 1);
             
             // Lado superior
             for (let i = 0; i < sillasPorLadoLargo; i++) {
-                const x = margenLateral + (i * espacioEntreSillas);
+                const posRelativa = (i * (distancia / divisor));
+                const x = margenLateral + posRelativa;
                 const y = margenVertical;
                 posiciones.push({x, y});
             }
             
-            // Lado inferior  
+            // Lado inferior
             for (let i = 0; i < sillasPorLadoLargo; i++) {
-                const x = margenLateral + (i * espacioEntreSillas);
+                const posRelativa = (i * (distancia / divisor));
+                const x = margenLateral + posRelativa;
                 const y = anchoContenedor - margenVertical;
                 posiciones.push({x, y});
             }
