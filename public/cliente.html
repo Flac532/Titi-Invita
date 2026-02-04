@@ -114,12 +114,6 @@
                 </div>
                 
                 <div class="header-actions">
-                    <button class="btn-icon" id="shareBtn" title="Compartir Vista">
-                        <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="btn-icon" id="helpBtn" title="Ayuda">
-                        <i class="fas fa-question-circle"></i>
-                    </button>
                     <button class="btn-icon" id="logoutBtn" title="Cerrar Sesión">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
@@ -198,9 +192,6 @@
                     </button>
                     <button class="btn-icon" id="resetViewBtn" title="Restablecer Vista">
                         <i class="fas fa-expand-arrows-alt"></i>
-                    </button>
-                    <button class="btn-icon" id="changeLayoutBtn" title="Cambiar Disposición" onclick="mostrarOpcionesDisposicion()">
-                        <i class="fas fa-th"></i>
                     </button>
                 </div>
             </div>
@@ -408,12 +399,31 @@
                         <option value="otro">Otro</option>
                     </select>
                 </div>
-                <div class="form-field">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="useTemplate" checked>
-                        <span>Usar plantilla predeterminada (8 mesas, 8 sillas cada una)</span>
-                    </label>
+                
+                <div class="form-separator">
+                    <span>Configuración de Mesas</span>
                 </div>
+                
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>Número de Mesas *</label>
+                        <input type="number" id="newEventMesas" min="1" max="50" value="8">
+                    </div>
+                    <div class="form-field">
+                        <label>Sillas por Mesa *</label>
+                        <input type="number" id="newEventSillas" min="2" max="20" value="8">
+                    </div>
+                </div>
+                
+                <div class="form-field">
+                    <label>Forma de las Mesas</label>
+                    <select id="newEventForma">
+                        <option value="rectangular">Rectangular</option>
+                        <option value="circular">Circular</option>
+                        <option value="cuadrada">Cuadrada</option>
+                    </select>
+                </div>
+                
                 <div id="eventLimitWarning" class="alert-warning" style="display: none;">
                     <i class="fas fa-exclamation-triangle"></i>
                     <span>Como cliente solo puedes tener 1 evento activo.</span>
