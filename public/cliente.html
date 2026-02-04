@@ -593,6 +593,30 @@
         </div>
     </div>
     
+    <!-- Modal: Confirmar Cerrar Sesión -->
+    <div class="modal" id="logoutConfirmModal" style="display: none;">
+        <div class="modal-content modal-confirm">
+            <div class="modal-header modal-header-warning">
+                <div class="warning-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                <h3>¿Cerrar Sesión?</h3>
+            </div>
+            <div class="modal-body">
+                <p class="confirm-message">¿Estás seguro que deseas cerrar sesión?</p>
+                <p class="confirm-submessage">Tendrás que volver a iniciar sesión para acceder.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModal(document.getElementById('logoutConfirmModal'))">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button class="btn-danger" id="confirmLogoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Toast -->
     <div id="messageToast" class="toast"></div>
     
