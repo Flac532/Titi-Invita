@@ -427,7 +427,16 @@ function crearMesaVisual(mesa) {
     
     // Contenedor para las sillas
     const sillasContainer = document.createElement('div');
-    sillasContainer.className = `sillas-container ${mesa.forma}-sillas`;
+    sillasContainer.className = 'sillas-container';
+    
+    // Agregar clase específica según la forma
+    if (mesa.forma === 'circular') {
+        sillasContainer.classList.add('circular-sillas');
+    } else if (mesa.forma === 'rectangular') {
+        sillasContainer.classList.add('rectangular-sillas');
+    } else if (mesa.forma === 'cuadrada') {
+        sillasContainer.classList.add('cuadrada-sillas');
+    }
     
     // Calcular posiciones de las sillas según la forma de la mesa
     const posiciones = calcularPosicionesSillas(mesa.sillas.length, mesa.forma);
