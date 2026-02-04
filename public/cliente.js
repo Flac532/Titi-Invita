@@ -709,12 +709,14 @@ function configurarEventListeners() {
     });
     
     // Cerrar sesión
-    logoutBtn.addEventListener('click', function() {
-        if (confirm('¿Cerrar sesión?')) {
-            limpiarSesion();
-            window.location.href = 'login.html';
-        }
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            if (confirm('¿Cerrar sesión?')) {
+                limpiarSesion();
+                window.location.href = 'login.html';
+            }
+        });
+    }
     
     // Fullscreen
     const fullscreenBtn = document.getElementById('fullscreenBtn');
@@ -731,27 +733,33 @@ function configurarEventListeners() {
     }
     
     // Zoom
-    zoomInBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (zoomLevel < 2) {
-            zoomLevel += 0.1;
-            aplicarZoom();
-        }
-    });
+    if (zoomInBtn) {
+        zoomInBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (zoomLevel < 2) {
+                zoomLevel += 0.1;
+                aplicarZoom();
+            }
+        });
+    }
     
-    zoomOutBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        if (zoomLevel > 0.5) {
-            zoomLevel -= 0.1;
-            aplicarZoom();
-        }
-    });
+    if (zoomOutBtn) {
+        zoomOutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (zoomLevel > 0.5) {
+                zoomLevel -= 0.1;
+                aplicarZoom();
+            }
+        });
+    }
     
-    resetViewBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        zoomLevel = 1;
-        aplicarZoom();
-    });
+    if (resetViewBtn) {
+        resetViewBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            zoomLevel = 1;
+            aplicarZoom();
+        });
+    }
     
     // Mostrar nombres
     showNamesCheckbox.addEventListener('change', function() {
