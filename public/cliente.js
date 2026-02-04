@@ -671,131 +671,178 @@ async function eliminarEvento() {
 function configurarEventListeners() {
     console.log('🎯 Configurando event listeners...');
     
-    // Selector de evento
-    eventSelector.addEventListener('change', function() {
-        if (this.value) {
-            cargarEvento(parseInt(this.value));
+    try {
+        // Selector de evento
+        if (eventSelector) {
+            eventSelector.addEventListener('change', function() {
+                if (this.value) {
+                    cargarEvento(parseInt(this.value));
+                }
+            });
+            console.log('✅ Event selector configurado');
         }
-    });
+    } catch (e) { console.error('❌ Error en eventSelector:', e); }
     
-    // Botón crear mesas
-    btnCrearMesas.addEventListener('click', crearMesas);
+    try {
+        // Botón crear mesas
+        if (btnCrearMesas) {
+            btnCrearMesas.addEventListener('click', crearMesas);
+            console.log('✅ btnCrearMesas configurado');
+        }
+    } catch (e) { console.error('❌ Error en btnCrearMesas:', e); }
     
-    // Botón guardar evento
-    btnGuardarEvento.addEventListener('click', function() {
-        guardarEvento();
-    });
+    try {
+        // Botón guardar evento
+        if (btnGuardarEvento) {
+            btnGuardarEvento.addEventListener('click', function() {
+                guardarEvento();
+            });
+            console.log('✅ btnGuardarEvento configurado');
+        }
+    } catch (e) { console.error('❌ Error en btnGuardarEvento:', e); }
     
-    // Botón finalizar evento
-    if (btnFinalizarEvento) {
-        btnFinalizarEvento.addEventListener('click', eliminarEvento);
-    }
+    try {
+        // Botón finalizar evento
+        if (btnFinalizarEvento) {
+            btnFinalizarEvento.addEventListener('click', eliminarEvento);
+            console.log('✅ btnFinalizarEvento configurado');
+        }
+    } catch (e) { console.error('❌ Error en btnFinalizarEvento:', e); }
     
-    // Botón nuevo evento
-    newEventBtn.addEventListener('click', function() {
-        document.getElementById('newEventModal').style.display = 'flex';
-    });
+    try {
+        // Botón nuevo evento
+        if (newEventBtn) {
+            newEventBtn.addEventListener('click', function() {
+                document.getElementById('newEventModal').style.display = 'flex';
+            });
+            console.log('✅ newEventBtn configurado');
+        }
+    } catch (e) { console.error('❌ Error en newEventBtn:', e); }
     
-    // Cerrar modal nuevo evento
-    document.querySelector('#newEventModal .modal-close').addEventListener('click', function() {
-        document.getElementById('newEventModal').style.display = 'none';
-    });
+    try {
+        // Cerrar modal nuevo evento
+        const modalClose = document.querySelector('#newEventModal .modal-close');
+        if (modalClose) {
+            modalClose.addEventListener('click', function() {
+                document.getElementById('newEventModal').style.display = 'none';
+            });
+            console.log('✅ Modal close configurado');
+        }
+    } catch (e) { console.error('❌ Error en modal close:', e); }
     
-    document.querySelector('#newEventModal .modal-cancel').addEventListener('click', function() {
-        document.getElementById('newEventModal').style.display = 'none';
-    });
+    try {
+        const modalCancel = document.querySelector('#newEventModal .modal-cancel');
+        if (modalCancel) {
+            modalCancel.addEventListener('click', function() {
+                document.getElementById('newEventModal').style.display = 'none';
+            });
+            console.log('✅ Modal cancel configurado');
+        }
+    } catch (e) { console.error('❌ Error en modal cancel:', e); }
     
-    // Crear evento
-    document.getElementById('createEventBtn').addEventListener('click', function() {
-        crearNuevoEvento();
-    });
+    try {
+        // Crear evento
+        const createBtn = document.getElementById('createEventBtn');
+        if (createBtn) {
+            createBtn.addEventListener('click', function() {
+                crearNuevoEvento();
+            });
+            console.log('✅ createEventBtn configurado');
+        }
+    } catch (e) { console.error('❌ Error en createEventBtn:', e); }
     
-    // Cerrar sesión
-    const logoutBtn = document.getElementById('logoutBtn');
-    console.log('🔍 logoutBtn:', logoutBtn);
-    if (logoutBtn) {
-        console.log('✅ Configurando logout');
-        logoutBtn.addEventListener('click', function() {
-            console.log('🚪 Click en logout');
-            if (confirm('¿Cerrar sesión?')) {
-                limpiarSesion();
-                window.location.href = 'login.html';
-            }
-        });
-    } else {
-        console.error('❌ No se encontró logoutBtn');
-    }
+    try {
+        // Cerrar sesión
+        const logoutBtn = document.getElementById('logoutBtn');
+        console.log('🔍 logoutBtn:', logoutBtn);
+        if (logoutBtn) {
+            console.log('✅ Configurando logout');
+            logoutBtn.addEventListener('click', function() {
+                console.log('🚪 Click en logout');
+                if (confirm('¿Cerrar sesión?')) {
+                    limpiarSesion();
+                    window.location.href = 'login.html';
+                }
+            });
+        } else {
+            console.error('❌ No se encontró logoutBtn');
+        }
+    } catch (e) { console.error('❌ Error en logout:', e); }
     
-    // Fullscreen
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
-    console.log('🔍 fullscreenBtn:', fullscreenBtn);
-    if (fullscreenBtn) {
-        console.log('✅ Configurando fullscreen');
-        fullscreenBtn.addEventListener('click', function() {
-            console.log('🖥️ Click en fullscreen');
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-                this.querySelector('i').className = 'fas fa-compress';
-            } else {
-                document.exitFullscreen();
-                this.querySelector('i').className = 'fas fa-expand';
-            }
-        });
-    } else {
-        console.error('❌ No se encontró fullscreenBtn');
-    }
+    try {
+        // Fullscreen
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        console.log('🔍 fullscreenBtn:', fullscreenBtn);
+        if (fullscreenBtn) {
+            console.log('✅ Configurando fullscreen');
+            fullscreenBtn.addEventListener('click', function() {
+                console.log('🖥️ Click en fullscreen');
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                    this.querySelector('i').className = 'fas fa-compress';
+                } else {
+                    document.exitFullscreen();
+                    this.querySelector('i').className = 'fas fa-expand';
+                }
+            });
+        } else {
+            console.error('❌ No se encontró fullscreenBtn');
+        }
+    } catch (e) { console.error('❌ Error en fullscreen:', e); }
     
-    // Zoom
-    const zoomInBtn = document.getElementById('zoomInBtn');
-    const zoomOutBtn = document.getElementById('zoomOutBtn');
-    const resetViewBtn = document.getElementById('resetViewBtn');
-    
-    console.log('🔍 zoomInBtn:', zoomInBtn);
-    console.log('🔍 zoomOutBtn:', zoomOutBtn);
-    console.log('🔍 resetViewBtn:', resetViewBtn);
-    
-    if (zoomInBtn) {
-        console.log('✅ Configurando zoom in');
-        zoomInBtn.addEventListener('click', function(e) {
-            console.log('🔍 Click en zoom in, zoomLevel:', zoomLevel);
-            e.preventDefault();
-            if (zoomLevel < 2) {
-                zoomLevel += 0.1;
+    try {
+        // Zoom
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const resetViewBtn = document.getElementById('resetViewBtn');
+        
+        console.log('🔍 zoomInBtn:', zoomInBtn);
+        console.log('🔍 zoomOutBtn:', zoomOutBtn);
+        console.log('🔍 resetViewBtn:', resetViewBtn);
+        
+        if (zoomInBtn) {
+            console.log('✅ Configurando zoom in');
+            zoomInBtn.addEventListener('click', function(e) {
+                console.log('🔍 Click en zoom in, zoomLevel:', zoomLevel);
+                e.preventDefault();
+                if (zoomLevel < 2) {
+                    zoomLevel += 0.1;
+                    aplicarZoom();
+                    console.log('➕ Nuevo zoomLevel:', zoomLevel);
+                }
+            });
+        } else {
+            console.error('❌ No se encontró zoomInBtn');
+        }
+        
+        if (zoomOutBtn) {
+            console.log('✅ Configurando zoom out');
+            zoomOutBtn.addEventListener('click', function(e) {
+                console.log('🔍 Click en zoom out, zoomLevel:', zoomLevel);
+                e.preventDefault();
+                if (zoomLevel > 0.5) {
+                    zoomLevel -= 0.1;
+                    aplicarZoom();
+                    console.log('➖ Nuevo zoomLevel:', zoomLevel);
+                }
+            });
+        } else {
+            console.error('❌ No se encontró zoomOutBtn');
+        }
+        
+        if (resetViewBtn) {
+            console.log('✅ Configurando reset view');
+            resetViewBtn.addEventListener('click', function(e) {
+                console.log('🔄 Click en reset view');
+                e.preventDefault();
+                zoomLevel = 1;
                 aplicarZoom();
-                console.log('➕ Nuevo zoomLevel:', zoomLevel);
-            }
-        });
-    } else {
-        console.error('❌ No se encontró zoomInBtn');
-    }
-    
-    if (zoomOutBtn) {
-        console.log('✅ Configurando zoom out');
-        zoomOutBtn.addEventListener('click', function(e) {
-            console.log('🔍 Click en zoom out, zoomLevel:', zoomLevel);
-            e.preventDefault();
-            if (zoomLevel > 0.5) {
-                zoomLevel -= 0.1;
-                aplicarZoom();
-                console.log('➖ Nuevo zoomLevel:', zoomLevel);
-            }
-        });
-    } else {
-        console.error('❌ No se encontró zoomOutBtn');
-    }
-    
-    if (resetViewBtn) {
-        console.log('✅ Configurando reset view');
-        resetViewBtn.addEventListener('click', function(e) {
-            console.log('🔄 Click en reset view');
-            e.preventDefault();
-            zoomLevel = 1;
-            aplicarZoom();
-            console.log('↩️ zoomLevel reseteado a 1');
-        });
-    } else {
-        console.error('❌ No se encontró resetViewBtn');
-    }
+                console.log('↩️ zoomLevel reseteado a 1');
+            });
+        } else {
+            console.error('❌ No se encontró resetViewBtn');
+        }
+    } catch (e) { console.error('❌ Error en zoom:', e); }
     
     // Mostrar nombres
     showNamesCheckbox.addEventListener('change', function() {
