@@ -75,7 +75,6 @@ const statPorcentajeOcupacion = document.getElementById('statPorcentajeOcupacion
 const ocupacionBar = document.getElementById('ocupacionBar');
 const totalEventsCount = document.getElementById('totalEventsCount');
 const activeEventsCount = document.getElementById('activeEventsCount');
-const draftEventsCount = document.getElementById('draftEventsCount');
 
 // Lista de invitados
 const guestsList = document.getElementById('guestsList');
@@ -220,11 +219,9 @@ async function cargarEventosUsuario() {
 function actualizarEstadisticasEventos() {
     const total = eventosCliente.length;
     const activos = eventosCliente.filter(e => e.estado === 'activo').length;
-    const borradores = eventosCliente.filter(e => e.estado === 'borrador').length;
     
     totalEventsCount.textContent = total;
     activeEventsCount.textContent = activos;
-    draftEventsCount.textContent = borradores;
 }
 
 // 2. Cargar un evento específico
@@ -485,10 +482,10 @@ function calcularPosicionesSillas(numSillas, forma) {
     } else if (forma === 'circular') {
         const centroX = 50;
         const centroY = 50;
-        const radio = 75;
+        const radio = 65; // Reducido para que las sillas no se salgan
         
         for (let i = 0; i < numSillas; i++) {
-            const angulo = (2 * Math.PI / numSillas) * i;
+            const angulo = (2 * Math.PI / numSillas) * i - (Math.PI / 2); // Empezar desde arriba
             const x = centroX + radio * Math.cos(angulo);
             const y = centroY + radio * Math.sin(angulo);
             posiciones.push({x, y});
