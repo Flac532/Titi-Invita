@@ -571,10 +571,10 @@ app.put('/api/eventos/:id/mesas', verificarToken, async (req, res) => {
          VALUES ($1, $2, $3, $4, $5, $6)`,
         [
           eventId,
-          mesa.nombre,
-          mesa.forma,
-          mesa.posicion_x || 0,
-          mesa.posicion_y || 0,
+          mesa.nombre || `Mesa ${mesa.id}`,
+          mesa.forma || 'rectangular',
+          parseInt(mesa.posicion_x) || 0,
+          parseInt(mesa.posicion_y) || 0,
           JSON.stringify(mesa.sillas || [])
         ]
       );
