@@ -1726,3 +1726,75 @@ select:focus {
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+
+/* Modal de confirmación */
+.modal-confirm {
+    max-width: 420px;
+}
+
+.modal-header-warning {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border-bottom: 2px solid #ffb74d;
+    padding: 30px 24px 24px;
+    text-align: center;
+}
+
+.warning-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+}
+
+.warning-icon i {
+    font-size: 2rem;
+    color: white;
+}
+
+.modal-header-warning h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #e65100;
+    margin: 0;
+}
+
+.confirm-message {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 10px 0;
+    text-align: center;
+}
+
+.confirm-submessage {
+    font-size: 0.9rem;
+    color: #718096;
+    margin: 0;
+    text-align: center;
+}
+
+.modal-footer .btn-danger {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    color: white;
+    font-weight: 600;
+}
+
+.modal-footer .btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+}
+
+.modal-footer .btn-secondary {
+    background: #e8eaed;
+    color: #2d3748;
+    font-weight: 600;
+}
+
+.modal-footer .btn-secondary:hover {
+    background: #d3d5d9;
+}
