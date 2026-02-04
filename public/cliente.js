@@ -1,5 +1,18 @@
 // cliente.js - Sistema de mesas completo para cliente con 3 roles
 
+// ===== FUNCIONES DE AUTENTICACIÓN =====
+function obtenerToken() {
+    return localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+}
+
+function limpiarSesion() {
+    localStorage.removeItem('titi_token');
+    localStorage.removeItem('titi_sesion');
+    localStorage.removeItem('titi_usuario_actual');
+    sessionStorage.removeItem('titi_token');
+    sessionStorage.removeItem('titi_sesion');
+}
+
 // ===== VARIABLES GLOBALES =====
 let eventosCliente = [];
 let eventoActual = null;
@@ -69,10 +82,20 @@ const guestDetails = document.getElementById('guestDetails');
 
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', function() {
-    // Cargar usuario actual
-    usuario = window.titiAuth?.obtenerUsuarioActual();
+    // Cargar usuario actual desde localStorage directamente
+    const usuarioStr = localStorage.getItem('titi_usuario_actual');
     
-    if (!usuario) {
+    if (!usuarioStr) {
+        console.log('❌ No hay usuario en localStorage, redirigiendo a login');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    try {
+        usuario = JSON.parse(usuarioStr);
+        console.log('✅ Usuario cargado:', usuario.nombre, usuario.rol);
+    } catch (error) {
+        console.error('❌ Error parseando usuario:', error);
         window.location.href = 'login.html';
         return;
     }
@@ -678,7 +701,7 @@ function configurarEventListeners() {
     
     // Cerrar sesión
     logoutBtn.addEventListener('click', function() {
-        window.titiAuth.logout();
+        limpiarSesion();
     });
     
     // Zoom
