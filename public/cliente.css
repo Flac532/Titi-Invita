@@ -1711,30 +1711,18 @@ select:focus {
 }
 
 /* Sillas más definidas */
-.silla {
-    background: linear-gradient(135deg, #e8eaed 0%, #d3d5d9 100%);
-    border: 2px solid #b8bcc2;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+/* Form separator */
+.form-separator {
+    margin: 20px 0 16px;
+    padding-top: 16px;
+    border-top: 2px solid #e8eaed;
 }
 
-.silla::before {
-    background: linear-gradient(135deg, #d3d5d9 0%, #b8bcc2 100%);
-}
-
-.silla.ocupada {
-    background: linear-gradient(135deg, #f44336 0%, #e53935 100%);
-    border-color: #d32f2f;
-}
-
-.silla.confirmada {
-    background: linear-gradient(135deg, #4CAF50 0%, #43a047 100%);
-    border-color: #388e3c;
-}
-
-/* Toast más elegante */
-.toast {
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    backdrop-filter: blur(10px);
-    font-weight: 500;
+.form-separator span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #764ba2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
