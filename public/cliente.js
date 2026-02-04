@@ -669,6 +669,8 @@ async function eliminarEvento() {
 
 // 10. Configurar event listeners
 function configurarEventListeners() {
+    console.log('🎯 Configurando event listeners...');
+    
     // Selector de evento
     eventSelector.addEventListener('change', function() {
         if (this.value) {
@@ -710,27 +712,37 @@ function configurarEventListeners() {
     
     // Cerrar sesión
     const logoutBtn = document.getElementById('logoutBtn');
+    console.log('🔍 logoutBtn:', logoutBtn);
     if (logoutBtn) {
+        console.log('✅ Configurando logout');
         logoutBtn.addEventListener('click', function() {
+            console.log('🚪 Click en logout');
             if (confirm('¿Cerrar sesión?')) {
                 limpiarSesion();
                 window.location.href = 'login.html';
             }
         });
+    } else {
+        console.error('❌ No se encontró logoutBtn');
     }
     
     // Fullscreen
     const fullscreenBtn = document.getElementById('fullscreenBtn');
+    console.log('🔍 fullscreenBtn:', fullscreenBtn);
     if (fullscreenBtn) {
+        console.log('✅ Configurando fullscreen');
         fullscreenBtn.addEventListener('click', function() {
+            console.log('🖥️ Click en fullscreen');
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
-                fullscreenBtn.querySelector('i').className = 'fas fa-compress';
+                this.querySelector('i').className = 'fas fa-compress';
             } else {
                 document.exitFullscreen();
-                fullscreenBtn.querySelector('i').className = 'fas fa-expand';
+                this.querySelector('i').className = 'fas fa-expand';
             }
         });
+    } else {
+        console.error('❌ No se encontró fullscreenBtn');
     }
     
     // Zoom
@@ -738,32 +750,51 @@ function configurarEventListeners() {
     const zoomOutBtn = document.getElementById('zoomOutBtn');
     const resetViewBtn = document.getElementById('resetViewBtn');
     
+    console.log('🔍 zoomInBtn:', zoomInBtn);
+    console.log('🔍 zoomOutBtn:', zoomOutBtn);
+    console.log('🔍 resetViewBtn:', resetViewBtn);
+    
     if (zoomInBtn) {
+        console.log('✅ Configurando zoom in');
         zoomInBtn.addEventListener('click', function(e) {
+            console.log('🔍 Click en zoom in, zoomLevel:', zoomLevel);
             e.preventDefault();
             if (zoomLevel < 2) {
                 zoomLevel += 0.1;
                 aplicarZoom();
+                console.log('➕ Nuevo zoomLevel:', zoomLevel);
             }
         });
+    } else {
+        console.error('❌ No se encontró zoomInBtn');
     }
     
     if (zoomOutBtn) {
+        console.log('✅ Configurando zoom out');
         zoomOutBtn.addEventListener('click', function(e) {
+            console.log('🔍 Click en zoom out, zoomLevel:', zoomLevel);
             e.preventDefault();
             if (zoomLevel > 0.5) {
                 zoomLevel -= 0.1;
                 aplicarZoom();
+                console.log('➖ Nuevo zoomLevel:', zoomLevel);
             }
         });
+    } else {
+        console.error('❌ No se encontró zoomOutBtn');
     }
     
     if (resetViewBtn) {
+        console.log('✅ Configurando reset view');
         resetViewBtn.addEventListener('click', function(e) {
+            console.log('🔄 Click en reset view');
             e.preventDefault();
             zoomLevel = 1;
             aplicarZoom();
+            console.log('↩️ zoomLevel reseteado a 1');
         });
+    } else {
+        console.error('❌ No se encontró resetViewBtn');
     }
     
     // Mostrar nombres
