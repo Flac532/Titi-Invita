@@ -1,5 +1,9 @@
 // cliente.js - Sistema de mesas completo para cliente con 3 roles
 
+// ===== CONFIGURACIÓN API =====
+const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
+console.log('🔗 API configurada:', API_BASE);
+
 // ===== FUNCIONES DE AUTENTICACIÓN =====
 function obtenerToken() {
     return localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
@@ -25,7 +29,7 @@ let limiteEventos = null;
 let configuracionDisposicion = {
     columnas: 4,
     filas: 2,
-    espaciado: 70
+    espaciado: 150
 };
 
 // ===== ELEMENTOS DOM =====
@@ -163,111 +167,53 @@ function configurarLimiteEventos() {
 }
 
 // 1. Cargar eventos del usuario según su rol
-function cargarEventosUsuario() {
-    // Datos de demo - en producción vendrían de la API
-    let eventosDemo = [];
+async function cargarEventosUsuario() {
+    const token = obtenerToken();
     
-    if (usuario.rol === 'cliente') {
-        // Cliente solo ve sus eventos (máximo 1 activo)
-        eventosDemo = [
-            {
-                id: 1,
-                nombre: 'Boda de Ana y Carlos',
-                descripcion: 'Celebración en jardín botánico',
-                fecha: '2024-06-15',
-                hora: '18:00',
-                ubicacion: 'Jardín Botánico',
-                estado: 'activo',
-                mesas: 8,
-                sillasPorMesa: 8,
-                formaMesa: 'rectangular',
-                configuracion: {}
-            }
-        ];
-    } else if (usuario.rol === 'organizador') {
-        // Organizador ve múltiples eventos
-        eventosDemo = [
-            {
-                id: 1,
-                nombre: 'Boda de Ana y Carlos',
-                descripcion: 'Celebración en jardín botánico',
-                fecha: '2024-06-15',
-                hora: '18:00',
-                ubicacion: 'Jardín Botánico',
-                estado: 'activo',
-                mesas: 8,
-                sillasPorMesa: 8,
-                formaMesa: 'rectangular',
-                configuracion: {}
-            },
-            {
-                id: 2,
-                nombre: 'Conferencia Tech 2024',
-                descripcion: 'Conferencia anual de tecnología',
-                fecha: '2024-07-20',
-                hora: '09:00',
-                ubicacion: 'Centro de Convenciones',
-                estado: 'activo',
-                mesas: 12,
-                sillasPorMesa: 6,
-                formaMesa: 'circular',
-                configuracion: {}
-            },
-            {
-                id: 3,
-                nombre: 'Fiesta de Graduación',
-                descripcion: 'Celebración de graduación universitaria',
-                fecha: '2024-08-10',
-                hora: '20:00',
-                ubicacion: 'Salón de Eventos',
-                estado: 'borrador',
-                mesas: 6,
-                sillasPorMesa: 10,
-                formaMesa: 'rectangular',
-                configuracion: {}
-            }
-        ];
-    } else if (usuario.rol === 'admin') {
-        // Admin vería todos, pero admin va a admin.html
-        // Por si acaso, mostramos algunos eventos
-        eventosDemo = [
-            {
-                id: 1,
-                nombre: 'Evento de Administración',
-                descripcion: 'Evento de prueba para admin',
-                fecha: '2024-06-20',
-                hora: '10:00',
-                ubicacion: 'Oficina Principal',
-                estado: 'activo',
-                mesas: 10,
-                sillasPorMesa: 8,
-                formaMesa: 'rectangular',
-                configuracion: {}
-            }
-        ];
+    if (!token) {
+        console.log('❌ No hay token');
+        return;
     }
     
-    eventosCliente = eventosDemo;
-    
-    // Actualizar estadísticas de eventos
-    actualizarEstadisticasEventos();
-    
-    // Llenar selector de eventos
-    eventSelector.innerHTML = '<option value="">Seleccionar Evento...</option>';
-    eventosCliente.forEach(evento => {
-        const option = document.createElement('option');
-        option.value = evento.id;
-        option.textContent = evento.nombre;
-        if (evento.estado === 'borrador') {
-            option.textContent += ' (Borrador)';
+    try {
+        console.log('📡 Cargando eventos...');
+        
+        const response = await fetch(`${API_BASE}/eventos-usuario`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        console.log('📊 Eventos:', data);
+        
+        if (response.ok && data.success) {
+            eventosCliente = data.eventos || [];
+            
+            // Llenar selector
+            eventSelector.innerHTML = '<option value="">Seleccionar evento...</option>';
+            eventosCliente.forEach(evento => {
+                const option = document.createElement('option');
+                option.value = evento.id;
+                option.textContent = evento.nombre;
+                eventSelector.appendChild(option);
+            });
+            
+            // Cargar primer evento
+            if (eventosCliente.length > 0) {
+                await cargarEvento(eventosCliente[0].id);
+            }
+            
+            actualizarEstadisticasEventos();
+        } else {
+            console.error('❌ Error:', data.message);
+            mostrarMensaje(data.message || 'Error cargando eventos', 'error');
         }
-        eventSelector.appendChild(option);
-    });
-    
-    // Seleccionar primer evento por defecto
-    if (eventosCliente.length > 0) {
-        eventSelector.value = eventosCliente[0].id;
-        cargarEvento(eventosCliente[0].id);
+    } catch (error) {
+        console.error('❌ Error:', error);
+        mostrarMensaje('Error de conexión', 'error');
     }
 }
 
@@ -282,33 +228,59 @@ function actualizarEstadisticasEventos() {
 }
 
 // 2. Cargar un evento específico
-function cargarEvento(eventoId) {
-    const evento = eventosCliente.find(e => e.id == eventoId);
-    if (!evento) return;
+async function cargarEvento(eventoId) {
+    const token = obtenerToken();
+    eventoActual = eventosCliente.find(e => e.id === eventoId);
     
-    eventoActual = evento;
-    currentEventName.textContent = evento.nombre;
-    
-    // Llenar formulario con datos del evento
-    eventNameInput.value = evento.nombre;
-    eventDescriptionInput.value = evento.descripcion || '';
-    eventDateInput.value = evento.fecha;
-    eventTimeInput.value = evento.hora;
-    numMesasInput.value = evento.mesas;
-    sillasPorMesaInput.value = evento.sillasPorMesa;
-    formaMesaSelect.value = evento.formaMesa;
-    
-    // Cargar configuración si existe
-    if (evento.configuracion && evento.configuracion.mesas) {
-        mesas = evento.configuracion.mesas;
-        renderizarMesas();
-    } else {
-        crearMesas();
+    if (!eventoActual) {
+        console.log('❌ Evento no encontrado');
+        return;
     }
     
-    // Actualizar estadísticas
-    actualizarEstadisticas();
+    console.log('📂 Cargando evento:', eventoActual.nombre);
+    
+    // Actualizar UI
+    currentEventName.textContent = eventoActual.nombre;
+    eventNameInput.value = eventoActual.nombre || '';
+    eventDescriptionInput.value = eventoActual.descripcion || '';
+    
+    if (eventoActual.fecha_evento) {
+        const fecha = new Date(eventoActual.fecha_evento);
+        eventDateInput.value = fecha.toISOString().split('T')[0];
+        eventTimeInput.value = fecha.toTimeString().slice(0,5);
+    }
+    
+    // Cargar mesas desde API
+    try {
+        const response = await fetch(`${API_BASE}/eventos/${eventoId}/mesas`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        console.log('📊 Mesas:', data);
+        
+        if (response.ok && data.success) {
+            mesas = data.mesas || [];
+            
+            // Si no hay mesas, crear por defecto
+            if (mesas.length === 0) {
+                crearMesas();
+            } else {
+                renderizarMesas();
+            }
+            
+            actualizarEstadisticas();
+        }
+    } catch (error) {
+        console.error('❌ Error cargando mesas:', error);
+        crearMesas();
+    }
 }
+
 
 // 3. Crear mesas (basado en final.html pero adaptado)
 function crearMesas() {
@@ -631,30 +603,61 @@ function crearNuevoEvento() {
 }
 
 // 9. Finalizar evento
-function finalizarEvento() {
+async function eliminarEvento() {
     if (!eventoActual) {
         mostrarMensaje('No hay evento seleccionado', 'error');
         return;
     }
     
-    if (confirm(`¿Estás seguro de finalizar el evento "${eventoActual.nombre}"? Esto cambiará su estado a "completado".`)) {
-        eventoActual.estado = 'completado';
+    if (!confirm(`⚠️ ¿Estás seguro de ELIMINAR el evento "${eventoActual.nombre}"?\n\nEsta acción NO se puede deshacer y borrará todas las mesas e invitados asociados.`)) {
+        return;
+    }
+    
+    const eventoId = eventoActual.id;
+    const token = obtenerToken();
+    
+    try {
+        console.log('🗑️ Eliminando evento:', eventoId);
         
-        // Actualizar selector
-        const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
-        if (option) {
-            option.textContent = eventoActual.nombre + ' (Completado)';
+        const response = await fetch(`${API_BASE}/eventos/${eventoId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            mostrarMensaje(`Evento "${eventoActual.nombre}" eliminado`, 'success');
+            
+            eventosCliente = eventosCliente.filter(e => e.id !== eventoId);
+            const option = eventSelector.querySelector(`option[value="${eventoId}"]`);
+            if (option) option.remove();
+            
+            eventoActual = null;
+            mesas = [];
+            invitados = [];
+            mesasContainer.innerHTML = '';
+            
+            actualizarEstadisticasEventos();
+            
+            if (limiteEventos === 1) {
+                verificarLimiteEventos();
+            }
+            
+            if (eventosCliente.length > 0) {
+                cargarEvento(eventosCliente[0].id);
+            } else {
+                currentEventName.textContent = 'Sin eventos';
+            }
+        } else {
+            mostrarMensaje(data.message || 'Error eliminando evento', 'error');
         }
-        
-        // Actualizar estadísticas
-        actualizarEstadisticasEventos();
-        
-        // Si es cliente y finaliza su único evento, habilitar crear nuevo
-        if (limiteEventos === 1) {
-            verificarLimiteEventos();
-        }
-        
-        mostrarMensaje(`Evento "${eventoActual.nombre}" finalizado`, 'success');
+    } catch (error) {
+        console.error('❌ Error:', error);
+        mostrarMensaje('Error de conexión', 'error');
     }
 }
 
@@ -677,7 +680,7 @@ function configurarEventListeners() {
     
     // Botón finalizar evento
     if (btnFinalizarEvento) {
-        btnFinalizarEvento.addEventListener('click', finalizarEvento);
+        btnFinalizarEvento.addEventListener('click', eliminarEvento);
     }
     
     // Botón nuevo evento
@@ -1089,26 +1092,65 @@ function actualizarEstadisticas() {
     ocupacionBar.style.width = `${porcentaje}%`;
 }
 
-function guardarConfiguracionEvento() {
-    if (!eventoActual) return;
+async function guardarConfiguracionEvento() {
+    if (!eventoActual) {
+        console.log('⚠️ No hay evento');
+        return;
+    }
     
-    eventoActual.configuracion = {
-        mesas: JSON.parse(JSON.stringify(mesas)),
-        disposicion: configuracionDisposicion,
-        fechaActualizacion: new Date().toISOString()
-    };
+    const token = obtenerToken();
+    if (!token) {
+        mostrarMensaje('Error: No autenticado', 'error');
+        return;
+    }
     
-    eventoActual.mesas = mesas.length;
-    eventoActual.sillasPorMesa = mesas.length > 0 ? mesas[0].sillas.length : 0;
-    eventoActual.formaMesa = mesas.length > 0 ? mesas[0].forma : 'rectangular';
-    
-    // En producción, aquí harías fetch a la API
-    console.log('Guardando evento:', eventoActual);
-    
-    // Simular guardado
-    if (autoSaveCheckbox.checked) {
-        localStorage.setItem(`titi_evento_${eventoActual.id}`, JSON.stringify(eventoActual));
-        mostrarMensaje('Cambios guardados automáticamente', 'info');
+    try {
+        console.log('💾 Guardando...');
+        
+        // 1. Guardar mesas
+        const mesasResponse = await fetch(`${API_BASE}/eventos/${eventoActual.id}/mesas`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ mesas: mesas })
+        });
+        
+        if (mesasResponse.ok) {
+            console.log('✅ Mesas guardadas');
+        }
+        
+        // 2. Guardar evento
+        const eventoResponse = await fetch(`${API_BASE}/eventos/${eventoActual.id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                nombre: eventNameInput.value || eventoActual.nombre,
+                descripcion: eventDescriptionInput.value || '',
+                fecha_evento: eventDateInput.value ? `${eventDateInput.value}T${eventTimeInput.value || '00:00'}:00` : null,
+                configuracion: JSON.stringify({
+                    mesas: mesas.length,
+                    disposicion: configuracionDisposicion
+                })
+            })
+        });
+        
+        if (eventoResponse.ok) {
+            console.log('✅ Evento guardado');
+            mostrarMensaje('Cambios guardados', 'success');
+        } else {
+            const err = await eventoResponse.json();
+            console.error('❌ Error:', err);
+            mostrarMensaje('Error guardando', 'error');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error:', error);
+        mostrarMensaje('Error de conexión', 'error');
     }
 }
 
