@@ -609,8 +609,8 @@ body {
 }
 
 .circular-sillas {
-    width: 140px;
-    height: 140px;
+    width: 170px;
+    height: 170px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -1488,4 +1488,253 @@ body {
 .modal-footer .btn-secondary {
     padding: 10px 20px;
     font-size: 0.9rem;
+}
+/* ===== MEJORAS PROFESIONALES ===== */
+
+/* Header superior más elegante */
+.top-header {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    box-shadow: 0 2px 20px rgba(118, 75, 162, 0.15);
+    border-bottom: none;
+}
+
+.logo h1 {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+/* Panel izquierdo más clean */
+.event-panel {
+    background: #fafbfc;
+    border-right: 1px solid #e8eaed;
+}
+
+.event-stats {
+    background: white;
+    border: 1px solid #e8eaed;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.count-item {
+    background: transparent;
+    border-right: 1px solid #e8eaed;
+}
+
+.count-item:last-child {
+    border-right: none;
+}
+
+.count-value {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #764ba2, #667eea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Selector de eventos más bonito */
+#eventSelector {
+    padding: 12px 16px;
+    border: 2px solid #e8eaed;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+#eventSelector:focus {
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+}
+
+/* Área de mesas más limpia */
+.mesas-area {
+    background: #ffffff;
+}
+
+.mesas-header {
+    background: white;
+    border-bottom: 1px solid #e8eaed;
+    padding: 20px;
+}
+
+.search-box {
+    background: #f8f9fa;
+    border: 1px solid #e8eaed;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.search-box:focus-within {
+    background: white;
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.05);
+}
+
+/* Mesas más elegantes */
+.mesa-item {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+}
+
+.mesa-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.mesa-circular,
+.mesa-rectangular,
+.mesa-cuadrada {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Panel derecho más profesional */
+.right-panel {
+    background: #fafbfc;
+    border-left: 1px solid #e8eaed;
+}
+
+.panel-section {
+    background: white;
+    border: 1px solid #e8eaed;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.panel-section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    letter-spacing: -0.3px;
+}
+
+/* Inputs más modernos */
+input[type="number"],
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+select {
+    border: 1.5px solid #e8eaed;
+    border-radius: 8px;
+    padding: 10px 14px;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+}
+
+input:focus,
+select:focus {
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.08);
+    outline: none;
+}
+
+/* Botones más refinados */
+.btn-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1.5px solid #e8eaed;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    background: #764ba2;
+    border-color: #764ba2;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(118, 75, 162, 0.25);
+}
+
+/* Lista de invitados más limpia */
+.guest-item {
+    background: white;
+    border: 1px solid #e8eaed;
+    border-radius: 10px;
+    padding: 14px;
+    transition: all 0.2s ease;
+}
+
+.guest-item:hover {
+    border-color: #764ba2;
+    box-shadow: 0 2px 8px rgba(118, 75, 162, 0.1);
+}
+
+.guest-name {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.95rem;
+}
+
+.guest-status {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Modales más elegantes */
+.modal-content {
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    border: 1px solid #e8eaed;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #fafbfc 0%, #ffffff 100%);
+    border-bottom: 1px solid #e8eaed;
+    padding: 24px;
+}
+
+.modal-header h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    background: #fafbfc;
+    padding: 20px 24px;
+    border-top: 1px solid #e8eaed;
+}
+
+/* Sillas más definidas */
+.silla {
+    background: linear-gradient(135deg, #e8eaed 0%, #d3d5d9 100%);
+    border: 2px solid #b8bcc2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.silla::before {
+    background: linear-gradient(135deg, #d3d5d9 0%, #b8bcc2 100%);
+}
+
+.silla.ocupada {
+    background: linear-gradient(135deg, #f44336 0%, #e53935 100%);
+    border-color: #d32f2f;
+}
+
+.silla.confirmada {
+    background: linear-gradient(135deg, #4CAF50 0%, #43a047 100%);
+    border-color: #388e3c;
+}
+
+/* Toast más elegante */
+.toast {
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    backdrop-filter: blur(10px);
+    font-weight: 500;
 }
