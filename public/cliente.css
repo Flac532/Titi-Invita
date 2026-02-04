@@ -611,7 +611,7 @@ body {
 .circular-sillas {
     width: 140px;
     height: 140px;
-    top: 75%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
@@ -832,7 +832,10 @@ body {
 }
 
 .right-panel .btn-primary,
-.right-panel .btn-secondary {
+.right-panel .btn-secondary,
+.right-panel .btn-purple,
+.right-panel .btn-success,
+.right-panel .btn-danger {
     padding: 11px 16px;
     border-radius: var(--radius-sm);
     border: none;
@@ -855,6 +858,36 @@ body {
 .right-panel .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(118, 75, 162, 0.3);
+}
+
+.right-panel .btn-purple {
+    background: linear-gradient(135deg, #764ba2, #9a7bb8);
+    color: white;
+}
+
+.right-panel .btn-purple:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+}
+
+.right-panel .btn-success {
+    background: linear-gradient(135deg, #4CAF50, #66BB6A);
+    color: white;
+}
+
+.right-panel .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+}
+
+.right-panel .btn-danger {
+    background: linear-gradient(135deg, #f44336, #e57373);
+    color: white;
+}
+
+.right-panel .btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
 }
 
 .right-panel .btn-secondary {
@@ -1313,4 +1346,146 @@ body {
     .preset-mesa {
         background: var(--primary-color) !important;
     }
+}
+
+/* ===== Estilos adicionales para modales bonitos ===== */
+.modal-guest {
+    max-width: 450px;
+}
+
+.modal-event {
+    max-width: 520px;
+}
+
+.form-field {
+    margin-bottom: 18px;
+}
+
+.form-field label {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 7px;
+}
+
+.form-field input[type="text"],
+.form-field input[type="email"],
+.form-field input[type="tel"],
+.form-field input[type="date"],
+.form-field input[type="time"],
+.form-field select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    transition: var(--transition);
+    background: var(--bg-white);
+}
+
+.form-field input:focus,
+.form-field select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* Radio pills bonitos */
+.radio-group-pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.radio-pill {
+    position: relative;
+    cursor: pointer;
+}
+
+.radio-pill input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.radio-pill span {
+    display: block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: #f0f0f0;
+    color: #666;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.radio-pill input:checked + span {
+    background: #e0e0e0;
+    color: #333;
+    border-color: #999;
+    transform: scale(1.05);
+}
+
+.radio-pill-assigned input:checked + span {
+    background: #fff3e0;
+    color: #e65100;
+    border-color: #ffb74d;
+}
+
+.radio-pill-confirmed input:checked + span {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-color: #66bb6a;
+}
+
+.radio-pill:hover span {
+    background: #e8e8e8;
+}
+
+/* Checkbox bonito */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+}
+
+/* Alert warning */
+.alert-warning {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: #fff3e0;
+    border: 1px solid #ffb74d;
+    border-radius: var(--radius-sm);
+    color: #e65100;
+    font-size: 0.88rem;
+    margin-top: 15px;
+}
+
+.alert-warning i {
+    font-size: 1.1rem;
+}
+
+/* Mejorar botones en footer de modales */
+.modal-footer .btn-success,
+.modal-footer .btn-secondary {
+    padding: 10px 20px;
+    font-size: 0.9rem;
 }
