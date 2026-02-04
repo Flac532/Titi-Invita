@@ -48,7 +48,7 @@ const btnFinalizarEvento = document.getElementById('btnFinalizarEvento');
 const mesasContainer = document.getElementById('mesasContainer');
 const newEventBtn = document.getElementById('newEventBtn');
 const newEventModal = document.getElementById('newEventModal');
-const logoutBtn = document.getElementById('logoutBtn');
+// const logoutBtn = document.getElementById('logoutBtn'); // Se obtiene dentro de configurarEventListeners
 const userAvatar = document.getElementById('userAvatar');
 const userName = document.getElementById('userName');
 const userRole = document.getElementById('userRole');
@@ -56,9 +56,9 @@ const roleBadge = document.getElementById('roleBadge');
 const eventLimitInfo = document.getElementById('eventLimitInfo');
 const limitText = document.getElementById('limitText');
 const searchGuests = document.getElementById('searchGuests');
-const zoomInBtn = document.getElementById('zoomInBtn');
-const zoomOutBtn = document.getElementById('zoomOutBtn');
-const resetViewBtn = document.getElementById('resetViewBtn');
+// const zoomInBtn = document.getElementById('zoomInBtn'); // Se obtiene dentro de configurarEventListeners
+// const zoomOutBtn = document.getElementById('zoomOutBtn'); // Se obtiene dentro de configurarEventListeners
+// const resetViewBtn = document.getElementById('resetViewBtn'); // Se obtiene dentro de configurarEventListeners
 const showNamesCheckbox = document.getElementById('showNames');
 const autoSaveCheckbox = document.getElementById('autoSave');
 
@@ -709,6 +709,7 @@ function configurarEventListeners() {
     });
     
     // Cerrar sesión
+    const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function() {
             if (confirm('¿Cerrar sesión?')) {
@@ -733,6 +734,10 @@ function configurarEventListeners() {
     }
     
     // Zoom
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const resetViewBtn = document.getElementById('resetViewBtn');
+    
     if (zoomInBtn) {
         zoomInBtn.addEventListener('click', function(e) {
             e.preventDefault();
