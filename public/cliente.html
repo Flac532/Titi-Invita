@@ -317,10 +317,10 @@
                     </div>
                     
                     <div class="button-group">
-                        <button class="btn-primary" id="btnCrearMesas">
+                        <button class="btn-purple" id="btnCrearMesas">
                             <i class="fas fa-sync"></i> Actualizar Mesas
                         </button>
-                        <button class="btn-secondary" id="btnGuardarEvento">
+                        <button class="btn-success" id="btnGuardarEvento">
                             <i class="fas fa-save"></i> Guardar Cambios
                         </button>
                         <button class="btn-danger" id="btnFinalizarEvento" title="Eliminar Evento">
@@ -357,18 +357,6 @@
                     <div class="guests-list" id="guestsList">
                         <!-- Lista de invitados se generará aquí -->
                     </div>
-                    
-                    <div class="guest-actions">
-                        <button class="btn-secondary btn-small" id="importGuestsBtn">
-                            <i class="fas fa-file-import"></i> Importar CSV
-                        </button>
-                        <button class="btn-secondary btn-small" id="exportGuestsBtn">
-                            <i class="fas fa-file-export"></i> Exportar Lista
-                        </button>
-                        <button class="btn-secondary btn-small" id="sendInvitationsBtn">
-                            <i class="fas fa-envelope"></i> Enviar Invitaciones
-                        </button>
-                    </div>
                 </div>
                 
                 <div class="panel-section guest-details-section">
@@ -390,57 +378,54 @@
     
     <!-- Modales -->
     <div class="modal" id="newEventModal">
-        <div class="modal-content">
+        <div class="modal-content modal-event">
             <div class="modal-header">
                 <h3><i class="fas fa-calendar-plus"></i> Nuevo Evento</h3>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" onclick="cerrarModal(document.getElementById('newEventModal'))">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="newEventForm">
-                    <div class="form-group">
-                        <label for="newEventName">Nombre del Evento *</label>
-                        <input type="text" id="newEventName" required>
+                <div class="form-field">
+                    <label>Nombre del Evento *</label>
+                    <input type="text" id="newEventName" placeholder="Ej: Boda de Ana y Carlos">
+                </div>
+                <div class="form-row">
+                    <div class="form-field">
+                        <label>Fecha *</label>
+                        <input type="date" id="newEventDate">
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="newEventDate">Fecha *</label>
-                            <input type="date" id="newEventDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newEventTime">Hora</label>
-                            <input type="time" id="newEventTime">
-                        </div>
+                    <div class="form-field">
+                        <label>Hora</label>
+                        <input type="time" id="newEventTime" value="18:00">
                     </div>
-                    <div class="form-group">
-                        <label for="newEventLocation">Ubicación</label>
-                        <input type="text" id="newEventLocation" placeholder="Ej: Salón de Eventos Principal">
-                    </div>
-                    <div class="form-group">
-                        <label for="newEventType">Tipo de Evento</label>
-                        <select id="newEventType">
-                            <option value="boda">Boda</option>
-                            <option value="conferencia">Conferencia</option>
-                            <option value="fiesta">Fiesta</option>
-                            <option value="corporativo">Evento Corporativo</option>
-                            <option value="otro">Otro</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Configuración Inicial</label>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="useTemplate" checked>
-                            <label for="useTemplate">Usar plantilla predeterminada</label>
-                        </div>
-                    </div>
-                    <div id="eventLimitWarning" style="display: none; color: #f44336; font-size: 0.9rem; margin-top: 10px;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>Como cliente solo puedes tener 1 evento activo.</span>
-                    </div>
-                </form>
+                </div>
+                <div class="form-field">
+                    <label>Ubicación</label>
+                    <input type="text" id="newEventLocation" placeholder="Ej: Salón de Eventos Principal">
+                </div>
+                <div class="form-field">
+                    <label>Tipo de Evento</label>
+                    <select id="newEventType">
+                        <option value="boda">Boda</option>
+                        <option value="conferencia">Conferencia</option>
+                        <option value="fiesta">Fiesta</option>
+                        <option value="corporativo">Evento Corporativo</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="useTemplate" checked>
+                        <span>Usar plantilla predeterminada (8 mesas, 8 sillas cada una)</span>
+                    </label>
+                </div>
+                <div id="eventLimitWarning" class="alert-warning" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Como cliente solo puedes tener 1 evento activo.</span>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary modal-cancel">Cancelar</button>
-                <button class="btn-primary" id="createEventBtn">Crear Evento</button>
+                <button class="btn-secondary" onclick="cerrarModal(document.getElementById('newEventModal'))">Cancelar</button>
+                <button class="btn-success" id="createEventBtn"><i class="fas fa-check"></i> Crear Evento</button>
             </div>
         </div>
     </div>
@@ -507,6 +492,97 @@
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="cerrarModal(document.getElementById('layoutModal'))">Cancelar</button>
                 <button class="btn-primary" onclick="aplicarDisposicionPersonalizada()">Aplicar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal: Agregar Invitado -->
+    <div class="modal" id="addGuestModal">
+        <div class="modal-content modal-guest">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Agregar Invitado</h3>
+                <button class="modal-close" onclick="cerrarModal(document.getElementById('addGuestModal'))">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-field">
+                    <label>Nombre Completo *</label>
+                    <input type="text" id="guestName" placeholder="Ej: Juan Pérez">
+                </div>
+                <div class="form-field">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="guestEmail" placeholder="juan@ejemplo.com">
+                </div>
+                <div class="form-field">
+                    <label>Teléfono</label>
+                    <input type="tel" id="guestPhone" placeholder="555-1234">
+                </div>
+                <div class="form-field">
+                    <label>Estado</label>
+                    <div class="radio-group-pills">
+                        <label class="radio-pill">
+                            <input type="radio" name="guestStatus" value="pendiente" checked>
+                            <span>Sin Asignar</span>
+                        </label>
+                        <label class="radio-pill radio-pill-assigned">
+                            <input type="radio" name="guestStatus" value="asignado">
+                            <span>Asignado</span>
+                        </label>
+                        <label class="radio-pill radio-pill-confirmed">
+                            <input type="radio" name="guestStatus" value="confirmado">
+                            <span>Confirmado</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModal(document.getElementById('addGuestModal'))">Cancelar</button>
+                <button class="btn-success" onclick="guardarNuevoInvitado()"><i class="fas fa-check"></i> Agregar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal: Editar Invitado -->
+    <div class="modal" id="editGuestModal">
+        <div class="modal-content modal-guest">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-edit"></i> Editar Invitado</h3>
+                <button class="modal-close" onclick="cerrarModal(document.getElementById('editGuestModal'))">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editGuestId">
+                <div class="form-field">
+                    <label>Nombre Completo *</label>
+                    <input type="text" id="editGuestName" placeholder="Ej: Juan Pérez">
+                </div>
+                <div class="form-field">
+                    <label>Correo Electrónico</label>
+                    <input type="email" id="editGuestEmail" placeholder="juan@ejemplo.com">
+                </div>
+                <div class="form-field">
+                    <label>Teléfono</label>
+                    <input type="tel" id="editGuestPhone" placeholder="555-1234">
+                </div>
+                <div class="form-field">
+                    <label>Estado</label>
+                    <div class="radio-group-pills">
+                        <label class="radio-pill">
+                            <input type="radio" name="editGuestStatus" value="pendiente">
+                            <span>Sin Asignar</span>
+                        </label>
+                        <label class="radio-pill radio-pill-assigned">
+                            <input type="radio" name="editGuestStatus" value="asignado">
+                            <span>Asignado</span>
+                        </label>
+                        <label class="radio-pill radio-pill-confirmed">
+                            <input type="radio" name="editGuestStatus" value="confirmado">
+                            <span>Confirmado</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModal(document.getElementById('editGuestModal'))">Cancelar</button>
+                <button class="btn-success" onclick="guardarEdicionInvitado()"><i class="fas fa-save"></i> Guardar</button>
             </div>
         </div>
     </div>
