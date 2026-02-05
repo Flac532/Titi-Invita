@@ -29,9 +29,21 @@ document.addEventListener('DOMContentLoaded', function() {
 // ===== AUTENTICACIÓN =====
 function verificarAuth() {
     const usuarioStr = localStorage.getItem('titi_usuario_actual');
+    const token = obtenerToken();
+    
+    console.log('👤 Usuario en localStorage:', usuarioStr ? 'Presente' : 'Ausente');
+    console.log('🔑 Token disponible:', token ? 'Sí' : 'No');
     
     if (!usuarioStr) {
         console.log('❌ No hay usuario, redirigiendo...');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    if (!token) {
+        console.log('❌ No hay token, limpiando sesión y redirigiendo...');
+        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = 'login.html';
         return;
     }
@@ -49,6 +61,8 @@ function verificarAuth() {
         document.getElementById('adminName').textContent = currentUser.nombre;
     } catch (error) {
         console.error('❌ Error:', error);
+        localStorage.clear();
+        sessionStorage.clear();
         window.location.href = 'login.html';
     }
 }
@@ -633,13 +647,29 @@ function actualizarFiltroUsuarios() {
 
 // ===== UTILIDADES =====
 function obtenerToken() {
-    const usuario = localStorage.getItem('titi_usuario_actual');
-    if (!usuario) return null;
-    try {
-        return JSON.parse(usuario).token;
-    } catch {
-        return null;
+    // Primero intentar obtener del localStorage
+    let token = localStorage.getItem('titi_token');
+    
+    // Si no está, intentar sessionStorage
+    if (!token) {
+        token = sessionStorage.getItem('titi_token');
     }
+    
+    // Si tampoco, intentar desde sesión
+    if (!token) {
+        const sesion = localStorage.getItem('titi_sesion') || sessionStorage.getItem('titi_sesion');
+        if (sesion) {
+            try {
+                const sesionData = JSON.parse(sesion);
+                token = sesionData.token;
+            } catch (e) {
+                console.error('Error parseando sesión:', e);
+            }
+        }
+    }
+    
+    console.log('🔑 Token obtenido:', token ? `${token.substring(0, 20)}...` : 'null');
+    return token;
 }
 
 function actualizarReloj() {
