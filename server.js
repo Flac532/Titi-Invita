@@ -1030,7 +1030,7 @@ app.post('/api/usuarios', verificarToken, verificarAdmin, async (req, res) => {
     // Crear usuario
     console.log('💾 Insertando usuario en BD...');
     const result = await pool.query(
-      'INSERT INTO usuarios (nombre, email, password, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol, created_at',
+      'INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol, created_at',
       [nombre, email, hashedPassword, rol]
     );
     
@@ -1081,7 +1081,7 @@ app.put('/api/usuarios/:id', verificarToken, verificarAdmin, async (req, res) =>
       }
       const hashedPassword = await bcrypt.hash(password, 10);
       await pool.query(
-        'UPDATE usuarios SET nombre = $1, email = $2, password = $3, rol = $4 WHERE id = $5',
+        'UPDATE usuarios SET nombre = $1, email = $2, password_hash = $3, rol = $4 WHERE id = $5',
         [nombre, email, hashedPassword, rol, id]
       );
     } else {
