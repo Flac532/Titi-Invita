@@ -1108,14 +1108,14 @@ app.delete('/api/usuarios/:id', verificarToken, verificarAdmin, async (req, res)
     await client.query('BEGIN');
     
     // Eliminar en cascada: invitados -> mesas -> eventos -> usuario
-    const eventos = await client.query('SELECT id FROM eventos WHERE usuario_id = $1', [id]);
+    const eventos = await client.query('SELECT id FROM eventos WHERE id_usuario = $1', [id]);
     
     for (const evento of eventos.rows) {
       await client.query('DELETE FROM invitados WHERE id_evento = $1', [evento.id]);
       await client.query('DELETE FROM mesas WHERE evento_id = $1', [evento.id]);
     }
     
-    await client.query('DELETE FROM eventos WHERE usuario_id = $1', [id]);
+    await client.query('DELETE FROM eventos WHERE id_usuario = $1', [id]);
     await client.query('DELETE FROM usuarios WHERE id = $1', [id]);
     
     await client.query('COMMIT');
@@ -1139,7 +1139,7 @@ app.get('/api/eventos-admin', verificarToken, verificarAdmin, async (req, res) =
         u.nombre as usuario_nombre,
         u.email as usuario_email
       FROM eventos e
-      LEFT JOIN usuarios u ON e.usuario_id = u.id
+      LEFT JOIN usuarios u ON e.id_usuario = u.id
       ORDER BY e.fecha_evento DESC
     `);
     
