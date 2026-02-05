@@ -319,7 +319,7 @@ function mostrarUsuariosTabla() {
                 <td>${user.email}</td>
                 <td><span class="badge badge-${getRoleBadgeClass(user.rol)}">${user.rol}</span></td>
                 <td>${eventosCount}</td>
-                <td>${formatearFecha(user.created_at)}</td>
+                <td>${formatearFecha(user.fecha_creacion)}</td>
                 <td>
                     <button class="btn-icon-sm" onclick="editarUsuario(${user.id})" title="Editar">
                         <i class="fas fa-edit"></i>
@@ -369,7 +369,7 @@ function filtrarUsuarios() {
                 <td>${user.email}</td>
                 <td><span class="badge badge-${getRoleBadgeClass(user.rol)}">${user.rol}</span></td>
                 <td>${eventosCount}</td>
-                <td>${formatearFecha(user.created_at)}</td>
+                <td>${formatearFecha(user.fecha_creacion)}</td>
                 <td>
                     <button class="btn-icon-sm" onclick="editarUsuario(${user.id})" title="Editar">
                         <i class="fas fa-edit"></i>
