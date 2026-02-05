@@ -980,7 +980,7 @@ function verificarAdmin(req, res, next) {
 app.get('/api/usuarios', verificarToken, verificarAdmin, async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, nombre, email, rol, created_at FROM usuarios ORDER BY created_at DESC'
+      'SELECT id, nombre, email, rol, fecha_creacion FROM usuarios ORDER BY fecha_creacion DESC'
     );
     res.json(result.rows);
   } catch (error) {
@@ -1030,7 +1030,7 @@ app.post('/api/usuarios', verificarToken, verificarAdmin, async (req, res) => {
     // Crear usuario
     console.log('💾 Insertando usuario en BD...');
     const result = await pool.query(
-      'INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol, created_at',
+      'INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol, fecha_creacion',
       [nombre, email, hashedPassword, rol]
     );
     
@@ -1092,7 +1092,7 @@ app.put('/api/usuarios/:id', verificarToken, verificarAdmin, async (req, res) =>
     }
     
     const result = await pool.query(
-      'SELECT id, nombre, email, rol, created_at FROM usuarios WHERE id = $1',
+      'SELECT id, nombre, email, rol, fecha_creacion FROM usuarios WHERE id = $1',
       [id]
     );
     
