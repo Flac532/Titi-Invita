@@ -470,7 +470,12 @@ async function guardarUsuario() {
         
         mostrarToast(userId ? 'Usuario actualizado' : 'Usuario creado', 'success');
         cerrarModalUsuario();
+        
+        // Recargar usuarios y dashboard
         await cargarUsuarios();
+        if (document.querySelector('.nav-item.active')?.dataset.page === 'dashboard') {
+            await cargarDashboard();
+        }
         
     } catch (error) {
         console.error('❌ Error:', error);
@@ -575,7 +580,7 @@ function mostrarEventos() {
         const mesasCount = evento.mesas?.length || 0;
         
         html += `
-            <div class="event-card">
+            <div class="event-card" onclick="verDetalleEvento(${evento.id})">
                 <div class="event-header">
                     <h3>${evento.nombre}</h3>
                     <span class="badge badge-${evento.estado === 'activo' ? 'success' : 'secondary'}">${evento.estado}</span>
@@ -734,3 +739,55 @@ window.guardarUsuario = guardarUsuario;
 window.editarUsuario = editarUsuario;
 window.confirmarEliminarUsuario = confirmarEliminarUsuario;
 window.cerrarModalEliminar = cerrarModalEliminar;
+
+// ===== VER DETALLE DE EVENTO =====
+function verDetalleEvento(eventoId) {
+    const evento = allEvents.find(e => e.id === eventoId);
+    if (!evento) {
+        mostrarToast('Evento no encontrado', 'error');
+        return;
+    }
+    
+    const usuario = allUsers.find(u => u.id === evento.id_usuario);
+    
+    // Calcular estadísticas
+    const mesasCount = evento.mesas?.length || 0;
+    let capacidadTotal = 0;
+    let invitadosTotal = 0;
+    let confirmadosTotal = 0;
+    
+    if (evento.mesas && Array.isArray(evento.mesas)) {
+        evento.mesas.forEach(mesa => {
+            if (mesa.sillas) {
+                capacidadTotal += mesa.sillas.length;
+                const ocupadas = mesa.sillas.filter(s => s.estado !== 'sin-asignar');
+                invitadosTotal += ocupadas.length;
+                const confirmadas = mesa.sillas.filter(s => s.estado === 'confirmado');
+                confirmadosTotal += confirmadas.length;
+            }
+        });
+    }
+    
+    // Llenar modal
+    document.getElementById('detalle-nombre').textContent = evento.nombre;
+    document.getElementById('detalle-usuario').textContent = usuario?.nombre || 'Usuario desconocido';
+    document.getElementById('detalle-fecha').textContent = formatearFecha(evento.fecha_evento);
+    document.getElementById('detalle-hora').textContent = evento.hora_evento || 'No especificada';
+    document.getElementById('detalle-ubicacion').textContent = evento.ubicacion || 'Sin ubicación';
+    document.getElementById('detalle-descripcion').textContent = evento.descripcion || 'Sin descripción';
+    document.getElementById('detalle-mesas').textContent = mesasCount;
+    document.getElementById('detalle-capacidad').textContent = `${capacidadTotal} sillas`;
+    document.getElementById('detalle-invitados').textContent = `${invitadosTotal} invitados`;
+    document.getElementById('detalle-confirmados').textContent = `${confirmadosTotal} confirmados`;
+    
+    // Mostrar modal
+    document.getElementById('eventoDetalleModal').style.display = 'flex';
+}
+
+function cerrarModalEvento() {
+    document.getElementById('eventoDetalleModal').style.display = 'none';
+}
+
+// Exponer funciones globales
+window.verDetalleEvento = verDetalleEvento;
+window.cerrarModalEvento = cerrarModalEvento;
