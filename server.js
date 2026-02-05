@@ -992,44 +992,54 @@ app.get('/api/usuarios', verificarToken, verificarAdmin, async (req, res) => {
 // POST /api/usuarios - Crear nuevo usuario (solo admin)
 app.post('/api/usuarios', verificarToken, verificarAdmin, async (req, res) => {
   try {
+    console.log('📝 POST /api/usuarios - Body:', req.body);
     const { nombre, email, password, rol } = req.body;
     
     // Validaciones
     if (!nombre || !email || !password || !rol) {
+      console.log('❌ Campos faltantes');
       return res.status(400).json({ error: 'Todos los campos son obligatorios' });
     }
     
     if (password.length < 6) {
+      console.log('❌ Contraseña muy corta');
       return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
     }
     
     if (!['admin', 'organizador', 'cliente'].includes(rol)) {
+      console.log('❌ Rol inválido:', rol);
       return res.status(400).json({ error: 'Rol inválido' });
     }
     
     // Verificar si el email ya existe
+    console.log('🔍 Verificando email:', email);
     const existente = await pool.query(
       'SELECT id FROM usuarios WHERE email = $1',
       [email]
     );
     
     if (existente.rows.length > 0) {
+      console.log('❌ Email ya existe');
       return res.status(400).json({ error: 'El email ya está registrado' });
     }
     
     // Hash de la contraseña
+    console.log('🔒 Hasheando contraseña...');
     const hashedPassword = await bcrypt.hash(password, 10);
     
     // Crear usuario
+    console.log('💾 Insertando usuario en BD...');
     const result = await pool.query(
       'INSERT INTO usuarios (nombre, email, password, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol, created_at',
       [nombre, email, hashedPassword, rol]
     );
     
+    console.log('✅ Usuario creado:', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Error creando usuario:', error);
-    res.status(500).json({ error: 'Error al crear usuario' });
+    console.error('❌ Error creando usuario:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: 'Error al crear usuario: ' + error.message });
   }
 });
 
@@ -1112,7 +1122,7 @@ app.delete('/api/usuarios/:id', verificarToken, verificarAdmin, async (req, res)
     
     for (const evento of eventos.rows) {
       await client.query('DELETE FROM invitados WHERE id_evento = $1', [evento.id]);
-      await client.query('DELETE FROM mesas WHERE evento_id = $1', [evento.id]);
+      await client.query('DELETE FROM mesas WHERE id_evento = $1', [evento.id]);
     }
     
     await client.query('DELETE FROM eventos WHERE id_usuario = $1', [id]);
@@ -1146,7 +1156,7 @@ app.get('/api/eventos-admin', verificarToken, verificarAdmin, async (req, res) =
     // Cargar mesas para cada evento
     for (let evento of result.rows) {
       const mesas = await pool.query(
-        'SELECT * FROM mesas WHERE evento_id = $1 ORDER BY id',
+        'SELECT * FROM mesas WHERE id_evento = $1 ORDER BY id',
         [evento.id]
       );
       evento.mesas = mesas.rows;
