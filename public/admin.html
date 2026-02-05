@@ -5,23 +5,183 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin - Titi Invita</title>
     <link rel="stylesheet" href="admin.css">
-    <link rel="stylesheet" href="cliente.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .page { display: none; }
-        .page.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    <script>
+        // SCRIPT INLINE - NO DEPENDE DE ARCHIVOS EXTERNOS
+        console.log('=================================');
+        console.log('🚀 SCRIPT INLINE EJECUTÁNDOSE');
+        console.log('=================================');
         
-        /* Iframe para Mis Eventos */
-        .eventos-frame {
-            width: 100%;
-            height: calc(100vh - 100px);
-            border: none;
-            border-radius: 12px;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
+        let allUsers = [];
+        let allEvents = [];
+        
+        // Verificar sesión INMEDIATAMENTE
+        const usuarioStr = localStorage.getItem('titi_usuario_actual');
+        if (!usuarioStr) {
+            alert('No hay sesión activa. Redirigiendo a login...');
+            window.location.href = 'login.html';
         }
-    </style>
+        
+        function obtenerToken() {
+            let token = localStorage.getItem('titi_token');
+            if (!token) token = sessionStorage.getItem('titi_token');
+            if (!token) {
+                const sesion = localStorage.getItem('titi_sesion') || sessionStorage.getItem('titi_sesion');
+                if (sesion) {
+                    try { token = JSON.parse(sesion).token; } catch (e) {}
+                }
+            }
+            return token;
+        }
+        
+        function showPage(pageName) {
+            console.log('📄 Mostrando página:', pageName);
+            
+            // Ocultar todas
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            // Mostrar seleccionada
+            const page = document.getElementById(pageName);
+            if (page) {
+                page.style.display = 'block';
+                console.log('✅ Página visible');
+            }
+            
+            const nav = document.querySelector('[data-page="' + pageName + '"]');
+            if (nav) nav.classList.add('active');
+            
+            // Cargar datos
+            if (pageName === 'usuarios') cargarUsuarios();
+            if (pageName === 'eventos') cargarEventos();
+        }
+        
+        async function cargarUsuarios() {
+            console.log('🔄 Cargando usuarios...');
+            const tbody = document.getElementById('usersTableBody');
+            if (!tbody) {
+                console.error('❌ No existe usersTableBody');
+                return;
+            }
+            
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">⏳ Cargando...</td></tr>';
+            
+            try {
+                const token = obtenerToken();
+                console.log('🔑 Token:', token ? 'Presente' : 'Ausente');
+                
+                const response = await fetch(API_BASE + '/usuarios', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📡 Response:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                
+                allUsers = await response.json();
+                console.log('✅ Usuarios:', allUsers.length);
+                
+                if (allUsers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No hay usuarios</td></tr>';
+                } else {
+                    let html = '';
+                    allUsers.forEach(u => {
+                        html += '<tr>' +
+                            '<td>' + u.id + '</td>' +
+                            '<td><strong>' + u.nombre + '</strong></td>' +
+                            '<td>' + u.email + '</td>' +
+                            '<td><span style="padding:4px 8px; background:#e8f5e9; color:#2e7d32; border-radius:4px">' + u.rol + '</span></td>' +
+                            '<td>0</td>' +
+                            '<td>' + (u.fecha_creacion || '-') + '</td>' +
+                            '<td>-</td>' +
+                            '</tr>';
+                    });
+                    tbody.innerHTML = html;
+                    console.log('✅ Tabla renderizada');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red">Error: ' + error.message + '</td></tr>';
+            }
+        }
+        
+        async function cargarEventos() {
+            console.log('🔄 Cargando eventos...');
+            const container = document.getElementById('eventsContainer');
+            if (!container) {
+                console.error('❌ No existe eventsContainer');
+                return;
+            }
+            
+            container.innerHTML = '<p style="text-align:center">⏳ Cargando...</p>';
+            
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/eventos-admin', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📡 Response:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                
+                allEvents = await response.json();
+                console.log('✅ Eventos:', allEvents.length);
+                
+                if (allEvents.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#999">No hay eventos</p>';
+                } else {
+                    let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px">';
+                    allEvents.forEach(e => {
+                        html += '<div style="background:white; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1)">' +
+                            '<h3 style="margin:0 0 10px 0">' + e.nombre + '</h3>' +
+                            '<p style="margin:5px 0; color:#666"><i class="fas fa-calendar"></i> ' + (e.fecha_evento || 'Sin fecha') + '</p>' +
+                            '<p style="margin:5px 0; color:#666"><i class="fas fa-map-marker-alt"></i> ' + (e.ubicacion || 'Sin ubicación') + '</p>' +
+                            '</div>';
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
+                    console.log('✅ Eventos renderizados');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                container.innerHTML = '<p style="text-align:center; color:red">Error: ' + error.message + '</p>';
+            }
+        }
+        
+        // Cuando carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM Listo');
+            
+            // Mostrar dashboard por defecto
+            showPage('dashboard');
+            cargarUsuarios();
+            cargarEventos();
+            
+            // Configurar logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.onclick = function() {
+                    if (confirm('¿Cerrar sesión?')) {
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.href = 'login.html';
+                    }
+                };
+            }
+        });
+    </script>
 </head>
 <body>
     <div class="admin-container">
@@ -49,17 +209,9 @@
                     <i class="fas fa-calendar-plus"></i>
                     <a>Mis Eventos</a>
                 </div>
-                <div class="nav-item" data-page="configuracion" onclick="showPage('configuracion')">
-                    <i class="fas fa-cog"></i>
-                    <a>Configuración</a>
-                </div>
             </nav>
             
             <div class="sidebar-footer">
-                <div class="nav-item">
-                    <i class="fas fa-home"></i>
-                    <a href="index.html">Inicio</a>
-                </div>
                 <div class="nav-item" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i>
                     <a>Cerrar Sesión</a>
@@ -70,341 +222,76 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-bar">
-                <h1 id="pageTitle">Dashboard</h1>
-                <div class="top-bar-actions">
-                    <button class="btn-icon" id="refreshBtn" title="Actualizar">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
-                    <button class="btn-icon" id="notifBtn" title="Notificaciones">
-                        <i class="fas fa-bell"></i>
-                    </button>
-                    <button class="btn-icon" id="fullscreenBtn" title="Pantalla Completa">
-                        <i class="fas fa-expand"></i>
-                    </button>
-                    <div class="user-info">
-                        <i class="fas fa-user-shield"></i>
-                        <span id="adminName">Admin</span>
-                    </div>
-                    <div class="clock">
-                        <i class="fas fa-clock"></i>
-                        <span id="currentTime"></span>
-                    </div>
-                </div>
+                <h1 id="pageTitle">Dashboard Admin</h1>
             </header>
 
-            <!-- Dashboard Page -->
-            <div class="page active" id="dashboard">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon users">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">TOTAL USUARIOS</span>
-                            <h3 class="stat-value" id="totalUsers">0</h3>
-                            <span class="stat-change positive"><i class="fas fa-arrow-up"></i> 2 este mes</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon events">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">TOTAL EVENTOS</span>
-                            <h3 class="stat-value" id="totalEvents">0</h3>
-                            <span class="stat-change positive"><i class="fas fa-arrow-up"></i> 1 esta semana</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon active">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">EVENTOS ACTIVOS</span>
-                            <h3 class="stat-value" id="activeEvents">0</h3>
-                            <span class="stat-change neutral">Sin cambios</span>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon chairs">
-                            <i class="fas fa-chair"></i>
-                        </div>
-                        <div class="stat-content">
-                            <span class="stat-label">SILLAS OCUPADAS</span>
-                            <h3 class="stat-value" id="occupiedChairs">0</h3>
-                            <span class="stat-change positive"><i class="fas fa-arrow-up"></i> 48 hoy</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="charts-row">
-                    <div class="chart-card">
-                        <div class="card-header">
-                            <h3>Actividad Reciente</h3>
-                        </div>
-                        <div class="activity-list" id="activityList">
-                            <p class="text-muted">Cargando actividad...</p>
-                        </div>
-                    </div>
-
-                    <div class="chart-card">
-                        <div class="card-header">
-                            <h3>Últimos Usuarios</h3>
-                            <button class="btn-view" onclick="showPage('usuarios')">Ver Todos</button>
-                        </div>
-                        <div class="users-list" id="recentUsersList">
-                            <p class="text-muted">Cargando usuarios...</p>
-                        </div>
-                    </div>
+            <!-- Dashboard -->
+            <div class="page" id="dashboard" style="display:block; padding:30px">
+                <h2>Panel de Control</h2>
+                <p>Bienvenido al panel de administración</p>
+                
+                <div style="margin-top:30px">
+                    <button onclick="cargarUsuarios()" style="padding:12px 24px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
+                        <i class="fas fa-sync-alt"></i> Recargar Usuarios
+                    </button>
+                    <button onclick="cargarEventos()" style="padding:12px 24px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600; margin-left:10px">
+                        <i class="fas fa-sync-alt"></i> Recargar Eventos
+                    </button>
                 </div>
             </div>
 
-            <!-- Usuarios Page -->
-            <div class="page" id="usuarios">
-                <div class="page-header">
+            <!-- Usuarios -->
+            <div class="page" id="usuarios" style="display:none; padding:30px">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
                     <h2>Gestión de Usuarios</h2>
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn-secondary" onclick="cargarUsuarios()" title="Actualizar lista">
-                            <i class="fas fa-sync-alt"></i> Actualizar
-                        </button>
-                        <button class="btn-primary" onclick="abrirModalUsuario()">
-                            <i class="fas fa-user-plus"></i> Agregar Usuario
-                        </button>
-                    </div>
-                </div>
+                    <button onclick="cargarUsuarios()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                        <i class="fas fa-sync-alt"></i> Actualizar
                     </button>
                 </div>
-
-                <div class="filters-bar">
-                    <input type="text" id="searchUsers" placeholder="Buscar usuarios..." class="search-input">
-                    <select id="filterRole" class="filter-select">
-                        <option value="">Todos los roles</option>
-                        <option value="admin">Admin</option>
-                        <option value="organizador">Organizador</option>
-                        <option value="cliente">Cliente</option>
-                    </select>
-                </div>
-
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead>
+                
+                <div style="background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+                    <table style="width:100%; border-collapse:collapse">
+                        <thead style="background:#f5f6fa">
                             <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Email</th>
-                                <th>Rol</th>
-                                <th>Eventos</th>
-                                <th>Fecha Registro</th>
-                                <th>Acciones</th>
+                                <th style="padding:16px; text-align:left; font-weight:600">ID</th>
+                                <th style="padding:16px; text-align:left; font-weight:600">NOMBRE</th>
+                                <th style="padding:16px; text-align:left; font-weight:600">EMAIL</th>
+                                <th style="padding:16px; text-align:left; font-weight:600">ROL</th>
+                                <th style="padding:16px; text-align:left; font-weight:600">EVENTOS</th>
+                                <th style="padding:16px; text-align:left; font-weight:600">REGISTRO</th>
+                                <th style="padding:16px; text-align:left; font-weight:600">ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody id="usersTableBody">
                             <tr>
-                                <td colspan="7" class="text-center">Cargando usuarios...</td>
+                                <td colspan="7" style="padding:40px; text-align:center; color:#999">
+                                    Cargando usuarios...
+                                </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Eventos Page -->
-            <div class="page" id="eventos">
-                <div class="page-header">
+            <!-- Eventos -->
+            <div class="page" id="eventos" style="display:none; padding:30px">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
                     <h2>Todos los Eventos</h2>
-                    <select id="filterEventUser" class="filter-select">
-                        <option value="">Todos los usuarios</option>
-                    </select>
+                    <button onclick="cargarEventos()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                        <i class="fas fa-sync-alt"></i> Actualizar
+                    </button>
                 </div>
-
-                <div class="filters-bar">
-                    <input type="text" id="searchEvents" placeholder="Buscar eventos..." class="search-input">
-                    <select id="filterEventStatus" class="filter-select">
-                        <option value="">Todos</option>
-                        <option value="activo">Activos</option>
-                    </select>
-                </div>
-
-                <div class="events-grid" id="eventsGrid">
-                    <p class="text-muted">Cargando eventos...</p>
+                
+                <div id="eventsContainer">
+                    <p style="text-align:center; color:#999">Cargando eventos...</p>
                 </div>
             </div>
 
-            <!-- Mis Eventos Page -->
-            <div class="page" id="mis-eventos">
-                <iframe src="cliente.html" class="eventos-frame" id="eventosFrame"></iframe>
-            </div>
-
-            <!-- Configuración Page -->
-            <div class="page" id="configuracion">
-                <div class="page-header">
-                    <h2>Configuración del Sistema</h2>
-                </div>
-
-                <div class="config-grid">
-                    <div class="config-card">
-                        <h3><i class="fas fa-database"></i> Base de Datos</h3>
-                        <p>Estado: <span class="badge badge-success">Conectado</span></p>
-                        <p>PostgreSQL en DigitalOcean</p>
-                    </div>
-
-                    <div class="config-card">
-                        <h3><i class="fas fa-cog"></i> Sistema</h3>
-                        <p>Versión: 1.0.0</p>
-                        <p>Última actualización: Hoy</p>
-                    </div>
-                </div>
+            <!-- Mis Eventos -->
+            <div class="page" id="mis-eventos" style="display:none">
+                <iframe src="cliente.html" style="width:100%; height:calc(100vh - 100px); border:none; border-radius:12px"></iframe>
             </div>
         </main>
     </div>
-
-    <!-- Modal: Agregar/Editar Usuario -->
-    <div class="modal" id="userModal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="userModalTitle"><i class="fas fa-user-plus"></i> Agregar Usuario</h3>
-                <button class="modal-close" onclick="cerrarModalUsuario()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="editUserId">
-                <div class="form-field">
-                    <label>Nombre Completo *</label>
-                    <input type="text" id="userName" placeholder="Ej: Juan Pérez" required>
-                </div>
-                <div class="form-field">
-                    <label>Email *</label>
-                    <input type="email" id="userEmail" placeholder="usuario@ejemplo.com" required>
-                </div>
-                <div class="form-field">
-                    <label>Contraseña *</label>
-                    <input type="password" id="userPassword" placeholder="Mínimo 6 caracteres" required>
-                </div>
-                <div class="form-field">
-                    <label>Rol *</label>
-                    <select id="userRole" required>
-                        <option value="">Seleccionar rol...</option>
-                        <option value="admin">Administrador</option>
-                        <option value="organizador">Organizador</option>
-                        <option value="cliente">Cliente</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModalUsuario()">Cancelar</button>
-                <button class="btn-primary" onclick="guardarUsuario()">
-                    <i class="fas fa-save"></i> Guardar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Confirmar Eliminar -->
-    <div class="modal" id="deleteModal" style="display: none;">
-        <div class="modal-content modal-confirm">
-            <div class="modal-header modal-header-danger">
-                <div class="warning-icon danger">
-                    <i class="fas fa-trash-alt"></i>
-                </div>
-                <h3>¿Eliminar Usuario?</h3>
-            </div>
-            <div class="modal-body">
-                <p class="confirm-message" id="deleteMessage">¿Estás seguro de eliminar este usuario?</p>
-                <p class="confirm-submessage">Esta acción no se puede deshacer.</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModalEliminar()">Cancelar</button>
-                <button class="btn-danger" id="confirmDeleteBtn">
-                    <i class="fas fa-trash-alt"></i> Eliminar
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Detalles del Evento -->
-    <div class="modal" id="eventoDetalleModal" style="display: none;">
-        <div class="modal-content modal-xlarge">
-            <div class="modal-header">
-                <h3><i class="fas fa-calendar-alt"></i> <span id="modal-evento-titulo"></span></h3>
-                <button class="modal-close" onclick="cerrarModalEvento()">&times;</button>
-            </div>
-            
-            <!-- Tabs -->
-            <div class="modal-tabs">
-                <button class="tab-btn active" onclick="cambiarTabEvento('info')">
-                    <i class="fas fa-info-circle"></i> Información
-                </button>
-                <button class="tab-btn" onclick="cambiarTabEvento('mesas')">
-                    <i class="fas fa-table"></i> Mesas e Invitados
-                </button>
-            </div>
-            
-            <div class="modal-body">
-                <!-- Tab: Información -->
-                <div class="tab-content active" id="tab-info">
-                    <div class="evento-info">
-                        <div class="info-row">
-                            <strong><i class="fas fa-heading"></i> Nombre:</strong>
-                            <span id="detalle-nombre"></span>
-                        </div>
-                        <div class="info-row">
-                            <strong><i class="fas fa-user"></i> Creado por:</strong>
-                            <span id="detalle-usuario"></span>
-                        </div>
-                        <div class="info-row">
-                            <strong><i class="fas fa-calendar"></i> Fecha:</strong>
-                            <span id="detalle-fecha"></span>
-                        </div>
-                        <div class="info-row">
-                            <strong><i class="fas fa-clock"></i> Hora:</strong>
-                            <span id="detalle-hora"></span>
-                        </div>
-                        <div class="info-row">
-                            <strong><i class="fas fa-map-marker-alt"></i> Ubicación:</strong>
-                            <span id="detalle-ubicacion"></span>
-                        </div>
-                        <div class="info-row">
-                            <strong><i class="fas fa-align-left"></i> Descripción:</strong>
-                            <span id="detalle-descripcion"></span>
-                        </div>
-                        <div class="info-row">
-                            <strong><i class="fas fa-table"></i> Mesas:</strong>
-                            <span id="detalle-mesas"></span>
-                        </div>
-                        <div class="info-row">
-                            <strong><i class="fas fa-chair"></i> Capacidad total:</strong>
-                            <span id="detalle-capacidad"></span>
-                        </div>
-                        <div class="info-row">
-                            <strong><i class="fas fa-users"></i> Invitados:</strong>
-                            <span id="detalle-invitados"></span>
-                        </div>
-                        <div class="info-row">
-                            <strong><i class="fas fa-check-circle"></i> Confirmados:</strong>
-                            <span id="detalle-confirmados"></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Tab: Mesas -->
-                <div class="tab-content" id="tab-mesas">
-                    <div class="mesas-viewer-container" id="mesasViewerContainer">
-                        <p class="text-muted">Cargando mesas...</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModalEvento()">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast -->
-    <div id="toast" class="toast"></div>
-
-    <script src="login.js"></script>
-    <script src="admin.js"></script>
 </body>
 </html>
