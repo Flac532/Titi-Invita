@@ -315,6 +315,63 @@
         </div>
     </div>
 
+    <!-- Modal: Detalles del Evento -->
+    <div class="modal" id="eventoDetalleModal" style="display: none;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3><i class="fas fa-calendar-alt"></i> Detalles del Evento</h3>
+                <button class="modal-close" onclick="cerrarModalEvento()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="evento-info">
+                    <div class="info-row">
+                        <strong><i class="fas fa-heading"></i> Nombre:</strong>
+                        <span id="detalle-nombre"></span>
+                    </div>
+                    <div class="info-row">
+                        <strong><i class="fas fa-user"></i> Creado por:</strong>
+                        <span id="detalle-usuario"></span>
+                    </div>
+                    <div class="info-row">
+                        <strong><i class="fas fa-calendar"></i> Fecha:</strong>
+                        <span id="detalle-fecha"></span>
+                    </div>
+                    <div class="info-row">
+                        <strong><i class="fas fa-clock"></i> Hora:</strong>
+                        <span id="detalle-hora"></span>
+                    </div>
+                    <div class="info-row">
+                        <strong><i class="fas fa-map-marker-alt"></i> Ubicación:</strong>
+                        <span id="detalle-ubicacion"></span>
+                    </div>
+                    <div class="info-row">
+                        <strong><i class="fas fa-align-left"></i> Descripción:</strong>
+                        <span id="detalle-descripcion"></span>
+                    </div>
+                    <div class="info-row">
+                        <strong><i class="fas fa-table"></i> Mesas:</strong>
+                        <span id="detalle-mesas"></span>
+                    </div>
+                    <div class="info-row">
+                        <strong><i class="fas fa-chair"></i> Capacidad total:</strong>
+                        <span id="detalle-capacidad"></span>
+                    </div>
+                    <div class="info-row">
+                        <strong><i class="fas fa-users"></i> Invitados:</strong>
+                        <span id="detalle-invitados"></span>
+                    </div>
+                    <div class="info-row">
+                        <strong><i class="fas fa-check-circle"></i> Confirmados:</strong>
+                        <span id="detalle-confirmados"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModalEvento()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="toast"></div>
 
