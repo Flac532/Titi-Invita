@@ -80,17 +80,31 @@ function inicializarNavegacion() {
 }
 
 function showPage(pageName) {
+    console.log('📄 showPage() llamada con:', pageName);
+    
     // Actualizar nav
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
     });
-    document.querySelector(`[data-page="${pageName}"]`)?.classList.add('active');
+    const navItem = document.querySelector(`[data-page="${pageName}"]`);
+    if (navItem) {
+        navItem.classList.add('active');
+        console.log('✅ Nav item activado');
+    } else {
+        console.warn('⚠️ No se encontró nav-item para:', pageName);
+    }
     
     // Actualizar páginas
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
     });
-    document.getElementById(pageName)?.classList.add('active');
+    const pageElement = document.getElementById(pageName);
+    if (pageElement) {
+        pageElement.classList.add('active');
+        console.log('✅ Página activada:', pageName);
+    } else {
+        console.error('❌ No se encontró página con id:', pageName);
+    }
     
     // Actualizar título
     const titles = {
@@ -103,9 +117,22 @@ function showPage(pageName) {
     document.getElementById('pageTitle').textContent = titles[pageName] || 'Admin Panel';
     
     // Cargar datos según página
-    if (pageName === 'usuarios') cargarUsuarios();
-    if (pageName === 'eventos') cargarTodosEventos();
-    if (pageName === 'dashboard') cargarDashboard();
+    console.log('🔄 Cargando datos para página:', pageName);
+    if (pageName === 'usuarios') {
+        console.log('   -> Llamando cargarUsuarios()');
+        cargarUsuarios();
+    }
+    if (pageName === 'eventos') {
+        console.log('   -> Llamando cargarTodosEventos()');
+        cargarTodosEventos();
+    }
+    if (pageName === 'dashboard') {
+        console.log('   -> Llamando cargarDashboard()');
+        cargarDashboard();
+    }
+    if (pageName === 'mis-eventos') {
+        console.log('   -> Cargando iframe de cliente.html');
+    }
 }
 
 // ===== BOTONES =====
@@ -296,15 +323,26 @@ async function cargarUsuarios(silent = false) {
 }
 
 function mostrarUsuariosTabla() {
+    console.log('📊 mostrarUsuariosTabla() llamada. allUsers:', allUsers.length);
     const tbody = document.getElementById('usersTableBody');
     
+    if (!tbody) {
+        console.error('❌ No se encontró elemento usersTableBody');
+        return;
+    }
+    
+    console.log('✅ Elemento tbody encontrado');
+    
     if (allUsers.length === 0) {
+        console.log('⚠️ No hay usuarios para mostrar');
         tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay usuarios registrados</td></tr>';
         return;
     }
     
+    console.log('🔨 Construyendo HTML para', allUsers.length, 'usuarios');
     let html = '';
     allUsers.forEach(user => {
+        console.log('   - Usuario:', user.nombre, user.email);
         const eventosCount = allEvents.filter(e => e.id_usuario === user.id).length;
         
         html += `
@@ -332,7 +370,9 @@ function mostrarUsuariosTabla() {
         `;
     });
     
+    console.log('✅ HTML construido, insertando en tbody');
     tbody.innerHTML = html;
+    console.log('✅ Usuarios mostrados en tabla');
 }
 
 function filtrarUsuarios() {
