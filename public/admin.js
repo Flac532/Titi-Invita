@@ -201,7 +201,7 @@ function mostrarActividadReciente() {
         html = '<p class="text-muted">No hay actividad reciente</p>';
     } else {
         recentEvents.forEach(evento => {
-            const usuario = allUsers.find(u => u.id === evento.usuario_id);
+            const usuario = allUsers.find(u => u.id === evento.id_usuario);
             html += `
                 <div class="activity-item">
                     <i class="fas fa-calendar-plus"></i>
@@ -274,7 +274,8 @@ async function cargarUsuarios(silent = false) {
             throw new Error('El servidor no devolvió JSON');
         }
         
-        allUsers = await response.json();
+        const data = await response.json();
+        allUsers = Array.isArray(data) ? data : [];
         console.log('✅ Usuarios cargados:', allUsers.length);
         
         if (!silent) mostrarUsuariosTabla();
@@ -304,7 +305,7 @@ function mostrarUsuariosTabla() {
     
     let html = '';
     allUsers.forEach(user => {
-        const eventosCount = allEvents.filter(e => e.usuario_id === user.id).length;
+        const eventosCount = allEvents.filter(e => e.id_usuario === user.id).length;
         
         html += `
             <tr>
@@ -354,7 +355,7 @@ function filtrarUsuarios() {
     
     let html = '';
     filtered.forEach(user => {
-        const eventosCount = allEvents.filter(e => e.usuario_id === user.id).length;
+        const eventosCount = allEvents.filter(e => e.id_usuario === user.id).length;
         
         html += `
             <tr>
@@ -538,7 +539,8 @@ async function cargarTodosEventos(silent = false) {
         
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
-            allEvents = await response.json();
+            const data = await response.json();
+            allEvents = Array.isArray(data) ? data : [];
             console.log('✅ Eventos cargados:', allEvents.length);
         } else {
             console.warn('⚠️ Respuesta no es JSON, asumiendo array vacío');
@@ -569,7 +571,7 @@ function mostrarEventos() {
     
     let html = '';
     allEvents.forEach(evento => {
-        const usuario = allUsers.find(u => u.id === evento.usuario_id);
+        const usuario = allUsers.find(u => u.id === evento.id_usuario);
         const mesasCount = evento.mesas?.length || 0;
         
         html += `
@@ -599,7 +601,7 @@ function filtrarEventos() {
     const filtered = allEvents.filter(evento => {
         const matchSearch = evento.nombre.toLowerCase().includes(searchTerm);
         const matchStatus = !statusFilter || evento.estado === statusFilter;
-        const matchUser = !userFilter || evento.usuario_id == userFilter;
+        const matchUser = !userFilter || evento.id_usuario == userFilter;
         return matchSearch && matchStatus && matchUser;
     });
     
@@ -612,7 +614,7 @@ function filtrarEventos() {
     
     let html = '';
     filtered.forEach(evento => {
-        const usuario = allUsers.find(u => u.id === evento.usuario_id);
+        const usuario = allUsers.find(u => u.id === evento.id_usuario);
         const mesasCount = evento.mesas?.length || 0;
         
         html += `
