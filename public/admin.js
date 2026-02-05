@@ -1,3 +1,7 @@
+// ===== VERIFICACIÓN DE CARGA =====
+console.log("🚀🚀🚀 admin.js CARGADO - " + new Date().toLocaleTimeString());
+console.log("📍 Punto de inicio del script");
+
 // ===== CONFIGURACIÓN =====
 const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
 let currentUser = null;
