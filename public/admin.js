@@ -740,7 +740,24 @@ window.editarUsuario = editarUsuario;
 window.confirmarEliminarUsuario = confirmarEliminarUsuario;
 window.cerrarModalEliminar = cerrarModalEliminar;
 
-// ===== VER DETALLE DE EVENTO =====
+// ===== MANEJO DE TABS =====
+let eventoActual = null;
+
+function cambiarTabEvento(tabName) {
+    // Cambiar tabs activos
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    event.target.classList.add('active');
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+    
+    // Si cambia a tab mesas, renderizar
+    if (tabName === 'mesas' && eventoActual) {
+        renderizarMesas(eventoActual);
+    }
+}
+
+// ===== VER DETALLE DE EVENTO (MEJORADO) =====
 function verDetalleEvento(eventoId) {
     const evento = allEvents.find(e => e.id === eventoId);
     if (!evento) {
@@ -748,6 +765,7 @@ function verDetalleEvento(eventoId) {
         return;
     }
     
+    eventoActual = evento;
     const usuario = allUsers.find(u => u.id === evento.id_usuario);
     
     // Calcular estadísticas
@@ -769,6 +787,7 @@ function verDetalleEvento(eventoId) {
     }
     
     // Llenar modal
+    document.getElementById('modal-evento-titulo').textContent = evento.nombre;
     document.getElementById('detalle-nombre').textContent = evento.nombre;
     document.getElementById('detalle-usuario').textContent = usuario?.nombre || 'Usuario desconocido';
     document.getElementById('detalle-fecha').textContent = formatearFecha(evento.fecha_evento);
@@ -780,14 +799,87 @@ function verDetalleEvento(eventoId) {
     document.getElementById('detalle-invitados').textContent = `${invitadosTotal} invitados`;
     document.getElementById('detalle-confirmados').textContent = `${confirmadosTotal} confirmados`;
     
+    // Resetear a tab de info
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.querySelectorAll('.tab-btn')[0].classList.add('active');
+    document.getElementById('tab-info').classList.add('active');
+    
     // Mostrar modal
     document.getElementById('eventoDetalleModal').style.display = 'flex';
 }
 
 function cerrarModalEvento() {
     document.getElementById('eventoDetalleModal').style.display = 'none';
+    eventoActual = null;
 }
 
-// Exponer funciones globales
+// ===== RENDERIZAR MESAS =====
+function renderizarMesas(evento) {
+    const container = document.getElementById('mesasViewerContainer');
+    
+    if (!evento.mesas || evento.mesas.length === 0) {
+        container.innerHTML = `
+            <div class="viewer-empty">
+                <i class="fas fa-table"></i>
+                <h3>No hay mesas configuradas</h3>
+                <p>Este evento aún no tiene mesas asignadas</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<div class="mesas-grid">';
+    
+    evento.mesas.forEach(mesa => {
+        const sillasData = typeof mesa.sillas === 'string' ? JSON.parse(mesa.sillas) : mesa.sillas;
+        const ocupadas = sillasData.filter(s => s.estado !== 'sin-asignar').length;
+        const disponibles = sillasData.length - ocupadas;
+        
+        html += `
+            <div class="mesa-viewer">
+                <div class="mesa-viewer-header">
+                    <h4><i class="fas fa-table"></i> Mesa ${mesa.numero || mesa.id}</h4>
+                    <div class="mesa-viewer-stats">
+                        <span class="stat-badge ocupadas">${ocupadas} ocupadas</span>
+                        <span class="stat-badge disponibles">${disponibles} libres</span>
+                    </div>
+                </div>
+                <div class="sillas-list">
+        `;
+        
+        sillasData.forEach((silla, index) => {
+            const estadoClass = silla.estado.replace('sin-asignar', 'sin-asignar');
+            const icono = silla.estado === 'sin-asignar' ? '○' : 
+                         silla.estado === 'asignado' ? '●' : '✓';
+            const nombre = silla.invitado?.nombre || 'Disponible';
+            const info = silla.estado === 'sin-asignar' ? 'Sin asignar' :
+                        silla.estado === 'asignado' ? 'Asignado' : 'Confirmado';
+            
+            html += `
+                <div class="silla-item ${estadoClass}">
+                    <div class="silla-icon ${estadoClass}">
+                        ${icono}
+                    </div>
+                    <div class="silla-info">
+                        <strong>Silla ${index + 1}</strong>
+                        <small>${nombre} - ${info}</small>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// Exponer funciones
 window.verDetalleEvento = verDetalleEvento;
 window.cerrarModalEvento = cerrarModalEvento;
+window.cambiarTabEvento = cambiarTabEvento;
