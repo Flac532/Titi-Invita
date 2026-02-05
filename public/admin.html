@@ -7,16 +7,15 @@
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
-        // SCRIPT INLINE - NO DEPENDE DE ARCHIVOS EXTERNOS
         console.log('=================================');
-        console.log('🚀 SCRIPT INLINE EJECUTÁNDOSE');
+        console.log('🚀 ADMIN PANEL INICIANDO');
         console.log('=================================');
         
         const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
         let allUsers = [];
         let allEvents = [];
         
-        // Verificar sesión INMEDIATAMENTE
+        // Verificar sesión
         const usuarioStr = localStorage.getItem('titi_usuario_actual');
         if (!usuarioStr) {
             alert('No hay sesión activa. Redirigiendo a login...');
@@ -32,17 +31,17 @@
                     try { token = JSON.parse(sesion).token; } catch (e) {}
                 }
             }
+            console.log('🔑 Token obtenido:', token ? 'SI (' + token.substring(0, 20) + '...)' : 'NO');
             return token;
         }
         
         function showPage(pageName) {
-            console.log('📄 Mostrando página:', pageName);
+            console.log('');
+            console.log('📄 showPage(' + pageName + ')');
             
-            // Ocultar todas
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
-            // Mostrar seleccionada
             const page = document.getElementById(pageName);
             if (page) {
                 page.style.display = 'block';
@@ -52,124 +51,173 @@
             const nav = document.querySelector('[data-page="' + pageName + '"]');
             if (nav) nav.classList.add('active');
             
-            // Cargar datos
             if (pageName === 'usuarios') cargarUsuarios();
             if (pageName === 'eventos') cargarEventos();
         }
         
         async function cargarUsuarios() {
-            console.log('🔄 Cargando usuarios...');
+            console.log('');
+            console.log('🔄 ============ CARGANDO USUARIOS ============');
             const tbody = document.getElementById('usersTableBody');
             if (!tbody) {
                 console.error('❌ No existe usersTableBody');
                 return;
             }
             
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">⏳ Cargando...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px">⏳ Cargando usuarios...</td></tr>';
             
             try {
                 const token = obtenerToken();
-                console.log('🔑 Token:', token ? 'Presente' : 'Ausente');
+                if (!token) {
+                    throw new Error('No hay token disponible');
+                }
+                
+                console.log('📡 Llamando a:', API_BASE + '/usuarios');
                 
                 const response = await fetch(API_BASE + '/usuarios', {
+                    method: 'GET',
                     headers: {
                         'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
                 
-                console.log('📡 Response:', response.status);
+                console.log('📡 Response status:', response.status);
+                console.log('📡 Response headers:', response.headers.get('content-type'));
                 
                 if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
+                    const errorText = await response.text();
+                    console.error('❌ Error response:', errorText);
+                    throw new Error('HTTP ' + response.status + ': ' + errorText.substring(0, 100));
                 }
                 
-                allUsers = await response.json();
-                console.log('✅ Usuarios:', allUsers.length);
+                const data = await response.json();
+                console.log('📦 Datos recibidos (tipo):', typeof data);
+                console.log('📦 Es array?:', Array.isArray(data));
+                console.log('📦 Datos:', data);
+                
+                // ASEGURAR QUE SEA ARRAY
+                if (Array.isArray(data)) {
+                    allUsers = data;
+                } else if (data && typeof data === 'object' && data.usuarios) {
+                    allUsers = data.usuarios;
+                } else if (data && typeof data === 'object') {
+                    // Si es un objeto, intentar convertirlo a array
+                    allUsers = Object.values(data);
+                } else {
+                    allUsers = [];
+                }
+                
+                console.log('✅ allUsers (array):', allUsers.length, 'elementos');
                 
                 if (allUsers.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No hay usuarios</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:#999">No hay usuarios registrados</td></tr>';
                 } else {
                     let html = '';
-                    allUsers.forEach(u => {
+                    for (let i = 0; i < allUsers.length; i++) {
+                        const u = allUsers[i];
+                        console.log('  👤 Usuario ' + (i+1) + ':', u.nombre, '-', u.email);
                         html += '<tr>' +
-                            '<td>' + u.id + '</td>' +
-                            '<td><strong>' + u.nombre + '</strong></td>' +
-                            '<td>' + u.email + '</td>' +
-                            '<td><span style="padding:4px 8px; background:#e8f5e9; color:#2e7d32; border-radius:4px">' + u.rol + '</span></td>' +
-                            '<td>0</td>' +
-                            '<td>' + (u.fecha_creacion || '-') + '</td>' +
-                            '<td>-</td>' +
+                            '<td style="padding:12px">' + u.id + '</td>' +
+                            '<td style="padding:12px"><strong>' + u.nombre + '</strong></td>' +
+                            '<td style="padding:12px">' + u.email + '</td>' +
+                            '<td style="padding:12px"><span style="padding:4px 12px; background:#e8f5e9; color:#2e7d32; border-radius:12px; font-size:0.85rem; font-weight:600">' + u.rol + '</span></td>' +
+                            '<td style="padding:12px">0</td>' +
+                            '<td style="padding:12px">' + (u.fecha_creacion ? new Date(u.fecha_creacion).toLocaleDateString() : '-') + '</td>' +
+                            '<td style="padding:12px">-</td>' +
                             '</tr>';
-                    });
+                    }
                     tbody.innerHTML = html;
-                    console.log('✅ Tabla renderizada');
+                    console.log('✅ Tabla renderizada con', allUsers.length, 'filas');
                 }
             } catch (error) {
-                console.error('❌ Error:', error);
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red">Error: ' + error.message + '</td></tr>';
+                console.error('❌ ERROR COMPLETO:', error);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:#d32f2f"><i class="fas fa-exclamation-circle"></i><br><br><strong>Error al cargar usuarios</strong><br>' + error.message + '</td></tr>';
             }
+            console.log('============================================');
         }
         
         async function cargarEventos() {
-            console.log('🔄 Cargando eventos...');
+            console.log('');
+            console.log('🔄 ============ CARGANDO EVENTOS ============');
             const container = document.getElementById('eventsContainer');
             if (!container) {
                 console.error('❌ No existe eventsContainer');
                 return;
             }
             
-            container.innerHTML = '<p style="text-align:center">⏳ Cargando...</p>';
+            container.innerHTML = '<p style="text-align:center; padding:40px">⏳ Cargando eventos...</p>';
             
             try {
                 const token = obtenerToken();
+                if (!token) {
+                    throw new Error('No hay token disponible');
+                }
+                
+                console.log('📡 Llamando a:', API_BASE + '/eventos-admin');
+                
                 const response = await fetch(API_BASE + '/eventos-admin', {
+                    method: 'GET',
                     headers: {
                         'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
                 
-                console.log('📡 Response:', response.status);
+                console.log('📡 Response status:', response.status);
                 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Error response:', errorText);
                     throw new Error('HTTP ' + response.status);
                 }
                 
-                allEvents = await response.json();
-                console.log('✅ Eventos:', allEvents.length);
+                const data = await response.json();
+                console.log('📦 Datos recibidos:', typeof data, Array.isArray(data));
+                
+                // ASEGURAR QUE SEA ARRAY
+                if (Array.isArray(data)) {
+                    allEvents = data;
+                } else if (data && typeof data === 'object' && data.eventos) {
+                    allEvents = data.eventos;
+                } else {
+                    allEvents = [];
+                }
+                
+                console.log('✅ allEvents:', allEvents.length, 'elementos');
                 
                 if (allEvents.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; color:#999">No hay eventos</p>';
+                    container.innerHTML = '<p style="text-align:center; padding:40px; color:#999">No hay eventos registrados</p>';
                 } else {
-                    let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px">';
-                    allEvents.forEach(e => {
-                        html += '<div style="background:white; padding:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1)">' +
-                            '<h3 style="margin:0 0 10px 0">' + e.nombre + '</h3>' +
-                            '<p style="margin:5px 0; color:#666"><i class="fas fa-calendar"></i> ' + (e.fecha_evento || 'Sin fecha') + '</p>' +
-                            '<p style="margin:5px 0; color:#666"><i class="fas fa-map-marker-alt"></i> ' + (e.ubicacion || 'Sin ubicación') + '</p>' +
+                    let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px">';
+                    for (let i = 0; i < allEvents.length; i++) {
+                        const e = allEvents[i];
+                        console.log('  📅 Evento ' + (i+1) + ':', e.nombre);
+                        html += '<div style="background:white; padding:24px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); transition:all 0.2s" onmouseover="this.style.transform=\'translateY(-4px)\'; this.style.boxShadow=\'0 8px 20px rgba(0,0,0,0.12)\'" onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.08)\'">' +
+                            '<h3 style="margin:0 0 12px 0; color:#2d3748">' + e.nombre + '</h3>' +
+                            '<p style="margin:8px 0; color:#718096; font-size:0.9rem"><i class="fas fa-calendar" style="margin-right:8px; color:#764ba2"></i>' + (e.fecha_evento ? new Date(e.fecha_evento).toLocaleDateString() : 'Sin fecha') + '</p>' +
+                            '<p style="margin:8px 0; color:#718096; font-size:0.9rem"><i class="fas fa-map-marker-alt" style="margin-right:8px; color:#764ba2"></i>' + (e.ubicacion || 'Sin ubicación') + '</p>' +
+                            '<p style="margin:8px 0; color:#718096; font-size:0.9rem"><i class="fas fa-table" style="margin-right:8px; color:#764ba2"></i>' + (e.mesas ? e.mesas.length : 0) + ' mesas</p>' +
                             '</div>';
-                    });
+                    }
                     html += '</div>';
                     container.innerHTML = html;
                     console.log('✅ Eventos renderizados');
                 }
             } catch (error) {
-                console.error('❌ Error:', error);
-                container.innerHTML = '<p style="text-align:center; color:red">Error: ' + error.message + '</p>';
+                console.error('❌ ERROR:', error);
+                container.innerHTML = '<p style="text-align:center; padding:40px; color:#d32f2f"><i class="fas fa-exclamation-circle"></i><br><br><strong>Error al cargar eventos</strong><br>' + error.message + '</p>';
             }
+            console.log('============================================');
         }
         
-        // Cuando carga la página
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ DOM Listo');
+            console.log('✅ DOM Cargado');
             
-            // Mostrar dashboard por defecto
             showPage('dashboard');
             cargarUsuarios();
             cargarEventos();
             
-            // Configurar logout
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.onclick = function() {
@@ -180,12 +228,13 @@
                     }
                 };
             }
+            
+            console.log('✅ Admin panel listo');
         });
     </script>
 </head>
 <body>
     <div class="admin-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
                 <i class="fas fa-calendar-check"></i>
@@ -219,50 +268,45 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="top-bar">
-                <h1 id="pageTitle">Dashboard Admin</h1>
+                <h1>Dashboard Admin</h1>
             </header>
 
-            <!-- Dashboard -->
             <div class="page" id="dashboard" style="display:block; padding:30px">
                 <h2>Panel de Control</h2>
-                <p>Bienvenido al panel de administración</p>
-                
                 <div style="margin-top:30px">
-                    <button onclick="cargarUsuarios()" style="padding:12px 24px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
+                    <button onclick="cargarUsuarios()" style="padding:12px 24px; background:linear-gradient(135deg, #764ba2, #9a7bb8); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:0 4px 12px rgba(118,75,162,0.3)">
                         <i class="fas fa-sync-alt"></i> Recargar Usuarios
                     </button>
-                    <button onclick="cargarEventos()" style="padding:12px 24px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600; margin-left:10px">
+                    <button onclick="cargarEventos()" style="padding:12px 24px; background:linear-gradient(135deg, #764ba2, #9a7bb8); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; margin-left:10px; box-shadow:0 4px 12px rgba(118,75,162,0.3)">
                         <i class="fas fa-sync-alt"></i> Recargar Eventos
                     </button>
                 </div>
             </div>
 
-            <!-- Usuarios -->
             <div class="page" id="usuarios" style="display:none; padding:30px">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
-                    <h2>Gestión de Usuarios</h2>
-                    <button onclick="cargarUsuarios()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px">
+                    <h2 style="margin:0">Gestión de Usuarios</h2>
+                    <button onclick="cargarUsuarios()" style="padding:12px 24px; background:linear-gradient(135deg, #764ba2, #9a7bb8); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:0 4px 12px rgba(118,75,162,0.3)">
                         <i class="fas fa-sync-alt"></i> Actualizar
                     </button>
                 </div>
                 
-                <div style="background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+                <div style="background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06)">
                     <table style="width:100%; border-collapse:collapse">
-                        <thead style="background:#f5f6fa">
+                        <thead style="background:#fafbfc">
                             <tr>
-                                <th style="padding:16px; text-align:left; font-weight:600">ID</th>
-                                <th style="padding:16px; text-align:left; font-weight:600">NOMBRE</th>
-                                <th style="padding:16px; text-align:left; font-weight:600">EMAIL</th>
-                                <th style="padding:16px; text-align:left; font-weight:600">ROL</th>
-                                <th style="padding:16px; text-align:left; font-weight:600">EVENTOS</th>
-                                <th style="padding:16px; text-align:left; font-weight:600">REGISTRO</th>
-                                <th style="padding:16px; text-align:left; font-weight:600">ACCIONES</th>
+                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">ID</th>
+                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">NOMBRE</th>
+                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">EMAIL</th>
+                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">ROL</th>
+                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">EVENTOS</th>
+                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">REGISTRO</th>
+                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">ACCIONES</th>
                             </tr>
                         </thead>
-                        <tbody id="usersTableBody">
+                        <tbody id="usersTableBody" style="background:white">
                             <tr>
                                 <td colspan="7" style="padding:40px; text-align:center; color:#999">
                                     Cargando usuarios...
@@ -273,21 +317,19 @@
                 </div>
             </div>
 
-            <!-- Eventos -->
             <div class="page" id="eventos" style="display:none; padding:30px">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
-                    <h2>Todos los Eventos</h2>
-                    <button onclick="cargarEventos()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px">
+                    <h2 style="margin:0">Todos los Eventos</h2>
+                    <button onclick="cargarEventos()" style="padding:12px 24px; background:linear-gradient(135deg, #764ba2, #9a7bb8); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:0 4px 12px rgba(118,75,162,0.3)">
                         <i class="fas fa-sync-alt"></i> Actualizar
                     </button>
                 </div>
                 
                 <div id="eventsContainer">
-                    <p style="text-align:center; color:#999">Cargando eventos...</p>
+                    <p style="text-align:center; padding:40px; color:#999">Cargando eventos...</p>
                 </div>
             </div>
 
-            <!-- Mis Eventos -->
             <div class="page" id="mis-eventos" style="display:none">
                 <iframe src="cliente.html" style="width:100%; height:calc(100vh - 100px); border:none; border-radius:12px"></iframe>
             </div>
