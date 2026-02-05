@@ -784,3 +784,76 @@ body {
 .text-center { text-align: center; }
 .text-muted { color: #718096; }
 .text-danger { color: var(--danger); }
+
+/* Modal grande */
+.modal-large {
+    max-width: 700px;
+}
+
+/* Info del evento */
+.evento-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.info-row {
+    display: flex;
+    padding: 12px;
+    background: var(--light);
+    border-radius: 8px;
+    gap: 12px;
+}
+
+.info-row strong {
+    min-width: 150px;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-row strong i {
+    color: var(--primary);
+    width: 20px;
+}
+
+.info-row span {
+    flex: 1;
+    color: #718096;
+}
+
+/* Eventos clickeables */
+.event-card {
+    cursor: pointer;
+    position: relative;
+    border: 2px solid transparent;
+}
+
+.event-card:hover {
+    border-color: var(--primary);
+}
+
+.event-card::before {
+    content: '👁️ Ver detalles';
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    padding: 6px 12px;
+    background: var(--primary);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.2s;
+}
+
+.event-card:hover::before {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.event-card:active {
+    transform: scale(0.98);
+}
