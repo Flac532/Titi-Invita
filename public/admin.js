@@ -235,13 +235,30 @@ async function cargarUsuarios(silent = false) {
     try {
         if (!silent) mostrarCargando('usersTableBody');
         
+        const token = obtenerToken();
+        console.log('🔑 Token:', token ? 'Presente' : 'Ausente');
+        
         const response = await fetch(`${API_BASE}/usuarios`, {
             headers: {
-                'Authorization': `Bearer ${obtenerToken()}`
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
         });
         
-        if (!response.ok) throw new Error('Error cargando usuarios');
+        console.log('📡 Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Error response:', errorText);
+            throw new Error(`Error ${response.status}: ${errorText}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('❌ Respuesta no es JSON:', text.substring(0, 200));
+            throw new Error('El servidor no devolvió JSON');
+        }
         
         allUsers = await response.json();
         console.log('✅ Usuarios cargados:', allUsers.length);
@@ -252,11 +269,14 @@ async function cargarUsuarios(silent = false) {
         actualizarFiltroUsuarios();
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌ Error cargando usuarios:', error);
         if (!silent) {
-            document.getElementById('usersTableBody').innerHTML = 
-                '<tr><td colspan="7" class="text-center text-danger">Error cargando usuarios</td></tr>';
+            const tbody = document.getElementById('usersTableBody');
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">Error: ${error.message}</td></tr>`;
+            }
         }
+        mostrarToast('Error cargando usuarios: ' + error.message, 'error');
     }
 }
 
@@ -486,24 +506,41 @@ async function eliminarUsuario(userId) {
 // ===== EVENTOS =====
 async function cargarTodosEventos(silent = false) {
     try {
+        const token = obtenerToken();
         const response = await fetch(`${API_BASE}/eventos-admin`, {
             headers: {
-                'Authorization': `Bearer ${obtenerToken()}`
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
         });
         
-        if (!response.ok) throw new Error('Error cargando eventos');
+        console.log('📡 Eventos response status:', response.status);
         
-        allEvents = await response.json();
-        console.log('✅ Eventos cargados:', allEvents.length);
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Error response eventos:', errorText);
+            throw new Error(`Error ${response.status}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            allEvents = await response.json();
+            console.log('✅ Eventos cargados:', allEvents.length);
+        } else {
+            console.warn('⚠️ Respuesta no es JSON, asumiendo array vacío');
+            allEvents = [];
+        }
         
         if (!silent) mostrarEventos();
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌ Error cargando eventos:', error);
+        allEvents = [];
         if (!silent) {
-            document.getElementById('eventsGrid').innerHTML = 
-                '<p class="text-center text-danger">Error cargando eventos</p>';
+            const grid = document.getElementById('eventsGrid');
+            if (grid) {
+                grid.innerHTML = `<p class="text-center text-danger">Error cargando eventos: ${error.message}</p>`;
+            }
         }
     }
 }
