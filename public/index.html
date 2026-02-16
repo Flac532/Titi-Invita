@@ -3,76 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Titi Invita</title>
-    <link rel="stylesheet" href="login.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Titi Invita - Cargando...</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .loader {
+            text-align: center;
+            color: white;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+        }
+    </style>
 </head>
 <body>
-<div class="split-layout">
-
-    <!-- ════ PANEL IZQUIERDO ════ -->
-    <div class="split-left">
-        <div class="deco-arcs">
-            <svg viewBox="0 0 600 900" preserveAspectRatio="xMidYMid slice">
-                <defs>
-                    <linearGradient id="arcFade" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stop-color="white" stop-opacity="0.12"/>
-                        <stop offset="100%" stop-color="white" stop-opacity="0"/>
-                    </linearGradient>
-                </defs>
-                <path d="M 620 950 A 500 500 0 0 1 120 450" fill="none" stroke="url(#arcFade)" stroke-width="1.2"/>
-                <path d="M 660 950 A 560 560 0 0 1 100 370" fill="none" stroke="url(#arcFade)" stroke-width="1"/>
-                <path d="M 700 950 A 620 620 0 0 1 80 290" fill="none" stroke="url(#arcFade)" stroke-width="0.9"/>
-                <path d="M 740 950 A 680 680 0 0 1 60 210" fill="none" stroke="url(#arcFade)" stroke-width="0.8"/>
-                <path d="M -40 -30  A 320 320 0 0 0 300 200" fill="none" stroke="url(#arcFade)" stroke-width="0.9"/>
-                <path d="M -60 -50  A 380 380 0 0 0 340 240" fill="none" stroke="url(#arcFade)" stroke-width="0.7"/>
-            </svg>
-        </div>
-
-        <div class="split-left-inner">
-            <div class="split-logo">
-                <i class="fas fa-chair"></i>
-                <h1>Titi Invita</h1>
-            </div>
-            <h2 class="split-headline">Hola<br><span>Titi Invita</span> 👋</h2>
-            <p class="split-tagline">
-                Organiza tus eventos de manera profesional.<br>
-                Asigna mesas, gestiona invitados y ahorra tiempo con una herramienta pensada para ti.
-            </p>
-        </div>
-        <footer class="split-footer-left">&copy; 2026 Titi Invita. Todos los derechos reservados.</footer>
+    <div class="loader">
+        <div class="spinner"></div>
+        <h2>Titi Invita</h2>
+        <p id="status">Redirigiendo...</p>
     </div>
 
-    <!-- ════ PANEL DERECHO ════ -->
-    <div class="split-right">
-        <div class="split-right-inner">
-            <h3 class="idx-welcome">¡Bienvenido!</h3>
-            <p class="idx-sub">Descubre todo lo que puedes hacer con Titi Invita</p>
-
-            <div class="idx-features">
-                <div class="idx-feat">
-                    <div class="idx-feat-icon" style="background:rgba(118,75,162,.1); color:#764ba2;"><i class="fas fa-users"></i></div>
-                    <div>
-                        <h4>Gestión de Invitados</h4>
-                        <p>Asigna y controla la ubicación de cada invitado en tiempo real.</p>
-                    </div>
-                </div>
-                <div class="idx-feat">
-                    <div class="idx-feat-icon" style="background:rgba(245,166,35,.12); color:#f5a623;"><i class="fas fa-table"></i></div>
-                    <div>
-                        <h4>Diseño de Mesas</h4>
-                        <p>Mesas rectangulares, circulares y cuadradas con drag &amp; drop.</p>
-                    </div>
-                </div>
-               
-                       
-                </div>
-            </div>
-
-            <a href="login.html" class="btn-cta"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</a>
-        </div>
-    </div>
-
-</div>
+    <script>
+        console.log('🚀 Index.html - Router automático por rol');
+        
+        // Verificar si hay sesión
+        const usuarioStr = localStorage.getItem('titi_usuario_actual') || sessionStorage.getItem('titi_usuario_actual');
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        
+        if (!usuarioStr || !token) {
+            console.log('❌ No hay sesión, redirigiendo a login');
+            document.getElementById('status').textContent = 'No has iniciado sesión...';
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1000);
+        } else {
+            try {
+                const usuario = JSON.parse(usuarioStr);
+                console.log('✅ Usuario:', usuario.nombre, 'Rol:', usuario.rol);
+                
+                // Redireccionar según rol
+                let destino = '';
+                let mensaje = '';
+                
+                switch(usuario.rol) {
+                    case 'admin':
+                        destino = 'admin.html';
+                        mensaje = 'Bienvenido Admin...';
+                        break;
+                    case 'organizador':
+                        destino = 'organizador.html';
+                        mensaje = 'Bienvenido Organizador...';
+                        break;
+                    case 'cliente':
+                        destino = 'cliente.html';
+                        mensaje = 'Bienvenido Cliente...';
+                        break;
+                    case 'colaborador':
+                        destino = 'colaborador.html';
+                        mensaje = 'Bienvenido Colaborador...';
+                        break;
+                    default:
+                        destino = 'login.html';
+                        mensaje = 'Rol desconocido...';
+                }
+                
+                console.log('🔄 Redirigiendo a:', destino);
+                document.getElementById('status').textContent = mensaje;
+                
+                setTimeout(() => {
+                    window.location.href = destino;
+                }, 500);
+                
+            } catch (error) {
+                console.error('❌ Error parseando usuario:', error);
+                document.getElementById('status').textContent = 'Error de sesión...';
+                localStorage.clear();
+                sessionStorage.clear();
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+            }
+        }
+    </script>
 </body>
 </html>
