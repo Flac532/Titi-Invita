@@ -32,6 +32,166 @@ let configuracionDisposicion = {
     espaciado: 150
 };
 
+// ===== SISTEMA DE PERMISOS POR ROL =====
+const PERMISOS = {
+    admin: {
+        verTodosEventos: true,
+        crearEventos: true,
+        editarEventos: true,
+        eliminarEventos: true,
+        moverMesas: true,
+        agregarMesas: true,
+        eliminarMesas: true,
+        agregarInvitados: true,
+        editarInvitados: true,
+        eliminarInvitados: true,
+        verOtrosEventos: true
+    },
+    organizador: {
+        verTodosEventos: false, // Solo ve SUS eventos
+        crearEventos: false, // Debe solicitar
+        editarEventos: true,
+        eliminarEventos: true,
+        moverMesas: true,
+        agregarMesas: true,
+        eliminarMesas: true,
+        agregarInvitados: true,
+        editarInvitados: true,
+        eliminarInvitados: true,
+        verOtrosEventos: false
+    },
+    cliente: {
+        verTodosEventos: false, // Solo ve SU evento
+        crearEventos: false,
+        editarEventos: true,
+        eliminarEventos: false,
+        moverMesas: true,
+        agregarMesas: true,
+        eliminarMesas: true,
+        agregarInvitados: true,
+        editarInvitados: true,
+        eliminarInvitados: true,
+        verOtrosEventos: false
+    },
+    colaborador: {
+        verTodosEventos: false, // Solo ve SU evento asignado
+        crearEventos: false,
+        editarEventos: false,
+        eliminarEventos: false,
+        moverMesas: false, // ❌ NO puede mover
+        agregarMesas: false, // ❌ NO puede agregar
+        eliminarMesas: false, // ❌ NO puede eliminar
+        agregarInvitados: true, // ✅ Solo puede agregar invitados
+        editarInvitados: true,
+        eliminarInvitados: true,
+        verOtrosEventos: false
+    }
+};
+
+// Función para verificar permisos
+function tienePermiso(accion) {
+    if (!usuario || !usuario.rol) return false;
+    const permisos = PERMISOS[usuario.rol];
+    return permisos ? permisos[accion] : false;
+}
+
+// Función para aplicar restricciones visuales
+function aplicarRestriccionesPorRol() {
+    if (!usuario || !usuario.rol) return;
+    
+    console.log('🔒 Aplicando restricciones para rol:', usuario.rol);
+    
+    const rol = usuario.rol;
+    
+    // COLABORADOR: Restricciones máximas
+    if (rol === 'colaborador') {
+        // Ocultar/deshabilitar botones de configuración
+        const botonesOcultar = [
+            'btnCrearMesas',
+            'btnGuardarEvento',
+            'btnFinalizarEvento',
+            'newEventBtn',
+            'btnAgregarMesa',
+            'btnZoomIn',
+            'btnZoomOut',
+            'btnFullscreen'
+        ];
+        
+        botonesOcultar.forEach(id => {
+            const btn = document.getElementById(id);
+            if (btn) {
+                btn.style.display = 'none';
+            }
+        });
+        
+        // Deshabilitar campos de configuración
+        const camposBloquear = [
+            'eventName',
+            'eventDate',
+            'eventTime',
+            'eventDescription',
+            'numMesas',
+            'sillasPorMesa',
+            'formaMesa'
+        ];
+        
+        camposBloquear.forEach(id => {
+            const campo = document.getElementById(id);
+            if (campo) {
+                campo.disabled = true;
+                campo.style.background = '#f5f5f5';
+                campo.style.cursor = 'not-allowed';
+            }
+        });
+        
+        // Deshabilitar drag & drop de mesas
+        setTimeout(() => {
+            document.querySelectorAll('.mesa').forEach(mesa => {
+                mesa.draggable = false;
+                mesa.style.cursor = 'default';
+                
+                mesa.ondragstart = (e) => {
+                    e.preventDefault();
+                    mostrarMensaje('Como colaborador, solo puedes agregar invitados', 'warning');
+                    return false;
+                };
+            });
+        }, 1000);
+        
+        // Ocultar selector de eventos
+        const selector = document.getElementById('eventSelector');
+        if (selector) {
+            selector.style.display = 'none';
+        }
+        
+        // Agregar nota en el header
+        const header = document.querySelector('.top-bar h1');
+        if (header && !header.querySelector('.nota-colaborador')) {
+            const nota = document.createElement('span');
+            nota.className = 'nota-colaborador';
+            nota.style.cssText = 'font-size:0.6em; color:#999; margin-left:10px';
+            nota.textContent = '(Solo agregar invitados)';
+            header.appendChild(nota);
+        }
+    }
+    
+    // CLIENTE: Sin crear eventos ni eliminar
+    if (rol === 'cliente') {
+        const btnNuevoEvento = document.getElementById('newEventBtn');
+        if (btnNuevoEvento) {
+            btnNuevoEvento.style.display = 'none';
+        }
+        
+        const btnFinalizar = document.getElementById('btnFinalizarEvento');
+        if (btnFinalizar) {
+            btnFinalizar.style.display = 'none';
+        }
+    }
+    
+    // ORGANIZADOR: Funcionalidad completa pero solo ve sus eventos
+    // (La restricción de eventos se maneja en cargarEventos)
+}
+
 // ===== ELEMENTOS DOM =====
 const eventSelector = document.getElementById('eventSelector');
 const currentEventName = document.getElementById('currentEventName');
@@ -48,7 +208,7 @@ const btnFinalizarEvento = document.getElementById('btnFinalizarEvento');
 const mesasContainer = document.getElementById('mesasContainer');
 const newEventBtn = document.getElementById('newEventBtn');
 const newEventModal = document.getElementById('newEventModal');
-// const logoutBtn = document.getElementById('logoutBtn'); // Se obtiene dentro de configurarEventListeners
+const logoutBtn = document.getElementById('logoutBtn');
 const userAvatar = document.getElementById('userAvatar');
 const userName = document.getElementById('userName');
 const userRole = document.getElementById('userRole');
@@ -56,9 +216,9 @@ const roleBadge = document.getElementById('roleBadge');
 const eventLimitInfo = document.getElementById('eventLimitInfo');
 const limitText = document.getElementById('limitText');
 const searchGuests = document.getElementById('searchGuests');
-// const zoomInBtn = document.getElementById('zoomInBtn'); // Se obtiene dentro de configurarEventListeners
-// const zoomOutBtn = document.getElementById('zoomOutBtn'); // Se obtiene dentro de configurarEventListeners
-// const resetViewBtn = document.getElementById('resetViewBtn'); // Se obtiene dentro de configurarEventListeners
+const zoomInBtn = document.getElementById('zoomInBtn');
+const zoomOutBtn = document.getElementById('zoomOutBtn');
+const resetViewBtn = document.getElementById('resetViewBtn');
 const showNamesCheckbox = document.getElementById('showNames');
 const autoSaveCheckbox = document.getElementById('autoSave');
 
@@ -75,6 +235,7 @@ const statPorcentajeOcupacion = document.getElementById('statPorcentajeOcupacion
 const ocupacionBar = document.getElementById('ocupacionBar');
 const totalEventsCount = document.getElementById('totalEventsCount');
 const activeEventsCount = document.getElementById('activeEventsCount');
+const draftEventsCount = document.getElementById('draftEventsCount');
 
 // Lista de invitados
 const guestsList = document.getElementById('guestsList');
@@ -97,6 +258,9 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
         usuario = JSON.parse(usuarioStr);
         console.log('✅ Usuario cargado:', usuario.nombre, usuario.rol);
+        
+        // Aplicar restricciones por rol
+        aplicarRestriccionesPorRol();
     } catch (error) {
         console.error('❌ Error parseando usuario:', error);
         window.location.href = 'login.html';
@@ -175,9 +339,22 @@ async function cargarEventosUsuario() {
     }
     
     try {
-        console.log('📡 Cargando eventos...');
+        console.log('📡 Cargando eventos para rol:', usuario.rol);
         
-        const response = await fetch(`${API_BASE}/eventos-usuario`, {
+        let endpoint = '/eventos-usuario'; // Default para cliente
+        
+        // Seleccionar endpoint según rol
+        if (usuario.rol === 'admin') {
+            endpoint = '/eventos'; // Admin ve todos
+        } else if (usuario.rol === 'organizador') {
+            endpoint = '/mis-eventos'; // Organizador ve los suyos
+        } else if (usuario.rol === 'colaborador') {
+            endpoint = '/mi-evento'; // Colaborador ve solo el asignado
+        }
+        
+        console.log('🔗 Usando endpoint:', endpoint);
+        
+        const response = await fetch(`${API_BASE}${endpoint}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -186,29 +363,45 @@ async function cargarEventosUsuario() {
         });
         
         const data = await response.json();
-        console.log('📊 Eventos:', data);
+        console.log('📊 Datos recibidos:', data);
         
-        if (response.ok && data.success) {
-            eventosCliente = data.eventos || [];
+        if (response.ok) {
+            // Manejar diferentes formatos de respuesta
+            if (usuario.rol === 'colaborador') {
+                // colaborador recibe un solo evento
+                eventosCliente = [data];
+            } else if (usuario.rol === 'admin') {
+                // admin recibe {success: true, eventos: [...]}
+                eventosCliente = data.eventos || data;
+            } else {
+                // organizador y cliente reciben array directo o {success, eventos}
+                eventosCliente = data.eventos || data;
+            }
             
-            // Llenar selector
-            eventSelector.innerHTML = '<option value="">Seleccionar evento...</option>';
-            eventosCliente.forEach(evento => {
-                const option = document.createElement('option');
-                option.value = evento.id;
-                option.textContent = evento.nombre;
-                eventSelector.appendChild(option);
-            });
+            console.log('✅ Eventos cargados:', eventosCliente.length);
+            
+            // Llenar selector (solo si no es colaborador)
+            if (usuario.rol !== 'colaborador') {
+                eventSelector.innerHTML = '<option value="">Seleccionar evento...</option>';
+                eventosCliente.forEach(evento => {
+                    const option = document.createElement('option');
+                    option.value = evento.id;
+                    option.textContent = evento.nombre;
+                    eventSelector.appendChild(option);
+                });
+            }
             
             // Cargar primer evento
             if (eventosCliente.length > 0) {
                 await cargarEvento(eventosCliente[0].id);
+            } else {
+                mostrarMensaje('No tienes eventos asignados', 'info');
             }
             
             actualizarEstadisticasEventos();
         } else {
-            console.error('❌ Error:', data.message);
-            mostrarMensaje(data.message || 'Error cargando eventos', 'error');
+            console.error('❌ Error:', data.error || data.message);
+            mostrarMensaje(data.error || data.message || 'Error cargando eventos', 'error');
         }
     } catch (error) {
         console.error('❌ Error:', error);
@@ -219,9 +412,11 @@ async function cargarEventosUsuario() {
 function actualizarEstadisticasEventos() {
     const total = eventosCliente.length;
     const activos = eventosCliente.filter(e => e.estado === 'activo').length;
+    const borradores = eventosCliente.filter(e => e.estado === 'borrador').length;
     
     totalEventsCount.textContent = total;
     activeEventsCount.textContent = activos;
+    draftEventsCount.textContent = borradores;
 }
 
 // 2. Cargar un evento específico
@@ -482,10 +677,10 @@ function calcularPosicionesSillas(numSillas, forma) {
     } else if (forma === 'circular') {
         const centroX = 50;
         const centroY = 50;
-        const radio = 65; // Reducido para que las sillas no se salgan
+        const radio = 75;
         
         for (let i = 0; i < numSillas; i++) {
-            const angulo = (2 * Math.PI / numSillas) * i - (Math.PI / 2); // Empezar desde arriba
+            const angulo = (2 * Math.PI / numSillas) * i;
             const x = centroX + radio * Math.cos(angulo);
             const y = centroY + radio * Math.sin(angulo);
             posiciones.push({x, y});
@@ -545,27 +740,15 @@ function crearNuevoEvento() {
         }
     }
     
-    const nombre = document.getElementById('newEventName').value.trim();
+    const nombre = document.getElementById('newEventName').value;
     const fecha = document.getElementById('newEventDate').value;
     const hora = document.getElementById('newEventTime').value;
     const ubicacion = document.getElementById('newEventLocation').value;
     const tipo = document.getElementById('newEventType').value;
-    const numMesas = parseInt(document.getElementById('newEventMesas').value) || 8;
-    const sillasPorMesa = parseInt(document.getElementById('newEventSillas').value) || 8;
-    const formaMesa = document.getElementById('newEventForma').value;
+    const usarPlantilla = document.getElementById('useTemplate').checked;
     
     if (!nombre || !fecha) {
         mostrarMensaje('Nombre y fecha son obligatorios', 'error');
-        return;
-    }
-    
-    if (numMesas < 1 || numMesas > 50) {
-        mostrarMensaje('El número de mesas debe estar entre 1 y 50', 'error');
-        return;
-    }
-    
-    if (sillasPorMesa < 2 || sillasPorMesa > 20) {
-        mostrarMensaje('Las sillas por mesa deben estar entre 2 y 20', 'error');
         return;
     }
     
@@ -577,10 +760,10 @@ function crearNuevoEvento() {
         hora: hora || '18:00',
         ubicacion: ubicacion,
         tipo: tipo,
-        estado: 'activo', // Siempre activo, no hay borradores
-        mesas: numMesas,
-        sillasPorMesa: sillasPorMesa,
-        formaMesa: formaMesa,
+        estado: 'borrador',
+        mesas: usarPlantilla ? 8 : 1,
+        sillasPorMesa: usarPlantilla ? 8 : 6,
+        formaMesa: 'rectangular',
         configuracion: {}
     };
     
@@ -589,7 +772,7 @@ function crearNuevoEvento() {
     // Agregar al selector
     const option = document.createElement('option');
     option.value = nuevoEvento.id;
-    option.textContent = nuevoEvento.nombre;
+    option.textContent = nuevoEvento.nombre + ' (Borrador)';
     eventSelector.appendChild(option);
     
     // Seleccionar el nuevo evento
@@ -598,6 +781,9 @@ function crearNuevoEvento() {
     
     // Cerrar modal
     document.getElementById('newEventModal').style.display = 'none';
+    
+    // Resetear formulario
+    document.getElementById('newEventForm').reset();
     
     // Actualizar estadísticas
     actualizarEstadisticasEventos();
@@ -669,191 +855,72 @@ async function eliminarEvento() {
 
 // 10. Configurar event listeners
 function configurarEventListeners() {
-    console.log('🎯 Configurando event listeners...');
+    // Selector de evento
+    eventSelector.addEventListener('change', function() {
+        if (this.value) {
+            cargarEvento(parseInt(this.value));
+        }
+    });
     
-    try {
-        // Selector de evento
-        if (eventSelector) {
-            eventSelector.addEventListener('change', function() {
-                if (this.value) {
-                    cargarEvento(parseInt(this.value));
-                }
-            });
-            console.log('✅ Event selector configurado');
-        }
-    } catch (e) { console.error('❌ Error en eventSelector:', e); }
+    // Botón crear mesas
+    btnCrearMesas.addEventListener('click', crearMesas);
     
-    try {
-        // Botón crear mesas
-        if (btnCrearMesas) {
-            btnCrearMesas.addEventListener('click', crearMesas);
-            console.log('✅ btnCrearMesas configurado');
-        }
-    } catch (e) { console.error('❌ Error en btnCrearMesas:', e); }
+    // Botón guardar evento
+    btnGuardarEvento.addEventListener('click', function() {
+        guardarEvento();
+    });
     
-    try {
-        // Botón guardar evento
-        if (btnGuardarEvento) {
-            btnGuardarEvento.addEventListener('click', function() {
-                guardarEvento();
-            });
-            console.log('✅ btnGuardarEvento configurado');
-        }
-    } catch (e) { console.error('❌ Error en btnGuardarEvento:', e); }
+    // Botón finalizar evento
+    if (btnFinalizarEvento) {
+        btnFinalizarEvento.addEventListener('click', eliminarEvento);
+    }
     
-    try {
-        // Botón finalizar evento
-        if (btnFinalizarEvento) {
-            btnFinalizarEvento.addEventListener('click', eliminarEvento);
-            console.log('✅ btnFinalizarEvento configurado');
-        }
-    } catch (e) { console.error('❌ Error en btnFinalizarEvento:', e); }
+    // Botón nuevo evento
+    newEventBtn.addEventListener('click', function() {
+        document.getElementById('newEventModal').style.display = 'flex';
+    });
     
-    try {
-        // Botón nuevo evento
-        if (newEventBtn) {
-            newEventBtn.addEventListener('click', function() {
-                document.getElementById('newEventModal').style.display = 'flex';
-            });
-            console.log('✅ newEventBtn configurado');
-        }
-    } catch (e) { console.error('❌ Error en newEventBtn:', e); }
+    // Cerrar modal nuevo evento
+    document.querySelector('#newEventModal .modal-close').addEventListener('click', function() {
+        document.getElementById('newEventModal').style.display = 'none';
+    });
     
-    try {
-        // Cerrar modal nuevo evento
-        const modalClose = document.querySelector('#newEventModal .modal-close');
-        if (modalClose) {
-            modalClose.addEventListener('click', function() {
-                document.getElementById('newEventModal').style.display = 'none';
-            });
-            console.log('✅ Modal close configurado');
-        }
-    } catch (e) { console.error('❌ Error en modal close:', e); }
+    document.querySelector('#newEventModal .modal-cancel').addEventListener('click', function() {
+        document.getElementById('newEventModal').style.display = 'none';
+    });
     
-    try {
-        const modalCancel = document.querySelector('#newEventModal .modal-cancel');
-        if (modalCancel) {
-            modalCancel.addEventListener('click', function() {
-                document.getElementById('newEventModal').style.display = 'none';
-            });
-            console.log('✅ Modal cancel configurado');
-        }
-    } catch (e) { console.error('❌ Error en modal cancel:', e); }
+    // Crear evento
+    document.getElementById('createEventBtn').addEventListener('click', function() {
+        crearNuevoEvento();
+    });
     
-    try {
-        // Crear evento
-        const createBtn = document.getElementById('createEventBtn');
-        if (createBtn) {
-            createBtn.addEventListener('click', function() {
-                crearNuevoEvento();
-            });
-            console.log('✅ createEventBtn configurado');
-        }
-    } catch (e) { console.error('❌ Error en createEventBtn:', e); }
+    // Cerrar sesión
+    logoutBtn.addEventListener('click', function() {
+        limpiarSesion();
+    });
     
-    try {
-        // Cerrar sesión
-        const logoutBtn = document.getElementById('logoutBtn');
-        console.log('🔍 logoutBtn:', logoutBtn);
-        if (logoutBtn) {
-            console.log('✅ Configurando logout');
-            logoutBtn.addEventListener('click', function() {
-                console.log('🚪 Click en logout');
-                // Mostrar modal de confirmación
-                document.getElementById('logoutConfirmModal').style.display = 'flex';
-            });
-        } else {
-            console.error('❌ No se encontró logoutBtn');
+    // Zoom
+    zoomInBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (zoomLevel < 2) {
+            zoomLevel += 0.1;
+            aplicarZoom();
         }
-    } catch (e) { console.error('❌ Error en logout:', e); }
+    });
     
-    // Botón confirmar logout en el modal
-    try {
-        const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
-        if (confirmLogoutBtn) {
-            confirmLogoutBtn.addEventListener('click', function() {
-                console.log('✅ Logout confirmado');
-                cerrarModal(document.getElementById('logoutConfirmModal'));
-                limpiarSesion();
-                window.location.href = 'login.html';
-            });
+    zoomOutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (zoomLevel > 0.5) {
+            zoomLevel -= 0.1;
+            aplicarZoom();
         }
-    } catch (e) { console.error('❌ Error en confirmLogoutBtn:', e); }
+    });
     
-    try {
-        // Fullscreen
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        console.log('🔍 fullscreenBtn:', fullscreenBtn);
-        if (fullscreenBtn) {
-            console.log('✅ Configurando fullscreen');
-            fullscreenBtn.addEventListener('click', function() {
-                console.log('🖥️ Click en fullscreen');
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen();
-                    this.querySelector('i').className = 'fas fa-compress';
-                } else {
-                    document.exitFullscreen();
-                    this.querySelector('i').className = 'fas fa-expand';
-                }
-            });
-        } else {
-            console.error('❌ No se encontró fullscreenBtn');
-        }
-    } catch (e) { console.error('❌ Error en fullscreen:', e); }
-    
-    try {
-        // Zoom
-        const zoomInBtn = document.getElementById('zoomInBtn');
-        const zoomOutBtn = document.getElementById('zoomOutBtn');
-        const resetViewBtn = document.getElementById('resetViewBtn');
-        
-        console.log('🔍 zoomInBtn:', zoomInBtn);
-        console.log('🔍 zoomOutBtn:', zoomOutBtn);
-        console.log('🔍 resetViewBtn:', resetViewBtn);
-        
-        if (zoomInBtn) {
-            console.log('✅ Configurando zoom in');
-            zoomInBtn.addEventListener('click', function(e) {
-                console.log('🔍 Click en zoom in, zoomLevel:', zoomLevel);
-                e.preventDefault();
-                if (zoomLevel < 2) {
-                    zoomLevel += 0.1;
-                    aplicarZoom();
-                    console.log('➕ Nuevo zoomLevel:', zoomLevel);
-                }
-            });
-        } else {
-            console.error('❌ No se encontró zoomInBtn');
-        }
-        
-        if (zoomOutBtn) {
-            console.log('✅ Configurando zoom out');
-            zoomOutBtn.addEventListener('click', function(e) {
-                console.log('🔍 Click en zoom out, zoomLevel:', zoomLevel);
-                e.preventDefault();
-                if (zoomLevel > 0.5) {
-                    zoomLevel -= 0.1;
-                    aplicarZoom();
-                    console.log('➖ Nuevo zoomLevel:', zoomLevel);
-                }
-            });
-        } else {
-            console.error('❌ No se encontró zoomOutBtn');
-        }
-        
-        if (resetViewBtn) {
-            console.log('✅ Configurando reset view');
-            resetViewBtn.addEventListener('click', function(e) {
-                console.log('🔄 Click en reset view');
-                e.preventDefault();
-                zoomLevel = 1;
-                aplicarZoom();
-                console.log('↩️ zoomLevel reseteado a 1');
-            });
-        } else {
-            console.error('❌ No se encontró resetViewBtn');
-        }
-    } catch (e) { console.error('❌ Error en zoom:', e); }
+    resetViewBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        zoomLevel = 1;
+        aplicarZoom();
+    });
     
     // Mostrar nombres
     showNamesCheckbox.addEventListener('change', function() {
@@ -1475,40 +1542,25 @@ function guardarEvento() {
 }
 
 function agregarInvitado() {
-    // Limpiar formulario
-    document.getElementById('guestName').value = '';
-    document.getElementById('guestEmail').value = '';
-    document.getElementById('guestPhone').value = '';
-    document.querySelector('input[name="guestStatus"][value="pendiente"]').checked = true;
+    const nombre = prompt('Nombre del invitado:');
+    if (!nombre) return;
     
-    // Mostrar modal
-    document.getElementById('addGuestModal').style.display = 'flex';
-}
-
-function guardarNuevoInvitado() {
-    const nombre = document.getElementById('guestName').value.trim();
-    const email = document.getElementById('guestEmail').value.trim();
-    const telefono = document.getElementById('guestPhone').value.trim();
-    const estado = document.querySelector('input[name="guestStatus"]:checked').value;
-    
-    if (!nombre) {
-        mostrarMensaje('El nombre es obligatorio', 'error');
-        return;
-    }
+    const email = prompt('Email (opcional):');
+    const telefono = prompt('Teléfono (opcional):');
     
     const nuevoInvitado = {
         id: invitados.length + 1,
         nombre: nombre,
         email: email || null,
         telefono: telefono || null,
-        estado: estado,
+        estado: 'pendiente',
         idMesa: null,
         idSilla: null
     };
     
     invitados.push(nuevoInvitado);
     actualizarListaInvitados();
-    cerrarModal(document.getElementById('addGuestModal'));
+    
     mostrarMensaje(`Invitado "${nombre}" agregado`, 'success');
 }
 
@@ -1526,53 +1578,8 @@ function mostrarMensaje(mensaje, tipo = 'info') {
 
 // ===== FUNCIONES GLOBALES PARA HTML =====
 window.editarInvitado = function(invitadoId) {
-    const invitado = invitados.find(i => i.id === invitadoId);
-    if (!invitado) {
-        mostrarMensaje('Invitado no encontrado', 'error');
-        return;
-    }
-    
-    // Llenar formulario con datos actuales
-    document.getElementById('editGuestId').value = invitado.id;
-    document.getElementById('editGuestName').value = invitado.nombre;
-    document.getElementById('editGuestEmail').value = invitado.email || '';
-    document.getElementById('editGuestPhone').value = invitado.telefono || '';
-    document.querySelector(`input[name="editGuestStatus"][value="${invitado.estado}"]`).checked = true;
-    
-    // Mostrar modal
-    document.getElementById('editGuestModal').style.display = 'flex';
+    mostrarMensaje('Funcionalidad de editar invitado en desarrollo', 'info');
 };
-
-function guardarEdicionInvitado() {
-    const id = parseInt(document.getElementById('editGuestId').value);
-    const nombre = document.getElementById('editGuestName').value.trim();
-    const email = document.getElementById('editGuestEmail').value.trim();
-    const telefono = document.getElementById('editGuestPhone').value.trim();
-    const estado = document.querySelector('input[name="editGuestStatus"]:checked').value;
-    
-    if (!nombre) {
-        mostrarMensaje('El nombre es obligatorio', 'error');
-        return;
-    }
-    
-    const invitado = invitados.find(i => i.id === id);
-    if (invitado) {
-        invitado.nombre = nombre;
-        invitado.email = email || null;
-        invitado.telefono = telefono || null;
-        invitado.estado = estado;
-        
-        actualizarListaInvitados();
-        cerrarModal(document.getElementById('editGuestModal'));
-        mostrarMensaje(`Invitado "${nombre}" actualizado`, 'success');
-    }
-}
-
-function cerrarModal(modal) {
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
 
 window.asignarInvitado = function(invitadoId) {
     const invitado = invitados.find(i => i.id === invitadoId);
