@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Estilos adicionales */
         .iframe-container {
             width: 100%;
             height: calc(100vh - 150px);
@@ -23,35 +22,58 @@
             border: none;
         }
         
-        .modal-crear-usuario {
+        .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
             z-index: 10000;
             align-items: center;
             justify-content: center;
         }
         
-        .modal-crear-usuario.active {
-            display: flex;
+        .modal.active {
+            display: flex !important;
         }
         
-        .modal-content-usuario {
+        .modal-content {
             background: white;
-            padding: 30px;
-            border-radius: 16px;
-            max-width: 500px;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 550px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-content h2 {
+            margin: 0 0 24px 0;
+            font-size: 1.8rem;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
         
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         
         .form-group label {
@@ -59,59 +81,88 @@
             margin-bottom: 8px;
             font-weight: 600;
             color: #2d3748;
+            font-size: 0.95rem;
         }
         
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 12px;
+            padding: 14px 16px;
             border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s;
+            box-sizing: border-box;
         }
         
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
             border-color: #764ba2;
+            box-shadow: 0 0 0 4px rgba(118,75,162,0.1);
         }
         
         .btn-primary {
             background: linear-gradient(135deg, #764ba2, #9a7bb8);
             color: white;
-            padding: 12px 24px;
+            padding: 16px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
             width: 100%;
+            font-size: 1.05rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(118,75,162,0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(118,75,162,0.4);
         }
         
         .btn-secondary {
             background: #e2e8f0;
             color: #2d3748;
-            padding: 12px 24px;
+            padding: 14px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+        
+        .campos-extra {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 16px;
+            border-left: 4px solid #764ba2;
+        }
+        
+        .campos-extra h4 {
+            margin: 0 0 16px 0;
+            color: #764ba2;
+            font-size: 1rem;
         }
     </style>
     <script>
-        console.log('🚀 Admin Panel Completo Iniciando...');
-        
         const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
         let currentUser = null;
+        let organizadores = [];
+        let todosEventos = [];
         
         function obtenerToken() {
-            let token = localStorage.getItem('titi_token');
-            if (!token) token = sessionStorage.getItem('titi_token');
-            return token;
+            return localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
         }
         
-        // Verificar sesión
         document.addEventListener('DOMContentLoaded', function() {
             const usuarioStr = localStorage.getItem('titi_usuario_actual');
             if (!usuarioStr) {
@@ -121,7 +172,7 @@
             
             currentUser = JSON.parse(usuarioStr);
             if (currentUser.rol !== 'admin') {
-                alert('Acceso denegado. Solo administradores.');
+                alert('Solo administradores');
                 window.location.href = 'index.html';
                 return;
             }
@@ -129,35 +180,24 @@
             showPage('dashboard');
         });
         
-        // Navegación
         function showPage(pageName) {
-            console.log('📄 Mostrando página:', pageName);
-            
-            // Ocultar todas
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
-            // Mostrar seleccionada
             const page = document.getElementById(pageName);
-            if (page) {
-                page.style.display = 'block';
-            }
+            if (page) page.style.display = 'block';
             
             const nav = document.querySelector(`[data-page="${pageName}"]`);
             if (nav) nav.classList.add('active');
             
-            // Cargar datos según página
             if (pageName === 'usuarios') cargarUsuarios();
             if (pageName === 'solicitudes') cargarSolicitudes();
             if (pageName === 'todos-eventos') cargarTodosEventos();
         }
         
-        // Cargar usuarios
         async function cargarUsuarios() {
-            console.log('📊 Cargando usuarios...');
             const tbody = document.getElementById('usersTableBody');
             if (!tbody) return;
-            
             tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">Cargando...</td></tr>';
             
             try {
@@ -170,9 +210,7 @@
                 });
                 
                 if (!response.ok) throw new Error('Error ' + response.status);
-                
                 const usuarios = await response.json();
-                console.log('✅ Usuarios:', usuarios.length);
                 
                 if (usuarios.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No hay usuarios</td></tr>';
@@ -196,17 +234,14 @@
                     tbody.innerHTML = html;
                 }
             } catch (error) {
-                console.error('❌ Error:', error);
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red">Error al cargar</td></tr>';
+                console.error('Error:', error);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red">Error</td></tr>';
             }
         }
         
-        // Cargar solicitudes
         async function cargarSolicitudes() {
-            console.log('📋 Cargando solicitudes...');
             const container = document.getElementById('solicitudesContainer');
             if (!container) return;
-            
             container.innerHTML = '<p style="text-align:center">Cargando...</p>';
             
             try {
@@ -218,17 +253,14 @@
                     }
                 });
                 
-                if (!response.ok) throw new Error('Error ' + response.status);
-                
+                if (!response.ok) throw new Error('Error');
                 const solicitudes = await response.json();
-                console.log('✅ Solicitudes:', solicitudes.length);
                 
                 if (solicitudes.length === 0) {
                     container.innerHTML = `
                         <div style="text-align:center; padding:60px; color:#999">
-                            <i class="fas fa-inbox" style="font-size:4rem; opacity:0.3; margin-bottom:20px"></i>
+                            <i class="fas fa-inbox" style="font-size:4rem; opacity:0.3"></i>
                             <h3>No hay solicitudes pendientes</h3>
-                            <p>Todas las solicitudes han sido procesadas</p>
                         </div>
                     `;
                 } else {
@@ -244,7 +276,6 @@
                                     <p style="margin:5px 0"><i class="fas fa-user"></i> ${sol.organizador_nombre}</p>
                                     <p style="margin:5px 0"><i class="fas fa-envelope"></i> ${sol.organizador_email}</p>
                                     <p style="margin:5px 0"><i class="fas fa-calendar"></i> ${new Date(sol.fecha_evento).toLocaleDateString()}</p>
-                                    <p style="margin:5px 0"><i class="fas fa-map-marker-alt"></i> ${sol.ubicacion || 'No especificada'}</p>
                                 </div>
                                 <div style="display:flex; gap:12px; margin-top:20px; padding-top:20px; border-top:2px solid #f0f0f0">
                                     <button onclick="aprobarSolicitud(${sol.id})" style="flex:1; padding:12px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
@@ -261,43 +292,37 @@
                     container.innerHTML = html;
                 }
             } catch (error) {
-                console.error('❌ Error:', error);
-                container.innerHTML = '<p style="text-align:center; color:red">Error al cargar solicitudes</p>';
+                console.error('Error:', error);
+                container.innerHTML = '<p style="text-align:center; color:red">Error</p>';
             }
         }
         
-        // Aprobar solicitud
         async function aprobarSolicitud(id) {
-            if (!confirm('¿Aprobar esta solicitud de evento?')) return;
+            if (!confirm('¿Aprobar esta solicitud?')) return;
             
             try {
                 const token = obtenerToken();
-                const response = await fetch(API_BASE + '/solicitudes/' + id + '/aprobar', {
+                await fetch(API_BASE + '/solicitudes/' + id + '/aprobar', {
                     method: 'PUT',
                     headers: {
                         'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
-                
-                if (!response.ok) throw new Error('Error ' + response.status);
-                
-                alert('✅ Solicitud aprobada exitosamente');
+                alert('✅ Aprobada');
                 cargarSolicitudes();
             } catch (error) {
-                console.error('❌ Error:', error);
-                alert('Error al aprobar solicitud');
+                alert('Error');
             }
         }
         
-        // Rechazar solicitud
         async function rechazarSolicitud(id) {
-            const motivo = prompt('Motivo del rechazo (opcional):');
+            const motivo = prompt('Motivo (opcional):');
             if (motivo === null) return;
             
             try {
                 const token = obtenerToken();
-                const response = await fetch(API_BASE + '/solicitudes/' + id + '/rechazar', {
+                await fetch(API_BASE + '/solicitudes/' + id + '/rechazar', {
                     method: 'PUT',
                     headers: {
                         'Authorization': 'Bearer ' + token,
@@ -305,23 +330,16 @@
                     },
                     body: JSON.stringify({ motivo })
                 });
-                
-                if (!response.ok) throw new Error('Error ' + response.status);
-                
-                alert('❌ Solicitud rechazada');
+                alert('❌ Rechazada');
                 cargarSolicitudes();
             } catch (error) {
-                console.error('❌ Error:', error);
-                alert('Error al rechazar solicitud');
+                alert('Error');
             }
         }
         
-        // Cargar todos los eventos
         async function cargarTodosEventos() {
-            console.log('📅 Cargando todos los eventos...');
             const container = document.getElementById('todosEventosContainer');
             if (!container) return;
-            
             container.innerHTML = '<p style="text-align:center">Cargando...</p>';
             
             try {
@@ -333,12 +351,9 @@
                     }
                 });
                 
-                if (!response.ok) throw new Error('Error ' + response.status);
-                
+                if (!response.ok) throw new Error('Error');
                 const data = await response.json();
                 const eventos = data.eventos || data;
-                
-                console.log('✅ Eventos:', eventos.length);
                 
                 if (eventos.length === 0) {
                     container.innerHTML = '<p style="text-align:center; color:#999">No hay eventos</p>';
@@ -350,9 +365,8 @@
                                 <h3 style="margin:0 0 12px 0">${e.nombre}</h3>
                                 <p style="margin:5px 0; color:#666"><i class="fas fa-user"></i> ${e.usuario_nombre || 'Usuario'}</p>
                                 <p style="margin:5px 0; color:#666"><i class="fas fa-calendar"></i> ${e.fecha_evento ? new Date(e.fecha_evento).toLocaleDateString() : 'Sin fecha'}</p>
-                                <p style="margin:5px 0; color:#666"><i class="fas fa-map-marker-alt"></i> ${e.ubicacion || 'Sin ubicación'}</p>
                                 <div style="margin-top:16px; padding-top:16px; border-top:2px solid #f0f0f0">
-                                    <button style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; width:100%">
+                                    <button style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; font-weight:600">
                                         <i class="fas fa-eye"></i> Ver Renderizado
                                     </button>
                                 </div>
@@ -363,73 +377,160 @@
                     container.innerHTML = html;
                 }
             } catch (error) {
-                console.error('❌ Error:', error);
-                container.innerHTML = '<p style="text-align:center; color:red">Error al cargar eventos</p>';
+                console.error('Error:', error);
+                container.innerHTML = '<p style="text-align:center; color:red">Error</p>';
             }
         }
         
-        // Ver evento completo (renderizado)
         function verEventoCompleto(eventoId) {
             window.open('cliente.html?evento=' + eventoId, '_blank');
         }
         
-        // Modal crear usuario
-        function abrirModalCrearUsuario() {
+        async function abrirModalCrearUsuario() {
             document.getElementById('modalCrearUsuario').classList.add('active');
+            await cargarOrganizadores();
+            await cargarTodosEventosParaAdmin();
         }
         
         function cerrarModalCrearUsuario() {
             document.getElementById('modalCrearUsuario').classList.remove('active');
             document.getElementById('formCrearUsuario').reset();
+            document.getElementById('camposColaborador').style.display = 'none';
         }
         
-        // Crear usuario
+        async function cargarOrganizadores() {
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/usuarios', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) return;
+                const usuarios = await response.json();
+                organizadores = usuarios.filter(u => u.rol === 'organizador');
+                
+                const select = document.getElementById('selectOrganizador');
+                select.innerHTML = '<option value="">Seleccionar...</option>';
+                organizadores.forEach(org => {
+                    select.innerHTML += `<option value="${org.id}">${org.nombre} (${org.email})</option>`;
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        async function cargarTodosEventosParaAdmin() {
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/eventos', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) return;
+                const data = await response.json();
+                todosEventos = data.eventos || data;
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        function mostrarCamposSegunRol() {
+            const rol = document.getElementById('selectRol').value;
+            const campos = document.getElementById('camposColaborador');
+            campos.style.display = rol === 'colaborador' ? 'block' : 'none';
+        }
+        
+        function cambiarOrganizador() {
+            const organizadorId = parseInt(document.getElementById('selectOrganizador').value);
+            const selectEvento = document.getElementById('selectEvento');
+            
+            if (!organizadorId) {
+                selectEvento.innerHTML = '<option value="">Primero selecciona organizador</option>';
+                return;
+            }
+            
+            const eventosOrg = todosEventos.filter(e => e.organizador_id === organizadorId && e.estado === 'activo');
+            selectEvento.innerHTML = '<option value="">Seleccionar evento...</option>';
+            eventosOrg.forEach(e => {
+                selectEvento.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
+            });
+        }
+        
         async function crearUsuario(event) {
             event.preventDefault();
             
             const formData = new FormData(event.target);
-            const data = {
-                nombre: formData.get('nombre'),
-                email: formData.get('email'),
-                password: formData.get('password'),
-                rol: formData.get('rol')
-            };
+            const rol = formData.get('rol');
             
             try {
                 const token = obtenerToken();
-                const response = await fetch(API_BASE + '/usuarios', {
+                let endpoint = '/usuarios';
+                let body = {
+                    nombre: formData.get('nombre'),
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                    rol: rol
+                };
+                
+                if (rol === 'colaborador') {
+                    const eventoId = formData.get('evento_id');
+                    if (!eventoId) {
+                        alert('Debes seleccionar un evento');
+                        return;
+                    }
+                    endpoint = '/eventos/' + eventoId + '/colaboradores';
+                    body = {
+                        nombre: body.nombre,
+                        email: body.email,
+                        password: body.password
+                    };
+                }
+                
+                const response = await fetch(API_BASE + endpoint, {
                     method: 'POST',
                     headers: {
                         'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(body)
                 });
                 
-                if (!response.ok) throw new Error('Error ' + response.status);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Error');
+                }
                 
-                alert('✅ Usuario creado exitosamente');
+                alert('✅ Usuario creado');
                 cerrarModalCrearUsuario();
                 cargarUsuarios();
             } catch (error) {
-                console.error('❌ Error:', error);
-                alert('Error al crear usuario');
+                alert(error.message);
             }
         }
         
-        // Logout
-        function logout() {
-            if (confirm('¿Cerrar sesión?')) {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.href = 'login.html';
-            }
+        function mostrarLogout() {
+            document.getElementById('logoutModal').classList.add('active');
+        }
+        
+        function cancelarLogout() {
+            document.getElementById('logoutModal').classList.remove('active');
+        }
+        
+        function confirmarLogout() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'login.html';
         }
     </script>
 </head>
 <body>
     <div class="admin-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
                 <i class="fas fa-calendar-check"></i>
@@ -464,63 +565,54 @@
                     <i class="fas fa-home"></i>
                     <a>Inicio</a>
                 </div>
-                <div class="nav-item" onclick="logout()">
+                <div class="nav-item" onclick="mostrarLogout()">
                     <i class="fas fa-sign-out-alt"></i>
                     <a>Cerrar Sesión</a>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="top-bar">
                 <h1 id="pageTitle">Dashboard Admin</h1>
             </header>
 
-            <!-- Dashboard -->
             <div class="page" id="dashboard" style="display:block; padding:30px">
                 <h2>Panel de Control</h2>
-                <p>Bienvenido al panel de administración de Titi Invita</p>
-                
                 <div style="margin-top:30px; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px">
                     <div style="background:linear-gradient(135deg,#764ba2,#9a7bb8); color:white; padding:30px; border-radius:12px">
-                        <h3>Solicitudes Pendientes</h3>
-                        <p style="font-size:3rem; margin:10px 0" id="statSolicitudes">0</p>
+                        <h3>Solicitudes</h3>
+                        <p style="font-size:3rem; margin:10px 0">0</p>
                     </div>
                     <div style="background:linear-gradient(135deg,#4CAF50,#45a049); color:white; padding:30px; border-radius:12px">
-                        <h3>Total Usuarios</h3>
-                        <p style="font-size:3rem; margin:10px 0" id="statUsuarios">0</p>
+                        <h3>Usuarios</h3>
+                        <p style="font-size:3rem; margin:10px 0">0</p>
                     </div>
                     <div style="background:linear-gradient(135deg,#2196F3,#1976D2); color:white; padding:30px; border-radius:12px">
-                        <h3>Total Eventos</h3>
-                        <p style="font-size:3rem; margin:10px 0" id="statEventos">0</p>
+                        <h3>Eventos</h3>
+                        <p style="font-size:3rem; margin:10px 0">0</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Solicitudes -->
             <div class="page" id="solicitudes" style="display:none; padding:30px">
                 <div style="display:flex; justify-content:space-between; margin-bottom:24px">
                     <h2>Solicitudes de Eventos</h2>
-                    <button onclick="cargarSolicitudes()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                    <button onclick="cargarSolicitudes()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
                         <i class="fas fa-sync-alt"></i> Actualizar
                     </button>
                 </div>
-                
-                <div id="solicitudesContainer">
-                    <p style="text-align:center">Cargando...</p>
-                </div>
+                <div id="solicitudesContainer"></div>
             </div>
 
-            <!-- Usuarios -->
             <div class="page" id="usuarios" style="display:none; padding:30px">
                 <div style="display:flex; justify-content:space-between; margin-bottom:24px">
                     <h2>Gestión de Usuarios</h2>
                     <div>
-                        <button onclick="abrirModalCrearUsuario()" style="padding:10px 20px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; margin-right:10px">
+                        <button onclick="abrirModalCrearUsuario()" style="padding:10px 20px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; margin-right:10px; font-weight:600">
                             <i class="fas fa-plus"></i> Crear Usuario
                         </button>
-                        <button onclick="cargarUsuarios()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                        <button onclick="cargarUsuarios()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
                             <i class="fas fa-sync-alt"></i> Actualizar
                         </button>
                     </div>
@@ -540,29 +632,22 @@
                             </tr>
                         </thead>
                         <tbody id="usersTableBody" style="background:white">
-                            <tr>
-                                <td colspan="7" style="padding:40px; text-align:center">Cargando...</td>
-                            </tr>
+                            <tr><td colspan="7" style="padding:40px; text-align:center">Cargando...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Todos los Eventos -->
             <div class="page" id="todos-eventos" style="display:none; padding:30px">
                 <div style="display:flex; justify-content:space-between; margin-bottom:24px">
-                    <h2>Todos los Eventos (Renderizados)</h2>
-                    <button onclick="cargarTodosEventos()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                    <h2>Todos los Eventos</h2>
+                    <button onclick="cargarTodosEventos()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
                         <i class="fas fa-sync-alt"></i> Actualizar
                     </button>
                 </div>
-                
-                <div id="todosEventosContainer">
-                    <p style="text-align:center">Cargando...</p>
-                </div>
+                <div id="todosEventosContainer"></div>
             </div>
 
-            <!-- Mis Eventos -->
             <div class="page" id="mis-eventos" style="display:none">
                 <div class="iframe-container">
                     <iframe src="cliente.html"></iframe>
@@ -572,32 +657,49 @@
     </div>
 
     <!-- Modal Crear Usuario -->
-    <div id="modalCrearUsuario" class="modal-crear-usuario">
-        <div class="modal-content-usuario">
-            <h2>Crear Nuevo Usuario</h2>
+    <div id="modalCrearUsuario" class="modal">
+        <div class="modal-content">
+            <h2><i class="fas fa-user-plus"></i> Crear Nuevo Usuario</h2>
             <form id="formCrearUsuario" onsubmit="crearUsuario(event)">
                 <div class="form-group">
                     <label>Nombre</label>
-                    <input type="text" name="nombre" required>
+                    <input type="text" name="nombre" placeholder="Nombre completo" required>
                 </div>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" name="email" required>
+                    <input type="email" name="email" placeholder="correo@ejemplo.com" required>
                 </div>
                 <div class="form-group">
                     <label>Contraseña</label>
-                    <input type="password" name="password" required>
+                    <input type="password" name="password" placeholder="Mínimo 6 caracteres" required minlength="6">
                 </div>
                 <div class="form-group">
                     <label>Rol</label>
-                    <select name="rol" required>
-                        <option value="">Seleccionar...</option>
+                    <select name="rol" id="selectRol" required onchange="mostrarCamposSegunRol()">
+                        <option value="">Seleccionar rol...</option>
                         <option value="admin">Admin</option>
                         <option value="organizador">Organizador</option>
                         <option value="cliente">Cliente</option>
                         <option value="colaborador">Colaborador</option>
                     </select>
                 </div>
+                
+                <div id="camposColaborador" class="campos-extra" style="display:none">
+                    <h4><i class="fas fa-link"></i> Asignar a Evento</h4>
+                    <div class="form-group">
+                        <label>Organizador</label>
+                        <select name="organizador_id" id="selectOrganizador" onchange="cambiarOrganizador()">
+                            <option value="">Seleccionar...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Evento</label>
+                        <select name="evento_id" id="selectEvento">
+                            <option value="">Primero selecciona organizador</option>
+                        </select>
+                    </div>
+                </div>
+                
                 <button type="submit" class="btn-primary">
                     <i class="fas fa-save"></i> Crear Usuario
                 </button>
@@ -605,6 +707,25 @@
                     Cancelar
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Logout -->
+    <div id="logoutModal" class="modal">
+        <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideIn 0.3s ease">
+            <div style="width:80px; height:80px; margin:0 auto 20px; background:linear-gradient(135deg, #667eea, #764ba2); border-radius:50%; display:flex; align-items:center; justify-content:center">
+                <i class="fas fa-sign-out-alt" style="font-size:2.5rem; color:white"></i>
+            </div>
+            <h2 style="margin:0 0 10px 0; font-size:1.8rem; color:#2d3748">¿Cerrar Sesión?</h2>
+            <p style="color:#718096; margin:0 0 30px 0">Tu sesión se cerrará y tendrás que volver a iniciar sesión</p>
+            <div style="display:flex; gap:12px">
+                <button onclick="cancelarLogout()" style="flex:1; padding:14px; background:#e2e8f0; color:#2d3748; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem">
+                    Cancelar
+                </button>
+                <button onclick="confirmarLogout()" style="flex:1; padding:14px; background:linear-gradient(135deg, #f44336, #d32f2f); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem">
+                    Salir
+                </button>
+            </div>
         </div>
     </div>
 </body>
