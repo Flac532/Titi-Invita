@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Colaborador - Titi Invita</title>
+    <link rel="stylesheet" href="cliente.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Bloquear mover mesas */
+        .mesa {
+            cursor: not-allowed !important;
+        }
+        
+        .overlay-bloqueado {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        
+        .overlay-bloqueado.active {
+            display: flex;
+        }
+        
+        .mensaje-bloqueado {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 400px;
+        }
+    </style>
+    <script>
+        // Configuración especial para colaborador
+        window.MODO_COLABORADOR = true;
+        window.SOLO_INVITADOS = true;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar que sea colaborador
+            const usuario = JSON.parse(localStorage.getItem('titi_usuario_actual') || '{}');
+            
+            if (usuario.rol !== 'colaborador') {
+                alert('Esta página es solo para colaboradores');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Bloquear funciones de configuración
+            setTimeout(() => {
+                // Deshabilitar drag & drop de mesas
+                document.querySelectorAll('.mesa').forEach(mesa => {
+                    mesa.draggable = false;
+                    mesa.style.cursor = 'default';
+                    
+                    // Remover eventos de arrastre
+                    mesa.ondragstart = (e) => {
+                        e.preventDefault();
+                        mostrarMensajeBloqueado();
+                        return false;
+                    };
+                });
+                
+                // Ocultar botones de configuración
+                const botonesBloquear = [
+                    'btnAgregarMesa',
+                    'btnEliminarMesa',
+                    'btnEditarMesa',
+                    'btnGuardarConfig'
+                ];
+                
+                botonesBloquear.forEach(id => {
+                    const btn = document.getElementById(id);
+                    if (btn) btn.style.display = 'none';
+                });
+                
+                // Agregar mensaje de solo lectura en configuración
+                const header = document.querySelector('.top-bar h1');
+                if (header) {
+                    header.innerHTML += ' <span style="font-size:0.6em; color:#999">(Solo agregar invitados)</span>';
+                }
+            }, 1000);
+        });
+        
+        function mostrarMensajeBloqueado() {
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay-bloqueado active';
+            overlay.innerHTML = `
+                <div class="mensaje-bloqueado">
+                    <i class="fas fa-lock" style="font-size:3rem; color:#999; margin-bottom:20px"></i>
+                    <h3>Función Bloqueada</h3>
+                    <p>Como colaborador, solo puedes agregar y asignar invitados.</p>
+                    <p>No puedes mover o editar la configuración de mesas.</p>
+                    <button onclick="this.closest('.overlay-bloqueado').remove()" style="margin-top:20px; padding:12px 24px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                        Entendido
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+    </script>
+</head>
+<body>
+    <!-- El contenido es el mismo que cliente.html pero con restricciones -->
+    <script>
+        // Cargar cliente.html pero con modo colaborador
+        fetch('cliente.html')
+            .then(r => r.text())
+            .then(html => {
+                // Extraer solo el body
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const body = doc.querySelector('body');
+                
+                // Insertar contenido
+                document.body.innerHTML = body.innerHTML;
+                
+                // Re-ejecutar scripts de bloqueo
+                setTimeout(() => {
+                    document.querySelectorAll('.mesa').forEach(mesa => {
+                        mesa.draggable = false;
+                    });
+                }, 2000);
+            });
+    </script>
+</body>
+</html>
