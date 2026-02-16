@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
+const cron = require('node-cron');
 
 const app = express();
 
@@ -112,6 +113,24 @@ function verificarToken(req, res, next) {
       error: 'Token inválido o expirado' 
     });
   }
+}
+
+// Middleware: Verificar que es admin
+function verificarAdmin(req, res, next) {
+  if (req.usuario.rol !== 'admin') {
+    return res.status(403).json({ 
+      error: 'Acceso denegado. Solo administradores.' 
+    });
+  }
+  next();
+}
+
+// Middleware: Verificar que es organizador
+function verificarOrganizador(req, res, next) {
+  if (req.usuario.rol !== 'organizador' && req.usuario.rol !== 'admin') {
+    return res.status(403).json({ error: 'Solo organizadores pueden realizar esta acción' });
+  }
+  next();
 }
 
 // ============================================
@@ -244,6 +263,52 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Cambiar contraseña
+app.post('/api/auth/change-password', async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email y nueva contraseña requeridos'
+      });
+    }
+
+    const result = await pool.query(
+      'SELECT id FROM usuarios WHERE email = $1',
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Email no encontrado'
+      });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    await pool.query(
+      'UPDATE usuarios SET password_hash = $1 WHERE email = $2',
+      [hashedPassword, email]
+    );
+
+    res.json({
+      success: true,
+      message: 'Contraseña cambiada exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error cambiando contraseña:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno al cambiar contraseña'
+    });
+  }
+});
+
 // ============================================
 // RUTAS PROTEGIDAS (requieren token)
 // ============================================
@@ -278,7 +343,6 @@ app.get('/api/eventos-usuario', verificarToken, async (req, res) => {
 // Obtener todos los eventos (para admin)
 app.get('/api/eventos', verificarToken, async (req, res) => {
   try {
-    // Solo admin puede ver todos los eventos
     if (req.usuario.rol !== 'admin') {
       return res.status(403).json({ 
         success: false,
@@ -319,14 +383,12 @@ app.get('/api/eventos/:id', verificarToken, async (req, res) => {
     let params;
     
     if (userRole === 'admin') {
-      // Admin puede ver cualquier evento
       query = `SELECT e.*, u.nombre as usuario_nombre 
                FROM eventos e 
                LEFT JOIN usuarios u ON e.id_usuario = u.id 
                WHERE e.id = $1`;
       params = [eventId];
     } else {
-      // Usuario normal solo sus eventos
       query = `SELECT * FROM eventos WHERE id = $1 AND id_usuario = $2`;
       params = [eventId, userId];
     }
@@ -383,10 +445,8 @@ app.post('/api/eventos', verificarToken, async (req, res) => {
       ]
     );
     
-    // Crear mesas por defecto para el nuevo evento
     const eventoId = result.rows[0].id;
     
-    // Crear 8 mesas rectangulares por defecto
     for (let i = 1; i <= 8; i++) {
       await pool.query(
         `INSERT INTO mesas (id_evento, nombre, forma, sillas) 
@@ -426,7 +486,6 @@ app.put('/api/eventos/:id', verificarToken, async (req, res) => {
     const userId = req.usuario.id;
     const userRole = req.usuario.rol;
     
-    // Verificar permisos
     let checkQuery;
     if (userRole === 'admin') {
       checkQuery = `SELECT id FROM eventos WHERE id = $1`;
@@ -485,6 +544,47 @@ app.put('/api/eventos/:id', verificarToken, async (req, res) => {
   }
 });
 
+// Eliminar evento
+app.delete('/api/eventos/:id', verificarToken, async (req, res) => {
+  try {
+    const eventId = parseInt(req.params.id);
+    const userId = req.usuario.id;
+    const userRole = req.usuario.rol;
+
+    const checkQuery = userRole === 'admin'
+      ? `SELECT id FROM eventos WHERE id = $1`
+      : `SELECT id FROM eventos WHERE id = $1 AND id_usuario = $2`;
+
+    const checkResult = await pool.query(
+      checkQuery,
+      userRole === 'admin' ? [eventId] : [eventId, userId]
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Evento no encontrado o no autorizado'
+      });
+    }
+
+    await pool.query('DELETE FROM invitados WHERE id_evento = $1', [eventId]);
+    await pool.query('DELETE FROM mesas WHERE id_evento = $1', [eventId]);
+    await pool.query('DELETE FROM eventos WHERE id = $1', [eventId]);
+
+    res.json({
+      success: true,
+      message: 'Evento eliminado exitosamente'
+    });
+
+  } catch (error) {
+    console.error('Error eliminando evento:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error eliminando evento'
+    });
+  }
+});
+
 // Obtener mesas de un evento
 app.get('/api/eventos/:id/mesas', verificarToken, async (req, res) => {
   try {
@@ -492,7 +592,6 @@ app.get('/api/eventos/:id/mesas', verificarToken, async (req, res) => {
     const userId = req.usuario.id;
     const userRole = req.usuario.rol;
     
-    // Verificar permisos
     let checkQuery;
     if (userRole === 'admin') {
       checkQuery = `SELECT id FROM eventos WHERE id = $1`;
@@ -538,9 +637,8 @@ app.put('/api/eventos/:id/mesas', verificarToken, async (req, res) => {
     const eventId = parseInt(req.params.id);
     const userId = req.usuario.id;
     const userRole = req.usuario.rol;
-    const { mesas } = req.body; // Array de mesas
+    const { mesas } = req.body;
     
-    // Verificar permisos
     let checkQuery;
     if (userRole === 'admin') {
       checkQuery = `SELECT id FROM eventos WHERE id = $1`;
@@ -560,10 +658,8 @@ app.put('/api/eventos/:id/mesas', verificarToken, async (req, res) => {
       });
     }
     
-    // Eliminar mesas existentes
     await pool.query('DELETE FROM mesas WHERE id_evento = $1', [eventId]);
     
-    // Insertar nuevas mesas
     for (const mesa of mesas) {
       await pool.query(
         `INSERT INTO mesas (id_evento, nombre, forma, posicion_x, posicion_y, sillas) 
@@ -601,7 +697,6 @@ app.get('/api/eventos/:id/invitados', verificarToken, async (req, res) => {
     const userId = req.usuario.id;
     const userRole = req.usuario.rol;
     
-    // Verificar permisos
     let checkQuery;
     if (userRole === 'admin') {
       checkQuery = `SELECT id FROM eventos WHERE id = $1`;
@@ -641,7 +736,7 @@ app.get('/api/eventos/:id/invitados', verificarToken, async (req, res) => {
   }
 });
 
-// Crear o actualizar invitado
+// Crear invitado
 app.post('/api/eventos/:id/invitados', verificarToken, async (req, res) => {
   try {
     const eventId = parseInt(req.params.id);
@@ -649,7 +744,6 @@ app.post('/api/eventos/:id/invitados', verificarToken, async (req, res) => {
     const userRole = req.usuario.rol;
     const { nombre, email, telefono, id_mesa, silla_numero, estado, notas } = req.body;
     
-    // Verificar permisos
     let checkQuery;
     if (userRole === 'admin') {
       checkQuery = `SELECT id FROM eventos WHERE id = $1`;
@@ -708,7 +802,7 @@ app.post('/api/eventos/:id/invitados', verificarToken, async (req, res) => {
   }
 });
 
-// Actualizar invitado específico
+// Actualizar invitado
 app.put('/api/eventos/:eventoId/invitados/:invitadoId', verificarToken, async (req, res) => {
   try {
     const eventoId = parseInt(req.params.eventoId);
@@ -716,7 +810,6 @@ app.put('/api/eventos/:eventoId/invitados/:invitadoId', verificarToken, async (r
     const userId = req.usuario.id;
     const userRole = req.usuario.rol;
     
-    // Verificar permisos
     let checkQuery;
     if (userRole === 'admin') {
       checkQuery = `SELECT id FROM eventos WHERE id = $1`;
@@ -753,17 +846,7 @@ app.put('/api/eventos/:eventoId/invitados/:invitadoId', verificarToken, async (r
            END
        WHERE id = $1 AND id_evento = $2 
        RETURNING *`,
-      [
-        invitadoId, 
-        eventoId, 
-        nombre, 
-        email, 
-        telefono, 
-        id_mesa, 
-        silla_numero, 
-        estado, 
-        notas
-      ]
+      [invitadoId, eventoId, nombre, email, telefono, id_mesa, silla_numero, estado, notas]
     );
     
     if (result.rows.length === 0) {
@@ -788,150 +871,13 @@ app.put('/api/eventos/:eventoId/invitados/:invitadoId', verificarToken, async (r
   }
 });
 
-// Obtener todos los usuarios (solo admin)
-app.get('/api/usuarios', verificarToken, async (req, res) => {
-  try {
-    if (req.usuario.rol !== 'admin') {
-      return res.status(403).json({ 
-        success: false,
-        error: 'No autorizado' 
-      });
-    }
-    
-    const result = await pool.query(
-      'SELECT id, nombre, email, rol, activo, fecha_creacion FROM usuarios ORDER BY id'
-    );
-    
-    res.json({
-      success: true,
-      usuarios: result.rows,
-      count: result.rows.length
-    });
-    
-  } catch (error) {
-    console.error('Error obteniendo usuarios:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Error obteniendo usuarios' 
-    });
-  }
-});
-
-// Ruta protegida de prueba
-app.get('/api/protegido', verificarToken, async (req, res) => {
-  try {
-    res.json({
-      success: true,
-      message: 'Acceso autorizado',
-      usuario: req.usuario,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      success: false,
-      error: 'Error interno' 
-    });
-  }
-});
-
-// Eliminar evento
-app.delete('/api/eventos/:id', verificarToken, async (req, res) => {
-  try {
-    const eventId   = parseInt(req.params.id);
-    const userId   = req.usuario.id;
-    const userRole  = req.usuario.rol;
-
-    // Verificar permisos
-    const checkQuery = userRole === 'admin'
-      ? `SELECT id FROM eventos WHERE id = $1`
-      : `SELECT id FROM eventos WHERE id = $1 AND id_usuario = $2`;
-
-    const checkResult = await pool.query(
-      checkQuery,
-      userRole === 'admin' ? [eventId] : [eventId, userId]
-    );
-
-    if (checkResult.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Evento no encontrado o no autorizado'
-      });
-    }
-
-    // Borrar invitados, mesas y evento en orden
-    await pool.query('DELETE FROM invitados WHERE id_evento = $1', [eventId]);
-    await pool.query('DELETE FROM mesas WHERE id_evento = $1',    [eventId]);
-    await pool.query('DELETE FROM eventos WHERE id = $1',         [eventId]);
-
-    res.json({
-      success: true,
-      message: 'Evento eliminado exitosamente'
-    });
-
-  } catch (error) {
-    console.error('Error eliminando evento:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error eliminando evento'
-    });
-  }
-});
-
-// Cambiar contraseña (usado por modal "olvidaste contraseña" en login)
-app.post('/api/auth/change-password', async (req, res) => {
-  try {
-    const { email, newPassword } = req.body;
-
-    if (!email || !newPassword) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email y nueva contraseña requeridos'
-      });
-    }
-
-    // Buscar usuario
-    const result = await pool.query(
-      'SELECT id FROM usuarios WHERE email = $1',
-      [email]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Email no encontrado'
-      });
-    }
-
-    // Hashear nueva contraseña
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-
-    await pool.query(
-      'UPDATE usuarios SET password_hash = $1 WHERE email = $2',
-      [hashedPassword, email]
-    );
-
-    res.json({
-      success: true,
-      message: 'Contraseña cambiada exitosamente'
-    });
-
-  } catch (error) {
-    console.error('Error cambiando contraseña:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error interno al cambiar contraseña'
-    });
-  }
-});
-
-// Eliminar invitado específico
+// Eliminar invitado
 app.delete('/api/eventos/:eventoId/invitados/:invitadoId', verificarToken, async (req, res) => {
   try {
-    const eventoId   = parseInt(req.params.eventoId);
+    const eventoId = parseInt(req.params.eventoId);
     const invitadoId = parseInt(req.params.invitadoId);
-    const userId    = req.usuario.id;
-    const userRole   = req.usuario.rol;
+    const userId = req.usuario.id;
+    const userRole = req.usuario.rol;
 
     const checkQuery = userRole === 'admin'
       ? `SELECT id FROM eventos WHERE id = $1`
@@ -963,83 +909,38 @@ app.delete('/api/eventos/:eventoId/invitados/:invitadoId', verificarToken, async
   }
 });
 
-// ============================================
-// SERVIR ARCHIVOS ESTÁTICOS
-// ============================================
-app.use(express.static('public'));
-
-// Ruta para el frontend
-app.get('*', (req, res) => {
-  res.sendFile('index.html', { root: 'public' });
-});
-
-// ============================================
-// INICIAR SERVIDOR
-// ============================================
-async function startServer() {
-  console.log('\n🔧 Iniciando servidor...');
-  
-  // Probar conexión a la base de datos
-  const dbConnected = await testDatabaseConnection();
-  
-  if (!dbConnected) {
-    console.log('⚠️  ADVERTENCIA: No se pudo conectar a la base de datos');
-    console.log('💡 La aplicación funcionará en modo limitado');
+// Obtener usuarios (admin)
+app.get('/api/usuarios', verificarToken, verificarAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, nombre, email, rol, activo, fecha_creacion FROM usuarios ORDER BY id'
+    );
+    
+    res.json(result.rows);
+    
+  } catch (error) {
+    console.error('Error obteniendo usuarios:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Error obteniendo usuarios' 
+    });
   }
-  
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log('\n===========================================');
-    console.log('🚀 SERVIDOR INICIADO EXITOSAMENTE');
-    console.log('===========================================');
-    console.log('🌐 URL pública: https://titi-invita-app-azhcw.ondigitalocean.app');
-    console.log('🔌 Puerto interno:', PORT);
-    console.log('📡 Health check: /api/health');
-    console.log('🔑 Login endpoint: POST /api/auth/login');
-    console.log('👤 Credenciales demo:');
-    console.log('   Email: jorge.flores@titi-app.com');
-    console.log('   Password: Titi-apps2026@!');
-    console.log('===========================================');
-  });
-}
-
-// Manejo de errores
-process.on('uncaughtException', (error) => {
-  console.error('💥 ERROR NO CAPTURADO:', error);
 });
-
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('💥 PROMESA RECHAZADA:', reason);
-});
-
-// Iniciar servidor
-startServer();
 
 // ========================================
 // NUEVOS ENDPOINTS - SISTEMA DE PERMISOS
 // ========================================
 
-// Middleware: Verificar que es organizador
-function verificarOrganizador(req, res, next) {
-  if (req.usuario.rol !== 'organizador' && req.usuario.rol !== 'admin') {
-    return res.status(403).json({ error: 'Solo organizadores pueden realizar esta acción' });
-  }
-  next();
-}
-
-// ===== SOLICITUDES DE EVENTOS =====
-
-// POST /api/solicitudes - Organizador crea solicitud de evento
+// POST /api/solicitudes - Organizador crea solicitud
 app.post('/api/solicitudes', verificarToken, verificarOrganizador, async (req, res) => {
   try {
     const { nombre, descripcion, fecha_evento, hora_evento, ubicacion } = req.body;
     const organizadorId = req.usuario.id;
     
-    // Validar datos
     if (!nombre || !fecha_evento) {
       return res.status(400).json({ error: 'Nombre y fecha son obligatorios' });
     }
     
-    // Verificar que no tenga más de 3 solicitudes pendientes
     const pendientes = await pool.query(
       'SELECT COUNT(*) as total FROM eventos WHERE organizador_id = $1 AND estado = $2',
       [organizadorId, 'pendiente']
@@ -1051,7 +952,6 @@ app.post('/api/solicitudes', verificarToken, verificarOrganizador, async (req, r
       });
     }
     
-    // Crear solicitud
     const result = await pool.query(
       `INSERT INTO eventos (nombre, descripcion, fecha_evento, hora_evento, ubicacion, organizador_id, id_usuario, estado)
        VALUES ($1, $2, $3, $4, $5, $6, $6, 'pendiente')
@@ -1059,7 +959,7 @@ app.post('/api/solicitudes', verificarToken, verificarOrganizador, async (req, r
       [nombre, descripcion, fecha_evento, hora_evento, ubicacion, organizadorId]
     );
     
-    console.log('✅ Solicitud de evento creada:', result.rows[0].id);
+    console.log('✅ Solicitud creada:', result.rows[0].id);
     res.status(201).json(result.rows[0]);
     
   } catch (error) {
@@ -1068,7 +968,7 @@ app.post('/api/solicitudes', verificarToken, verificarOrganizador, async (req, r
   }
 });
 
-// GET /api/solicitudes - Admin ve todas las solicitudes pendientes
+// GET /api/solicitudes - Admin ve solicitudes pendientes
 app.get('/api/solicitudes', verificarToken, verificarAdmin, async (req, res) => {
   try {
     const result = await pool.query(`
@@ -1079,7 +979,7 @@ app.get('/api/solicitudes', verificarToken, verificarAdmin, async (req, res) => 
       FROM eventos e
       LEFT JOIN usuarios u ON e.organizador_id = u.id
       WHERE e.estado = 'pendiente'
-      ORDER BY e.created_at DESC
+      ORDER BY e.fecha_creacion DESC
     `);
     
     res.json(result.rows);
@@ -1089,17 +989,13 @@ app.get('/api/solicitudes', verificarToken, verificarAdmin, async (req, res) => 
   }
 });
 
-// PUT /api/solicitudes/:id/aprobar - Admin aprueba solicitud
+// PUT /api/solicitudes/:id/aprobar - Admin aprueba
 app.put('/api/solicitudes/:id/aprobar', verificarToken, verificarAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Actualizar estado a 'activo'
     const result = await pool.query(
-      `UPDATE eventos 
-       SET estado = 'activo' 
-       WHERE id = $1 AND estado = 'pendiente'
-       RETURNING *`,
+      `UPDATE eventos SET estado = 'activo' WHERE id = $1 AND estado = 'pendiente' RETURNING *`,
       [id]
     );
     
@@ -1116,13 +1012,11 @@ app.put('/api/solicitudes/:id/aprobar', verificarToken, verificarAdmin, async (r
   }
 });
 
-// PUT /api/solicitudes/:id/rechazar - Admin rechaza solicitud
+// PUT /api/solicitudes/:id/rechazar - Admin rechaza
 app.put('/api/solicitudes/:id/rechazar', verificarToken, verificarAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { motivo } = req.body;
     
-    // Eliminar la solicitud rechazada
     const result = await pool.query(
       'DELETE FROM eventos WHERE id = $1 AND estado = $2 RETURNING *',
       [id, 'pendiente']
@@ -1132,7 +1026,7 @@ app.put('/api/solicitudes/:id/rechazar', verificarToken, verificarAdmin, async (
       return res.status(404).json({ error: 'Solicitud no encontrada' });
     }
     
-    console.log('❌ Solicitud rechazada:', id, motivo || '');
+    console.log('❌ Solicitud rechazada:', id);
     res.json({ success: true, mensaje: 'Solicitud rechazada y eliminada' });
     
   } catch (error) {
@@ -1141,9 +1035,7 @@ app.put('/api/solicitudes/:id/rechazar', verificarToken, verificarAdmin, async (
   }
 });
 
-// ===== EVENTOS DEL ORGANIZADOR =====
-
-// GET /api/mis-eventos - Organizador ve TODOS sus eventos
+// GET /api/mis-eventos - Organizador ve sus eventos
 app.get('/api/mis-eventos', verificarToken, verificarOrganizador, async (req, res) => {
   try {
     const organizadorId = req.usuario.id;
@@ -1160,7 +1052,6 @@ app.get('/api/mis-eventos', verificarToken, verificarOrganizador, async (req, re
         fecha_evento DESC
     `, [organizadorId]);
     
-    // Cargar mesas para cada evento
     for (let evento of result.rows) {
       const mesas = await pool.query(
         'SELECT * FROM mesas WHERE id_evento = $1 ORDER BY id',
@@ -1176,40 +1067,33 @@ app.get('/api/mis-eventos', verificarToken, verificarOrganizador, async (req, re
   }
 });
 
-// ===== COLABORADORES =====
-
-// POST /api/eventos/:eventoId/colaboradores - Organizador agrega colaborador
+// POST /api/eventos/:eventoId/colaboradores - Agregar colaborador
 app.post('/api/eventos/:eventoId/colaboradores', verificarToken, verificarOrganizador, async (req, res) => {
   try {
     const { eventoId } = req.params;
     const { nombre, email, password } = req.body;
     const organizadorId = req.usuario.id;
     
-    // Verificar que el evento pertenece al organizador
     const evento = await pool.query(
       'SELECT * FROM eventos WHERE id = $1 AND organizador_id = $2',
       [eventoId, organizadorId]
     );
     
     if (evento.rows.length === 0) {
-      return res.status(403).json({ error: 'No tienes permiso para agregar colaboradores a este evento' });
+      return res.status(403).json({ error: 'No tienes permiso' });
     }
     
-    // Validar datos
     if (!nombre || !email || !password) {
       return res.status(400).json({ error: 'Nombre, email y contraseña son obligatorios' });
     }
     
-    // Verificar que email no exista
     const existente = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
     if (existente.rows.length > 0) {
       return res.status(400).json({ error: 'El email ya está registrado' });
     }
     
-    // Hash de contraseña
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Crear colaborador
     const result = await pool.query(
       `INSERT INTO usuarios (nombre, email, password_hash, rol, evento_id)
        VALUES ($1, $2, $3, 'colaborador', $4)
@@ -1226,12 +1110,11 @@ app.post('/api/eventos/:eventoId/colaboradores', verificarToken, verificarOrgani
   }
 });
 
-// GET /api/eventos/:eventoId/colaboradores - Listar colaboradores del evento
+// GET /api/eventos/:eventoId/colaboradores - Listar colaboradores
 app.get('/api/eventos/:eventoId/colaboradores', verificarToken, async (req, res) => {
   try {
     const { eventoId } = req.params;
     
-    // Verificar permisos (organizador del evento o admin)
     if (req.usuario.rol !== 'admin') {
       const evento = await pool.query(
         'SELECT * FROM eventos WHERE id = $1 AND organizador_id = $2',
@@ -1261,7 +1144,6 @@ app.delete('/api/colaboradores/:id', verificarToken, verificarOrganizador, async
     const { id } = req.params;
     const organizadorId = req.usuario.id;
     
-    // Verificar que el colaborador pertenece a un evento del organizador
     const colaborador = await pool.query(`
       SELECT u.*, e.organizador_id 
       FROM usuarios u
@@ -1288,15 +1170,13 @@ app.delete('/api/colaboradores/:id', verificarToken, verificarOrganizador, async
   }
 });
 
-// ===== ACCESO PARA CLIENTE Y COLABORADOR =====
-
-// GET /api/mi-evento - Cliente o Colaborador ve SU evento asignado
+// GET /api/mi-evento - Cliente/Colaborador ve su evento
 app.get('/api/mi-evento', verificarToken, async (req, res) => {
   try {
     const { evento_id, rol } = req.usuario;
     
     if (rol !== 'cliente' && rol !== 'colaborador') {
-      return res.status(403).json({ error: 'Solo clientes y colaboradores usan este endpoint' });
+      return res.status(403).json({ error: 'Solo clientes y colaboradores' });
     }
     
     if (!evento_id) {
@@ -1309,7 +1189,6 @@ app.get('/api/mi-evento', verificarToken, async (req, res) => {
       return res.status(404).json({ error: 'Evento no encontrado' });
     }
     
-    // Cargar mesas
     const mesas = await pool.query(
       'SELECT * FROM mesas WHERE id_evento = $1 ORDER BY id',
       [evento_id]
@@ -1323,40 +1202,30 @@ app.get('/api/mi-evento', verificarToken, async (req, res) => {
   }
 });
 
-// ===== CRON JOB: AUTO-ELIMINACIÓN DE EVENTOS FINALIZADOS =====
+// ===== CRON JOBS =====
 
-const cron = require('node-cron');
-
-// Ejecutar diariamente a las 3:00 AM
 cron.schedule('0 3 * * *', async () => {
   try {
-    console.log('🗑️  Ejecutando limpieza de eventos finalizados...');
+    console.log('🗑️  Limpieza de eventos finalizados...');
     
     const tresDiasAtras = new Date();
     tresDiasAtras.setDate(tresDiasAtras.getDate() - 3);
     
     const result = await pool.query(`
       DELETE FROM eventos 
-      WHERE fecha_evento < $1 
-      AND estado = 'finalizado'
+      WHERE fecha_evento < $1 AND estado = 'finalizado'
       RETURNING id, nombre, fecha_evento
     `, [tresDiasAtras]);
     
     if (result.rows.length > 0) {
-      console.log(`✅ Eliminados ${result.rows.length} eventos antiguos:`);
-      result.rows.forEach(e => {
-        console.log(`   - ${e.nombre} (${e.fecha_evento})`);
-      });
-    } else {
-      console.log('   No hay eventos para eliminar');
+      console.log(`✅ Eliminados ${result.rows.length} eventos antiguos`);
     }
     
   } catch (error) {
-    console.error('❌ Error en limpieza de eventos:', error);
+    console.error('❌ Error en limpieza:', error);
   }
 });
 
-// También marcar como finalizados los eventos cuya fecha ya pasó
 cron.schedule('0 1 * * *', async () => {
   try {
     console.log('📅 Marcando eventos pasados como finalizados...');
@@ -1367,8 +1236,7 @@ cron.schedule('0 1 * * *', async () => {
     const result = await pool.query(`
       UPDATE eventos 
       SET estado = 'finalizado' 
-      WHERE fecha_evento < $1 
-      AND estado = 'activo'
+      WHERE fecha_evento < $1 AND estado = 'activo'
       RETURNING id, nombre
     `, [hoy]);
     
@@ -1384,3 +1252,45 @@ cron.schedule('0 1 * * *', async () => {
 console.log('✅ Cron jobs configurados:');
 console.log('   - 01:00 AM: Marcar eventos como finalizados');
 console.log('   - 03:00 AM: Eliminar eventos antiguos');
+
+// ============================================
+// SERVIR ARCHIVOS ESTÁTICOS
+// ============================================
+app.use(express.static('public'));
+
+app.get('*', (req, res) => {
+  res.sendFile('index.html', { root: 'public' });
+});
+
+// ============================================
+// INICIAR SERVIDOR
+// ============================================
+async function startServer() {
+  console.log('\n🔧 Iniciando servidor...');
+  
+  const dbConnected = await testDatabaseConnection();
+  
+  if (!dbConnected) {
+    console.log('⚠️  ADVERTENCIA: No se pudo conectar a la base de datos');
+  }
+  
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('\n===========================================');
+    console.log('🚀 SERVIDOR INICIADO EXITOSAMENTE');
+    console.log('===========================================');
+    console.log('🌐 URL: https://titi-invita-app-azhcw.ondigitalocean.app');
+    console.log('🔌 Puerto:', PORT);
+    console.log('📡 Health: /api/health');
+    console.log('===========================================');
+  });
+}
+
+process.on('uncaughtException', (error) => {
+  console.error('💥 ERROR NO CAPTURADO:', error);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('💥 PROMESA RECHAZADA:', reason);
+});
+
+startServer();
