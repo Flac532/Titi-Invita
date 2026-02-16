@@ -114,6 +114,12 @@
                 </div>
                 
                 <div class="header-actions">
+                    <button class="btn-icon" id="shareBtn" title="Compartir Vista">
+                        <i class="fas fa-share-alt"></i>
+                    </button>
+                    <button class="btn-icon" id="helpBtn" title="Ayuda">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
                     <button class="btn-icon" id="logoutBtn" title="Cerrar Sesión">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
@@ -171,6 +177,10 @@
                         <span class="count-value" id="activeEventsCount">1</span>
                         <span class="count-label">Activos</span>
                     </div>
+                    <div class="count-item">
+                        <span class="count-value" id="draftEventsCount">0</span>
+                        <span class="count-label">Borradores</span>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -192,6 +202,9 @@
                     </button>
                     <button class="btn-icon" id="resetViewBtn" title="Restablecer Vista">
                         <i class="fas fa-expand-arrows-alt"></i>
+                    </button>
+                    <button class="btn-icon" id="changeLayoutBtn" title="Cambiar Disposición" onclick="mostrarOpcionesDisposicion()">
+                        <i class="fas fa-th"></i>
                     </button>
                 </div>
             </div>
@@ -304,10 +317,10 @@
                     </div>
                     
                     <div class="button-group">
-                        <button class="btn-purple" id="btnCrearMesas">
+                        <button class="btn-primary" id="btnCrearMesas">
                             <i class="fas fa-sync"></i> Actualizar Mesas
                         </button>
-                        <button class="btn-success" id="btnGuardarEvento">
+                        <button class="btn-secondary" id="btnGuardarEvento">
                             <i class="fas fa-save"></i> Guardar Cambios
                         </button>
                         <button class="btn-danger" id="btnFinalizarEvento" title="Eliminar Evento">
@@ -327,7 +340,7 @@
                     
                     <div class="guest-search">
                         <input type="text" id="guestSearch" placeholder="Buscar invitado...">
-                        <button class="btn-icon" id="addGuestBtn" title="Agregar Invitado" onclick="agregarInvitado()">
+                        <button class="btn-icon" id="addGuestBtn" title="Agregar Invitado">
                             <i class="fas fa-user-plus"></i>
                         </button>
                     </div>
@@ -343,6 +356,18 @@
                     
                     <div class="guests-list" id="guestsList">
                         <!-- Lista de invitados se generará aquí -->
+                    </div>
+                    
+                    <div class="guest-actions">
+                        <button class="btn-secondary btn-small" id="importGuestsBtn">
+                            <i class="fas fa-file-import"></i> Importar CSV
+                        </button>
+                        <button class="btn-secondary btn-small" id="exportGuestsBtn">
+                            <i class="fas fa-file-export"></i> Exportar Lista
+                        </button>
+                        <button class="btn-secondary btn-small" id="sendInvitationsBtn">
+                            <i class="fas fa-envelope"></i> Enviar Invitaciones
+                        </button>
                     </div>
                 </div>
                 
@@ -365,73 +390,57 @@
     
     <!-- Modales -->
     <div class="modal" id="newEventModal">
-        <div class="modal-content modal-event">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="fas fa-calendar-plus"></i> Nuevo Evento</h3>
-                <button class="modal-close" onclick="cerrarModal(document.getElementById('newEventModal'))">&times;</button>
+                <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-field">
-                    <label>Nombre del Evento *</label>
-                    <input type="text" id="newEventName" placeholder="Ej: Boda de Ana y Carlos">
-                </div>
-                <div class="form-row">
-                    <div class="form-field">
-                        <label>Fecha *</label>
-                        <input type="date" id="newEventDate">
+                <form id="newEventForm">
+                    <div class="form-group">
+                        <label for="newEventName">Nombre del Evento *</label>
+                        <input type="text" id="newEventName" required>
                     </div>
-                    <div class="form-field">
-                        <label>Hora</label>
-                        <input type="time" id="newEventTime" value="18:00">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newEventDate">Fecha *</label>
+                            <input type="date" id="newEventDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newEventTime">Hora</label>
+                            <input type="time" id="newEventTime">
+                        </div>
                     </div>
-                </div>
-                <div class="form-field">
-                    <label>Ubicación</label>
-                    <input type="text" id="newEventLocation" placeholder="Ej: Salón de Eventos Principal">
-                </div>
-                <div class="form-field">
-                    <label>Tipo de Evento</label>
-                    <select id="newEventType">
-                        <option value="boda">Boda</option>
-                        <option value="conferencia">Conferencia</option>
-                        <option value="fiesta">Fiesta</option>
-                        <option value="corporativo">Evento Corporativo</option>
-                        <option value="otro">Otro</option>
-                    </select>
-                </div>
-                
-                <div class="form-separator">
-                    <span>Configuración de Mesas</span>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-field">
-                        <label>Número de Mesas *</label>
-                        <input type="number" id="newEventMesas" min="1" max="50" value="8">
+                    <div class="form-group">
+                        <label for="newEventLocation">Ubicación</label>
+                        <input type="text" id="newEventLocation" placeholder="Ej: Salón de Eventos Principal">
                     </div>
-                    <div class="form-field">
-                        <label>Sillas por Mesa *</label>
-                        <input type="number" id="newEventSillas" min="2" max="20" value="8">
+                    <div class="form-group">
+                        <label for="newEventType">Tipo de Evento</label>
+                        <select id="newEventType">
+                            <option value="boda">Boda</option>
+                            <option value="conferencia">Conferencia</option>
+                            <option value="fiesta">Fiesta</option>
+                            <option value="corporativo">Evento Corporativo</option>
+                            <option value="otro">Otro</option>
+                        </select>
                     </div>
-                </div>
-                
-                <div class="form-field">
-                    <label>Forma de las Mesas</label>
-                    <select id="newEventForma">
-                        <option value="rectangular">Rectangular</option>
-                        <option value="circular">Circular</option>
-                        <option value="cuadrada">Cuadrada</option>
-                    </select>
-                </div>
-                
-                <div id="eventLimitWarning" class="alert-warning" style="display: none;">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>Como cliente solo puedes tener 1 evento activo.</span>
-                </div>
+                    <div class="form-group">
+                        <label>Configuración Inicial</label>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="useTemplate" checked>
+                            <label for="useTemplate">Usar plantilla predeterminada</label>
+                        </div>
+                    </div>
+                    <div id="eventLimitWarning" style="display: none; color: #f44336; font-size: 0.9rem; margin-top: 10px;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Como cliente solo puedes tener 1 evento activo.</span>
+                    </div>
+                </form>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModal(document.getElementById('newEventModal'))">Cancelar</button>
-                <button class="btn-success" id="createEventBtn"><i class="fas fa-check"></i> Crear Evento</button>
+                <button class="btn-secondary modal-cancel">Cancelar</button>
+                <button class="btn-primary" id="createEventBtn">Crear Evento</button>
             </div>
         </div>
     </div>
@@ -502,121 +511,6 @@
         </div>
     </div>
     
-    <!-- Modal: Agregar Invitado -->
-    <div class="modal" id="addGuestModal">
-        <div class="modal-content modal-guest">
-            <div class="modal-header">
-                <h3><i class="fas fa-user-plus"></i> Agregar Invitado</h3>
-                <button class="modal-close" onclick="cerrarModal(document.getElementById('addGuestModal'))">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-field">
-                    <label>Nombre Completo *</label>
-                    <input type="text" id="guestName" placeholder="Ej: Juan Pérez">
-                </div>
-                <div class="form-field">
-                    <label>Correo Electrónico</label>
-                    <input type="email" id="guestEmail" placeholder="juan@ejemplo.com">
-                </div>
-                <div class="form-field">
-                    <label>Teléfono</label>
-                    <input type="tel" id="guestPhone" placeholder="555-1234">
-                </div>
-                <div class="form-field">
-                    <label>Estado</label>
-                    <div class="radio-group-pills">
-                        <label class="radio-pill">
-                            <input type="radio" name="guestStatus" value="pendiente" checked>
-                            <span>Sin Asignar</span>
-                        </label>
-                        <label class="radio-pill radio-pill-assigned">
-                            <input type="radio" name="guestStatus" value="asignado">
-                            <span>Asignado</span>
-                        </label>
-                        <label class="radio-pill radio-pill-confirmed">
-                            <input type="radio" name="guestStatus" value="confirmado">
-                            <span>Confirmado</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModal(document.getElementById('addGuestModal'))">Cancelar</button>
-                <button class="btn-success" onclick="guardarNuevoInvitado()"><i class="fas fa-check"></i> Agregar</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal: Editar Invitado -->
-    <div class="modal" id="editGuestModal">
-        <div class="modal-content modal-guest">
-            <div class="modal-header">
-                <h3><i class="fas fa-user-edit"></i> Editar Invitado</h3>
-                <button class="modal-close" onclick="cerrarModal(document.getElementById('editGuestModal'))">&times;</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="editGuestId">
-                <div class="form-field">
-                    <label>Nombre Completo *</label>
-                    <input type="text" id="editGuestName" placeholder="Ej: Juan Pérez">
-                </div>
-                <div class="form-field">
-                    <label>Correo Electrónico</label>
-                    <input type="email" id="editGuestEmail" placeholder="juan@ejemplo.com">
-                </div>
-                <div class="form-field">
-                    <label>Teléfono</label>
-                    <input type="tel" id="editGuestPhone" placeholder="555-1234">
-                </div>
-                <div class="form-field">
-                    <label>Estado</label>
-                    <div class="radio-group-pills">
-                        <label class="radio-pill">
-                            <input type="radio" name="editGuestStatus" value="pendiente">
-                            <span>Sin Asignar</span>
-                        </label>
-                        <label class="radio-pill radio-pill-assigned">
-                            <input type="radio" name="editGuestStatus" value="asignado">
-                            <span>Asignado</span>
-                        </label>
-                        <label class="radio-pill radio-pill-confirmed">
-                            <input type="radio" name="editGuestStatus" value="confirmado">
-                            <span>Confirmado</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModal(document.getElementById('editGuestModal'))">Cancelar</button>
-                <button class="btn-success" onclick="guardarEdicionInvitado()"><i class="fas fa-save"></i> Guardar</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal: Confirmar Cerrar Sesión -->
-    <div class="modal" id="logoutConfirmModal" style="display: none;">
-        <div class="modal-content modal-confirm">
-            <div class="modal-header modal-header-warning">
-                <div class="warning-icon">
-                    <i class="fas fa-sign-out-alt"></i>
-                </div>
-                <h3>¿Cerrar Sesión?</h3>
-            </div>
-            <div class="modal-body">
-                <p class="confirm-message">¿Estás seguro que deseas cerrar sesión?</p>
-                <p class="confirm-submessage">Tendrás que volver a iniciar sesión para acceder.</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModal(document.getElementById('logoutConfirmModal'))">
-                    <i class="fas fa-times"></i> Cancelar
-                </button>
-                <button class="btn-danger" id="confirmLogoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </button>
-            </div>
-        </div>
-    </div>
-    
     <!-- Toast -->
     <div id="messageToast" class="toast"></div>
     
@@ -668,5 +562,59 @@
             modal.style.display = 'none';
         }
     </script>
+
+
+
+<!-- Modal Logout Bonito -->
+<div id="logoutModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:10000; align-items:center; justify-content:center">
+    <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideInLogout 0.3s ease">
+        <div style="width:80px; height:80px; margin:0 auto 20px; background:linear-gradient(135deg, #667eea, #764ba2); border-radius:50%; display:flex; align-items:center; justify-content:center">
+            <i class="fas fa-sign-out-alt" style="font-size:2.5rem; color:white"></i>
+        </div>
+        <h2 style="margin:0 0 10px 0; font-size:1.8rem; color:#2d3748">¿Cerrar Sesión?</h2>
+        <p style="color:#718096; margin:0 0 30px 0">Tu sesión se cerrará y tendrás que volver a iniciar sesión</p>
+        <div style="display:flex; gap:12px">
+            <button onclick="cancelarLogout()" style="flex:1; padding:14px; background:#e2e8f0; color:#2d3748; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem; transition:all 0.3s">
+                Cancelar
+            </button>
+            <button onclick="confirmarLogout()" style="flex:1; padding:14px; background:linear-gradient(135deg, #f44336, #d32f2f); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem; transition:all 0.3s">
+                Salir
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes slideInLogout {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+#logoutModal.active {
+    display: flex !important;
+}
+</style>
+
+<script>
+function mostrarLogout() {
+    document.getElementById('logoutModal').classList.add('active');
+}
+
+function cancelarLogout() {
+    document.getElementById('logoutModal').classList.remove('active');
+}
+
+function confirmarLogout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+}
+</script>
 </body>
 </html>
