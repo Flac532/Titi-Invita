@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Organizador - Titi Invita</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #764ba2, #9a7bb8);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .evento-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .badge-pendiente { background: #FFA726; color: white; }
+        .badge-activo { background: #4CAF50; color: white; }
+        .badge-finalizado { background: #999; color: white; }
+        
+        .colaborador-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+    <script>
+        const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
+        let currentUser = null;
+        let eventos = [];
+        let eventoSeleccionado = null;
+        
+        function obtenerToken() {
+            return localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const usuarioStr = localStorage.getItem('titi_usuario_actual');
+            if (!usuarioStr) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            currentUser = JSON.parse(usuarioStr);
+            if (currentUser.rol !== 'organizador' && currentUser.rol !== 'admin') {
+                alert('Acceso denegado. Solo organizadores.');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            document.getElementById('userName').textContent = currentUser.nombre;
+            cargarMisEventos();
+        });
+        
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            const pageEl = document.getElementById(page);
+            if (pageEl) pageEl.style.display = 'block';
+            
+            const nav = document.querySelector(`[data-page="${page}"]`);
+            if (nav) nav.classList.add('active');
+            
+            if (page === 'solicitudes') cargarMisSolicitudes();
+            if (page === 'eventos-activos') cargarEventosActivos();
+        }
+        
+        // Cargar todos los eventos del organizador
+        async function cargarMisEventos() {
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/mis-eventos', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error ' + response.status);
+                
+                eventos = await response.json();
+                console.log('✅ Eventos:', eventos.length);
+                
+                renderizarEventos();
+                actualizarEstadisticas();
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert('Error al cargar eventos');
+            }
+        }
+        
+        function renderizarEventos() {
+            const pendientes = eventos.filter(e => e.estado === 'pendiente');
+            const activos = eventos.filter(e => e.estado === 'activo');
+            const finalizados = eventos.filter(e => e.estado === 'finalizado');
+            
+            // Solicitudes
+            const containerSolicitudes = document.getElementById('solicitudesContainer');
+            if (containerSolicitudes) {
+                if (pendientes.length === 0) {
+                    containerSolicitudes.innerHTML = '<p style="text-align:center; color:#999; padding:40px">No tienes solicitudes pendientes</p>';
+                } else {
+                    containerSolicitudes.innerHTML = pendientes.map(e => crearCardEvento(e)).join('');
+                }
+            }
+            
+            // Activos
+            const containerActivos = document.getElementById('eventosActivosContainer');
+            if (containerActivos) {
+                if (activos.length === 0) {
+                    containerActivos.innerHTML = '<p style="text-align:center; color:#999; padding:40px">No tienes eventos activos</p>';
+                } else {
+                    containerActivos.innerHTML = activos.map(e => crearCardEvento(e)).join('');
+                }
+            }
+        }
+        
+        function crearCardEvento(evento) {
+            const badgeClass = `badge-${evento.estado}`;
+            const fecha = evento.fecha_evento ? new Date(evento.fecha_evento).toLocaleDateString() : 'Sin fecha';
+            
+            return `
+                <div class="evento-card">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:12px">
+                        <h3 style="margin:0">${evento.nombre}</h3>
+                        <span class="badge ${badgeClass}">${evento.estado}</span>
+                    </div>
+                    <p style="margin:8px 0; color:#666"><i class="fas fa-calendar"></i> ${fecha}</p>
+                    <p style="margin:8px 0; color:#666"><i class="fas fa-map-marker-alt"></i> ${evento.ubicacion || 'Sin ubicación'}</p>
+                    
+                    ${evento.estado === 'activo' ? `
+                        <div style="display:flex; gap:12px; margin-top:16px; padding-top:16px; border-top:2px solid #f0f0f0">
+                            <button onclick="verEventoCompleto(${evento.id})" style="flex:1; padding:10px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                                <i class="fas fa-eye"></i> Ver Renderizado
+                            </button>
+                            <button onclick="gestionarColaboradores(${evento.id}, '${evento.nombre}')" style="flex:1; padding:10px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer">
+                                <i class="fas fa-users"></i> Colaboradores
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        function actualizarEstadisticas() {
+            document.getElementById('statSolicitudes').textContent = eventos.filter(e => e.estado === 'pendiente').length;
+            document.getElementById('statActivos').textContent = eventos.filter(e => e.estado === 'activo').length;
+            document.getElementById('statTotal').textContent = eventos.length;
+        }
+        
+        // Solicitar nuevo evento
+        function abrirModalSolicitud() {
+            const pendientes = eventos.filter(e => e.estado === 'pendiente').length;
+            if (pendientes >= 3) {
+                alert('Ya tienes 3 solicitudes pendientes. Espera a que sean aprobadas.');
+                return;
+            }
+            document.getElementById('modalSolicitud').classList.add('active');
+        }
+        
+        function cerrarModalSolicitud() {
+            document.getElementById('modalSolicitud').classList.remove('active');
+            document.getElementById('formSolicitud').reset();
+        }
+        
+        async function enviarSolicitud(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const data = {
+                nombre: formData.get('nombre'),
+                descripcion: formData.get('descripcion'),
+                fecha_evento: formData.get('fecha_evento'),
+                hora_evento: formData.get('hora_evento'),
+                ubicacion: formData.get('ubicacion')
+            };
+            
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/solicitudes', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Error al crear solicitud');
+                }
+                
+                alert('✅ Solicitud enviada exitosamente. Espera la aprobación del administrador.');
+                cerrarModalSolicitud();
+                cargarMisEventos();
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert(error.message);
+            }
+        }
+        
+        // Gestionar colaboradores
+        async function gestionarColaboradores(eventoId, eventoNombre) {
+            eventoSeleccionado = eventoId;
+            document.getElementById('tituloColaboradores').textContent = `Colaboradores - ${eventoNombre}`;
+            document.getElementById('modalColaboradores').classList.add('active');
+            
+            await cargarColaboradores(eventoId);
+        }
+        
+        async function cargarColaboradores(eventoId) {
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/eventos/' + eventoId + '/colaboradores', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error');
+                
+                const colaboradores = await response.json();
+                
+                const container = document.getElementById('listaColaboradores');
+                if (colaboradores.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#999; padding:20px">No hay colaboradores</p>';
+                } else {
+                    container.innerHTML = colaboradores.map(c => `
+                        <div class="colaborador-item">
+                            <div>
+                                <strong>${c.nombre}</strong>
+                                <br>
+                                <small style="color:#666">${c.email}</small>
+                            </div>
+                            <button onclick="eliminarColaborador(${c.id})" style="padding:6px 12px; background:#f44336; color:white; border:none; border-radius:6px; cursor:pointer">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+            }
+        }
+        
+        function cerrarModalColaboradores() {
+            document.getElementById('modalColaboradores').classList.remove('active');
+            eventoSeleccionado = null;
+        }
+        
+        function abrirFormColaborador() {
+            document.getElementById('formColaborador').style.display = 'block';
+        }
+        
+        async function agregarColaborador(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const data = {
+                nombre: formData.get('nombre'),
+                email: formData.get('email'),
+                password: formData.get('password')
+            };
+            
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/eventos/' + eventoSeleccionado + '/colaboradores', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error);
+                }
+                
+                alert('✅ Colaborador agregado');
+                event.target.reset();
+                document.getElementById('formColaborador').style.display = 'none';
+                cargarColaboradores(eventoSeleccionado);
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert(error.message);
+            }
+        }
+        
+        async function eliminarColaborador(id) {
+            if (!confirm('¿Eliminar este colaborador?')) return;
+            
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/colaboradores/' + id, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error');
+                
+                alert('✅ Colaborador eliminado');
+                cargarColaboradores(eventoSeleccionado);
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert('Error al eliminar');
+            }
+        }
+        
+        function verEventoCompleto(eventoId) {
+            window.open('cliente.html?evento=' + eventoId, '_blank');
+        }
+        
+        function logout() {
+            if (confirm('¿Cerrar sesión?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-briefcase"></i>
+                <h2>Organizador</h2>
+            </div>
+            
+            <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.1)">
+                <p style="color:white; margin:0"><i class="fas fa-user"></i> <span id="userName"></span></p>
+            </div>
+            
+            <nav class="nav-menu">
+                <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <a>Dashboard</a>
+                </div>
+                <div class="nav-item" data-page="solicitudes" onclick="showPage('solicitudes')">
+                    <i class="fas fa-inbox"></i>
+                    <a>Mis Solicitudes</a>
+                </div>
+                <div class="nav-item" data-page="eventos-activos" onclick="showPage('eventos-activos')">
+                    <i class="fas fa-calendar-check"></i>
+                    <a>Eventos Activos</a>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="nav-item" onclick="location.href='index.html'">
+                    <i class="fas fa-home"></i>
+                    <a>Inicio</a>
+                </div>
+                <div class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <a>Cerrar Sesión</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h1>Panel Organizador</h1>
+            </header>
+
+            <!-- Dashboard -->
+            <div class="page" id="dashboard" style="display:block; padding:30px">
+                <h2>Mis Estadísticas</h2>
+                
+                <div style="margin-top:30px; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px">
+                    <div style="background:linear-gradient(135deg,#FFA726,#FF9800); color:white; padding:30px; border-radius:12px">
+                        <h3>Solicitudes Pendientes</h3>
+                        <p style="font-size:3rem; margin:10px 0" id="statSolicitudes">0</p>
+                        <small>Máximo 3 simultáneas</small>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#4CAF50,#45a049); color:white; padding:30px; border-radius:12px">
+                        <h3>Eventos Activos</h3>
+                        <p style="font-size:3rem; margin:10px 0" id="statActivos">0</p>
+                        <small>Sin límite</small>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#2196F3,#1976D2); color:white; padding:30px; border-radius:12px">
+                        <h3>Total Eventos</h3>
+                        <p style="font-size:3rem; margin:10px 0" id="statTotal">0</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top:40px">
+                    <button onclick="abrirModalSolicitud()" style="padding:15px 30px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-size:1.1rem; font-weight:600">
+                        <i class="fas fa-plus"></i> Solicitar Nuevo Evento
+                    </button>
+                </div>
+            </div>
+
+            <!-- Solicitudes -->
+            <div class="page" id="solicitudes" style="display:none; padding:30px">
+                <div style="display:flex; justify-content:space-between; margin-bottom:24px">
+                    <h2>Mis Solicitudes Pendientes</h2>
+                    <button onclick="abrirModalSolicitud()" style="padding:10px 20px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer">
+                        <i class="fas fa-plus"></i> Nueva Solicitud
+                    </button>
+                </div>
+                
+                <div id="solicitudesContainer"></div>
+            </div>
+
+            <!-- Eventos Activos -->
+            <div class="page" id="eventos-activos" style="display:none; padding:30px">
+                <h2>Mis Eventos Activos</h2>
+                <div id="eventosActivosContainer" style="margin-top:24px"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Solicitud -->
+    <div id="modalSolicitud" class="modal">
+        <div class="modal-content">
+            <h2>Solicitar Nuevo Evento</h2>
+            <form id="formSolicitud" onsubmit="enviarSolicitud(event)">
+                <div class="form-group">
+                    <label>Nombre del Evento</label>
+                    <input type="text" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea name="descripcion" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Fecha del Evento</label>
+                    <input type="date" name="fecha_evento" required>
+                </div>
+                <div class="form-group">
+                    <label>Hora</label>
+                    <input type="time" name="hora_evento">
+                </div>
+                <div class="form-group">
+                    <label>Ubicación</label>
+                    <input type="text" name="ubicacion">
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-paper-plane"></i> Enviar Solicitud
+                </button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalSolicitud()">
+                    Cancelar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Colaboradores -->
+    <div id="modalColaboradores" class="modal">
+        <div class="modal-content">
+            <h2 id="tituloColaboradores">Colaboradores</h2>
+            
+            <div id="listaColaboradores" style="margin:20px 0"></div>
+            
+            <button onclick="abrirFormColaborador()" style="width:100%; padding:12px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; margin-bottom:20px">
+                <i class="fas fa-plus"></i> Agregar Colaborador
+            </button>
+            
+            <form id="formColaborador" style="display:none; margin-bottom:20px; padding:20px; background:#f8f9fa; border-radius:8px" onsubmit="agregarColaborador(event)">
+                <h3>Nuevo Colaborador</h3>
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" name="password" required>
+                </div>
+                <button type="submit" style="width:100%; padding:10px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                    Crear Colaborador
+                </button>
+            </form>
+            
+            <button type="button" class="btn-secondary" onclick="cerrarModalColaboradores()">
+                Cerrar
+            </button>
+        </div>
+    </div>
+</body>
+</html>
