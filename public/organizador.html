@@ -53,6 +53,7 @@
             border: 2px solid #e2e8f0;
             border-radius: 8px;
             font-size: 14px;
+            box-sizing: border-box;
         }
         
         .form-group input:focus,
@@ -126,20 +127,41 @@
             return localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
         }
         
+        function obtenerUsuario() {
+            const usuarioStr = localStorage.getItem('titi_usuario_actual') || sessionStorage.getItem('titi_usuario_actual');
+            if (!usuarioStr) return null;
+            try {
+                return JSON.parse(usuarioStr);
+            } catch (e) {
+                console.error('Error parseando usuario:', e);
+                return null;
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
-            const usuarioStr = localStorage.getItem('titi_usuario_actual');
-            if (!usuarioStr) {
+            console.log('🚀 Organizador Panel Cargando...');
+            
+            currentUser = obtenerUsuario();
+            const token = obtenerToken();
+            
+            console.log('Usuario:', currentUser);
+            console.log('Token:', token ? 'Presente' : 'Ausente');
+            
+            if (!currentUser || !token) {
+                console.log('❌ No hay sesión válida');
+                alert('No hay sesión válida. Redirigiendo a login...');
                 window.location.href = 'login.html';
                 return;
             }
             
-            currentUser = JSON.parse(usuarioStr);
             if (currentUser.rol !== 'organizador' && currentUser.rol !== 'admin') {
+                console.log('❌ Rol incorrecto:', currentUser.rol);
                 alert('Acceso denegado. Solo organizadores.');
                 window.location.href = 'index.html';
                 return;
             }
             
+            console.log('✅ Sesión válida. Rol:', currentUser.rol);
             document.getElementById('userName').textContent = currentUser.nombre;
             cargarMisEventos();
         });
@@ -154,12 +176,12 @@
             const nav = document.querySelector(`[data-page="${page}"]`);
             if (nav) nav.classList.add('active');
             
-            if (page === 'solicitudes') cargarMisSolicitudes();
-            if (page === 'eventos-activos') cargarEventosActivos();
+            if (page === 'solicitudes') renderizarEventos();
+            if (page === 'eventos-activos') renderizarEventos();
         }
         
-        // Cargar todos los eventos del organizador
         async function cargarMisEventos() {
+            console.log('📡 Cargando eventos del organizador...');
             try {
                 const token = obtenerToken();
                 const response = await fetch(API_BASE + '/mis-eventos', {
@@ -169,25 +191,35 @@
                     }
                 });
                 
-                if (!response.ok) throw new Error('Error ' + response.status);
+                console.log('Response status:', response.status);
                 
-                eventos = await response.json();
-                console.log('✅ Eventos:', eventos.length);
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Error ' + response.status);
+                }
+                
+                const data = await response.json();
+                console.log('📊 Datos recibidos:', data);
+                
+                // El endpoint devuelve array directo
+                eventos = Array.isArray(data) ? data : [];
+                
+                console.log('✅ Eventos cargados:', eventos.length);
                 
                 renderizarEventos();
                 actualizarEstadisticas();
             } catch (error) {
-                console.error('❌ Error:', error);
-                alert('Error al cargar eventos');
+                console.error('❌ Error cargando eventos:', error);
+                alert('Error al cargar eventos: ' + error.message);
             }
         }
         
         function renderizarEventos() {
             const pendientes = eventos.filter(e => e.estado === 'pendiente');
             const activos = eventos.filter(e => e.estado === 'activo');
-            const finalizados = eventos.filter(e => e.estado === 'finalizado');
             
-            // Solicitudes
+            console.log('Renderizando:', pendientes.length, 'pendientes,', activos.length, 'activos');
+            
             const containerSolicitudes = document.getElementById('solicitudesContainer');
             if (containerSolicitudes) {
                 if (pendientes.length === 0) {
@@ -197,7 +229,6 @@
                 }
             }
             
-            // Activos
             const containerActivos = document.getElementById('eventosActivosContainer');
             if (containerActivos) {
                 if (activos.length === 0) {
@@ -223,12 +254,16 @@
                     
                     ${evento.estado === 'activo' ? `
                         <div style="display:flex; gap:12px; margin-top:16px; padding-top:16px; border-top:2px solid #f0f0f0">
-                            <button onclick="verEventoCompleto(${evento.id})" style="flex:1; padding:10px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                            <button onclick="verEventoCompleto(${evento.id})" style="flex:1; padding:10px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
                                 <i class="fas fa-eye"></i> Ver Renderizado
                             </button>
-                            <button onclick="gestionarColaboradores(${evento.id}, '${evento.nombre}')" style="flex:1; padding:10px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer">
+                            <button onclick="gestionarColaboradores(${evento.id}, '${evento.nombre.replace(/'/g, "\\'")})')" style="flex:1; padding:10px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
                                 <i class="fas fa-users"></i> Colaboradores
                             </button>
+                        </div>
+                    ` : evento.estado === 'pendiente' ? `
+                        <div style="margin-top:16px; padding-top:16px; border-top:2px solid #f0f0f0">
+                            <p style="color:#FFA726; margin:0"><i class="fas fa-clock"></i> Esperando aprobación del administrador</p>
                         </div>
                     ` : ''}
                 </div>
@@ -241,7 +276,6 @@
             document.getElementById('statTotal').textContent = eventos.length;
         }
         
-        // Solicitar nuevo evento
         function abrirModalSolicitud() {
             const pendientes = eventos.filter(e => e.estado === 'pendiente').length;
             if (pendientes >= 3) {
@@ -293,7 +327,6 @@
             }
         }
         
-        // Gestionar colaboradores
         async function gestionarColaboradores(eventoId, eventoNombre) {
             eventoSeleccionado = eventoId;
             document.getElementById('tituloColaboradores').textContent = `Colaboradores - ${eventoNombre}`;
@@ -340,6 +373,7 @@
         
         function cerrarModalColaboradores() {
             document.getElementById('modalColaboradores').classList.remove('active');
+            document.getElementById('formColaborador').style.display = 'none';
             eventoSeleccionado = null;
         }
         
@@ -421,7 +455,6 @@
 </head>
 <body>
     <div class="admin-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
                 <i class="fas fa-briefcase"></i>
@@ -429,7 +462,7 @@
             </div>
             
             <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.1)">
-                <p style="color:white; margin:0"><i class="fas fa-user"></i> <span id="userName"></span></p>
+                <p style="color:white; margin:0"><i class="fas fa-user"></i> <span id="userName">Cargando...</span></p>
             </div>
             
             <nav class="nav-menu">
@@ -459,13 +492,11 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="top-bar">
                 <h1>Panel Organizador</h1>
             </header>
 
-            <!-- Dashboard -->
             <div class="page" id="dashboard" style="display:block; padding:30px">
                 <h2>Mis Estadísticas</h2>
                 
@@ -493,33 +524,34 @@
                 </div>
             </div>
 
-            <!-- Solicitudes -->
             <div class="page" id="solicitudes" style="display:none; padding:30px">
                 <div style="display:flex; justify-content:space-between; margin-bottom:24px">
                     <h2>Mis Solicitudes Pendientes</h2>
-                    <button onclick="abrirModalSolicitud()" style="padding:10px 20px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer">
+                    <button onclick="abrirModalSolicitud()" style="padding:10px 20px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
                         <i class="fas fa-plus"></i> Nueva Solicitud
                     </button>
                 </div>
                 
-                <div id="solicitudesContainer"></div>
+                <div id="solicitudesContainer">
+                    <p style="text-align:center; padding:40px">Cargando...</p>
+                </div>
             </div>
 
-            <!-- Eventos Activos -->
             <div class="page" id="eventos-activos" style="display:none; padding:30px">
                 <h2>Mis Eventos Activos</h2>
-                <div id="eventosActivosContainer" style="margin-top:24px"></div>
+                <div id="eventosActivosContainer" style="margin-top:24px">
+                    <p style="text-align:center; padding:40px">Cargando...</p>
+                </div>
             </div>
         </main>
     </div>
 
-    <!-- Modal Solicitud -->
     <div id="modalSolicitud" class="modal">
         <div class="modal-content">
             <h2>Solicitar Nuevo Evento</h2>
             <form id="formSolicitud" onsubmit="enviarSolicitud(event)">
                 <div class="form-group">
-                    <label>Nombre del Evento</label>
+                    <label>Nombre del Evento *</label>
                     <input type="text" name="nombre" required>
                 </div>
                 <div class="form-group">
@@ -527,7 +559,7 @@
                     <textarea name="descripcion" rows="3"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Fecha del Evento</label>
+                    <label>Fecha del Evento *</label>
                     <input type="date" name="fecha_evento" required>
                 </div>
                 <div class="form-group">
@@ -548,32 +580,33 @@
         </div>
     </div>
 
-    <!-- Modal Colaboradores -->
     <div id="modalColaboradores" class="modal">
         <div class="modal-content">
             <h2 id="tituloColaboradores">Colaboradores</h2>
             
-            <div id="listaColaboradores" style="margin:20px 0"></div>
+            <div id="listaColaboradores" style="margin:20px 0">
+                <p style="text-align:center; padding:20px">Cargando...</p>
+            </div>
             
-            <button onclick="abrirFormColaborador()" style="width:100%; padding:12px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; margin-bottom:20px">
+            <button onclick="abrirFormColaborador()" style="width:100%; padding:12px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; margin-bottom:20px; font-weight:600">
                 <i class="fas fa-plus"></i> Agregar Colaborador
             </button>
             
             <form id="formColaborador" style="display:none; margin-bottom:20px; padding:20px; background:#f8f9fa; border-radius:8px" onsubmit="agregarColaborador(event)">
                 <h3>Nuevo Colaborador</h3>
                 <div class="form-group">
-                    <label>Nombre</label>
+                    <label>Nombre *</label>
                     <input type="text" name="nombre" required>
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
+                    <label>Email *</label>
                     <input type="email" name="email" required>
                 </div>
                 <div class="form-group">
-                    <label>Contraseña</label>
-                    <input type="password" name="password" required>
+                    <label>Contraseña *</label>
+                    <input type="password" name="password" required minlength="6">
                 </div>
-                <button type="submit" style="width:100%; padding:10px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                <button type="submit" style="width:100%; padding:10px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
                     Crear Colaborador
                 </button>
             </form>
