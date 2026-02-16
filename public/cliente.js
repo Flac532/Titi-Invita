@@ -1644,3 +1644,18 @@ window.asignarInvitado = function(invitadoId) {
 };
 
 window.cerrarModal = cerrarModal;
+
+// Funciones de logout
+function mostrarLogout() {
+    document.getElementById('logoutModal').classList.add('active');
+}
+
+function cancelarLogout() {
+    document.getElementById('logoutModal').classList.remove('active');
+}
+
+function confirmarLogout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+}
