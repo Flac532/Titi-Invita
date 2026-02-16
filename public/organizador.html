@@ -444,14 +444,22 @@
             window.open('cliente.html?evento=' + eventoId, '_blank');
         }
         
-        function logout() {
+        function mostrarLogout() {
             if (confirm('¿Cerrar sesión?')) {
                 localStorage.clear();
                 sessionStorage.clear();
                 window.location.href = 'login.html';
             }
         }
-    </script>
+    function cancelarLogout() {
+    document.getElementById("logoutModal").classList.remove("active");
+}
+function confirmarLogout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = "login.html";
+}
+</script>
 </head>
 <body>
     <div class="admin-container">
@@ -485,7 +493,7 @@
                     <i class="fas fa-home"></i>
                     <a>Inicio</a>
                 </div>
-                <div class="nav-item" onclick="logout()">
+                <div class="nav-item" onclick="mostrarLogout()">
                     <i class="fas fa-sign-out-alt"></i>
                     <a>Cerrar Sesión</a>
                 </div>
@@ -616,5 +624,19 @@
             </button>
         </div>
     </div>
+<!-- Modal Logout -->
+<div id="logoutModal" class="modal">
+    <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideIn 0.3s ease">
+        <div style="width:80px; height:80px; margin:0 auto 20px; background:linear-gradient(135deg, #667eea, #764ba2); border-radius:50%; display:flex; align-items:center; justify-content:center">
+            <i class="fas fa-sign-out-alt" style="font-size:2.5rem; color:white"></i>
+        </div>
+        <h2 style="margin:0 0 10px 0; font-size:1.8rem; color:#2d3748">¿Cerrar Sesión?</h2>
+        <p style="color:#718096; margin:0 0 30px 0">Tu sesión se cerrará y tendrás que volver a iniciar sesión</p>
+        <div style="display:flex; gap:12px">
+            <button onclick="cancelarLogout()" style="flex:1; padding:14px; background:#e2e8f0; color:#2d3748; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem">Cancelar</button>
+            <button onclick="confirmarLogout()" style="flex:1; padding:14px; background:linear-gradient(135deg, #f44336, #d32f2f); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem">Salir</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
