@@ -965,211 +965,6 @@ app.delete('/api/eventos/:eventoId/invitados/:invitadoId', verificarToken, async
 });
 
 // ============================================
-// RUTAS DE ADMINISTRACIÓN (Solo Admin)
-// ============================================
-
-// Middleware para verificar que sea admin
-function verificarAdmin(req, res, next) {
-  if (req.usuario.rol !== 'admin') {
-    return res.status(403).json({ error: 'Acceso denegado. Solo administradores.' });
-  }
-  next();
-}
-
-// GET /api/usuarios - Listar todos los usuarios (solo admin)
-app.get('/api/usuarios', verificarToken, verificarAdmin, async (req, res) => {
-  try {
-    const result = await pool.query(
-      'SELECT id, nombre, email, rol, fecha_creacion FROM usuarios ORDER BY fecha_creacion DESC'
-    );
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error obteniendo usuarios:', error);
-    res.status(500).json({ error: 'Error al obtener usuarios' });
-  }
-});
-
-// POST /api/usuarios - Crear nuevo usuario (solo admin)
-app.post('/api/usuarios', verificarToken, verificarAdmin, async (req, res) => {
-  try {
-    console.log('📝 POST /api/usuarios - Body:', req.body);
-    const { nombre, email, password, rol } = req.body;
-    
-    // Validaciones
-    if (!nombre || !email || !password || !rol) {
-      console.log('❌ Campos faltantes');
-      return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-    }
-    
-    if (password.length < 6) {
-      console.log('❌ Contraseña muy corta');
-      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
-    }
-    
-    if (!['admin', 'organizador', 'cliente'].includes(rol)) {
-      console.log('❌ Rol inválido:', rol);
-      return res.status(400).json({ error: 'Rol inválido' });
-    }
-    
-    // Verificar si el email ya existe
-    console.log('🔍 Verificando email:', email);
-    const existente = await pool.query(
-      'SELECT id FROM usuarios WHERE email = $1',
-      [email]
-    );
-    
-    if (existente.rows.length > 0) {
-      console.log('❌ Email ya existe');
-      return res.status(400).json({ error: 'El email ya está registrado' });
-    }
-    
-    // Hash de la contraseña
-    console.log('🔒 Hasheando contraseña...');
-    const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Crear usuario
-    console.log('💾 Insertando usuario en BD...');
-    const result = await pool.query(
-      'INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol, fecha_creacion',
-      [nombre, email, hashedPassword, rol]
-    );
-    
-    console.log('✅ Usuario creado:', result.rows[0]);
-    res.status(201).json(result.rows[0]);
-  } catch (error) {
-    console.error('❌ Error creando usuario:', error.message);
-    console.error('Stack:', error.stack);
-    res.status(500).json({ error: 'Error al crear usuario: ' + error.message });
-  }
-});
-
-// PUT /api/usuarios/:id - Actualizar usuario (solo admin)
-app.put('/api/usuarios/:id', verificarToken, verificarAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { nombre, email, password, rol } = req.body;
-    
-    // Validaciones
-    if (!nombre || !email || !rol) {
-      return res.status(400).json({ error: 'Nombre, email y rol son obligatorios' });
-    }
-    
-    if (!['admin', 'organizador', 'cliente'].includes(rol)) {
-      return res.status(400).json({ error: 'Rol inválido' });
-    }
-    
-    // Verificar que el usuario existe
-    const usuario = await pool.query('SELECT id FROM usuarios WHERE id = $1', [id]);
-    if (usuario.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
-    }
-    
-    // Verificar si el email ya existe (excepto el mismo usuario)
-    const existente = await pool.query(
-      'SELECT id FROM usuarios WHERE email = $1 AND id != $2',
-      [email, id]
-    );
-    
-    if (existente.rows.length > 0) {
-      return res.status(400).json({ error: 'El email ya está registrado por otro usuario' });
-    }
-    
-    // Si hay contraseña nueva, actualizarla
-    if (password) {
-      if (password.length < 6) {
-        return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres' });
-      }
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await pool.query(
-        'UPDATE usuarios SET nombre = $1, email = $2, password_hash = $3, rol = $4 WHERE id = $5',
-        [nombre, email, hashedPassword, rol, id]
-      );
-    } else {
-      await pool.query(
-        'UPDATE usuarios SET nombre = $1, email = $2, rol = $3 WHERE id = $4',
-        [nombre, email, rol, id]
-      );
-    }
-    
-    const result = await pool.query(
-      'SELECT id, nombre, email, rol, fecha_creacion FROM usuarios WHERE id = $1',
-      [id]
-    );
-    
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Error actualizando usuario:', error);
-    res.status(500).json({ error: 'Error al actualizar usuario' });
-  }
-});
-
-// DELETE /api/usuarios/:id - Eliminar usuario (solo admin)
-app.delete('/api/usuarios/:id', verificarToken, verificarAdmin, async (req, res) => {
-  const client = await pool.connect();
-  
-  try {
-    const { id } = req.params;
-    
-    // No permitir eliminar al propio admin
-    if (parseInt(id) === req.usuario.id) {
-      return res.status(400).json({ error: 'No puedes eliminar tu propia cuenta' });
-    }
-    
-    await client.query('BEGIN');
-    
-    // Eliminar en cascada: invitados -> mesas -> eventos -> usuario
-    const eventos = await client.query('SELECT id FROM eventos WHERE id_usuario = $1', [id]);
-    
-    for (const evento of eventos.rows) {
-      await client.query('DELETE FROM invitados WHERE id_evento = $1', [evento.id]);
-      await client.query('DELETE FROM mesas WHERE id_evento = $1', [evento.id]);
-    }
-    
-    await client.query('DELETE FROM eventos WHERE id_usuario = $1', [id]);
-    await client.query('DELETE FROM usuarios WHERE id = $1', [id]);
-    
-    await client.query('COMMIT');
-    
-    res.json({ message: 'Usuario eliminado correctamente' });
-  } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Error eliminando usuario:', error);
-    res.status(500).json({ error: 'Error al eliminar usuario' });
-  } finally {
-    client.release();
-  }
-});
-
-// GET /api/eventos-admin - Todos los eventos (solo admin)
-app.get('/api/eventos-admin', verificarToken, verificarAdmin, async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT 
-        e.*,
-        u.nombre as usuario_nombre,
-        u.email as usuario_email
-      FROM eventos e
-      LEFT JOIN usuarios u ON e.id_usuario = u.id
-      ORDER BY e.fecha_evento DESC
-    `);
-    
-    // Cargar mesas para cada evento
-    for (let evento of result.rows) {
-      const mesas = await pool.query(
-        'SELECT * FROM mesas WHERE id_evento = $1 ORDER BY id',
-        [evento.id]
-      );
-      evento.mesas = mesas.rows;
-    }
-    
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Error obteniendo eventos:', error);
-    res.status(500).json({ error: 'Error al obtener eventos' });
-  }
-});
-
-// ============================================
 // SERVIR ARCHIVOS ESTÁTICOS
 // ============================================
 app.use(express.static('public'));
@@ -1219,3 +1014,374 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Iniciar servidor
 startServer();
+
+// ========================================
+// NUEVOS ENDPOINTS - SISTEMA DE PERMISOS
+// ========================================
+
+// Middleware: Verificar que es organizador
+function verificarOrganizador(req, res, next) {
+  if (req.usuario.rol !== 'organizador' && req.usuario.rol !== 'admin') {
+    return res.status(403).json({ error: 'Solo organizadores pueden realizar esta acción' });
+  }
+  next();
+}
+
+// ===== SOLICITUDES DE EVENTOS =====
+
+// POST /api/solicitudes - Organizador crea solicitud de evento
+app.post('/api/solicitudes', verificarToken, verificarOrganizador, async (req, res) => {
+  try {
+    const { nombre, descripcion, fecha_evento, hora_evento, ubicacion } = req.body;
+    const organizadorId = req.usuario.id;
+    
+    // Validar datos
+    if (!nombre || !fecha_evento) {
+      return res.status(400).json({ error: 'Nombre y fecha son obligatorios' });
+    }
+    
+    // Verificar que no tenga más de 3 solicitudes pendientes
+    const pendientes = await pool.query(
+      'SELECT COUNT(*) as total FROM eventos WHERE organizador_id = $1 AND estado = $2',
+      [organizadorId, 'pendiente']
+    );
+    
+    if (parseInt(pendientes.rows[0].total) >= 3) {
+      return res.status(400).json({ 
+        error: 'Ya tienes 3 solicitudes pendientes. Espera a que sean aprobadas o rechazadas.' 
+      });
+    }
+    
+    // Crear solicitud
+    const result = await pool.query(
+      `INSERT INTO eventos (nombre, descripcion, fecha_evento, hora_evento, ubicacion, organizador_id, id_usuario, estado)
+       VALUES ($1, $2, $3, $4, $5, $6, $6, 'pendiente')
+       RETURNING *`,
+      [nombre, descripcion, fecha_evento, hora_evento, ubicacion, organizadorId]
+    );
+    
+    console.log('✅ Solicitud de evento creada:', result.rows[0].id);
+    res.status(201).json(result.rows[0]);
+    
+  } catch (error) {
+    console.error('❌ Error creando solicitud:', error);
+    res.status(500).json({ error: 'Error al crear solicitud' });
+  }
+});
+
+// GET /api/solicitudes - Admin ve todas las solicitudes pendientes
+app.get('/api/solicitudes', verificarToken, verificarAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        e.*,
+        u.nombre as organizador_nombre,
+        u.email as organizador_email
+      FROM eventos e
+      LEFT JOIN usuarios u ON e.organizador_id = u.id
+      WHERE e.estado = 'pendiente'
+      ORDER BY e.created_at DESC
+    `);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Error obteniendo solicitudes:', error);
+    res.status(500).json({ error: 'Error al obtener solicitudes' });
+  }
+});
+
+// PUT /api/solicitudes/:id/aprobar - Admin aprueba solicitud
+app.put('/api/solicitudes/:id/aprobar', verificarToken, verificarAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Actualizar estado a 'activo'
+    const result = await pool.query(
+      `UPDATE eventos 
+       SET estado = 'activo' 
+       WHERE id = $1 AND estado = 'pendiente'
+       RETURNING *`,
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Solicitud no encontrada o ya procesada' });
+    }
+    
+    console.log('✅ Solicitud aprobada:', id);
+    res.json({ success: true, evento: result.rows[0] });
+    
+  } catch (error) {
+    console.error('❌ Error aprobando solicitud:', error);
+    res.status(500).json({ error: 'Error al aprobar solicitud' });
+  }
+});
+
+// PUT /api/solicitudes/:id/rechazar - Admin rechaza solicitud
+app.put('/api/solicitudes/:id/rechazar', verificarToken, verificarAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { motivo } = req.body;
+    
+    // Eliminar la solicitud rechazada
+    const result = await pool.query(
+      'DELETE FROM eventos WHERE id = $1 AND estado = $2 RETURNING *',
+      [id, 'pendiente']
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Solicitud no encontrada' });
+    }
+    
+    console.log('❌ Solicitud rechazada:', id, motivo || '');
+    res.json({ success: true, mensaje: 'Solicitud rechazada y eliminada' });
+    
+  } catch (error) {
+    console.error('❌ Error rechazando solicitud:', error);
+    res.status(500).json({ error: 'Error al rechazar solicitud' });
+  }
+});
+
+// ===== EVENTOS DEL ORGANIZADOR =====
+
+// GET /api/mis-eventos - Organizador ve TODOS sus eventos
+app.get('/api/mis-eventos', verificarToken, verificarOrganizador, async (req, res) => {
+  try {
+    const organizadorId = req.usuario.id;
+    
+    const result = await pool.query(`
+      SELECT * FROM eventos 
+      WHERE organizador_id = $1 
+      ORDER BY 
+        CASE 
+          WHEN estado = 'pendiente' THEN 1
+          WHEN estado = 'activo' THEN 2
+          WHEN estado = 'finalizado' THEN 3
+        END,
+        fecha_evento DESC
+    `, [organizadorId]);
+    
+    // Cargar mesas para cada evento
+    for (let evento of result.rows) {
+      const mesas = await pool.query(
+        'SELECT * FROM mesas WHERE id_evento = $1 ORDER BY id',
+        [evento.id]
+      );
+      evento.mesas = mesas.rows;
+    }
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Error obteniendo eventos:', error);
+    res.status(500).json({ error: 'Error al obtener eventos' });
+  }
+});
+
+// ===== COLABORADORES =====
+
+// POST /api/eventos/:eventoId/colaboradores - Organizador agrega colaborador
+app.post('/api/eventos/:eventoId/colaboradores', verificarToken, verificarOrganizador, async (req, res) => {
+  try {
+    const { eventoId } = req.params;
+    const { nombre, email, password } = req.body;
+    const organizadorId = req.usuario.id;
+    
+    // Verificar que el evento pertenece al organizador
+    const evento = await pool.query(
+      'SELECT * FROM eventos WHERE id = $1 AND organizador_id = $2',
+      [eventoId, organizadorId]
+    );
+    
+    if (evento.rows.length === 0) {
+      return res.status(403).json({ error: 'No tienes permiso para agregar colaboradores a este evento' });
+    }
+    
+    // Validar datos
+    if (!nombre || !email || !password) {
+      return res.status(400).json({ error: 'Nombre, email y contraseña son obligatorios' });
+    }
+    
+    // Verificar que email no exista
+    const existente = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
+    if (existente.rows.length > 0) {
+      return res.status(400).json({ error: 'El email ya está registrado' });
+    }
+    
+    // Hash de contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Crear colaborador
+    const result = await pool.query(
+      `INSERT INTO usuarios (nombre, email, password_hash, rol, evento_id)
+       VALUES ($1, $2, $3, 'colaborador', $4)
+       RETURNING id, nombre, email, rol, evento_id`,
+      [nombre, email, hashedPassword, eventoId]
+    );
+    
+    console.log('✅ Colaborador creado:', result.rows[0].id);
+    res.status(201).json(result.rows[0]);
+    
+  } catch (error) {
+    console.error('❌ Error creando colaborador:', error);
+    res.status(500).json({ error: 'Error al crear colaborador' });
+  }
+});
+
+// GET /api/eventos/:eventoId/colaboradores - Listar colaboradores del evento
+app.get('/api/eventos/:eventoId/colaboradores', verificarToken, async (req, res) => {
+  try {
+    const { eventoId } = req.params;
+    
+    // Verificar permisos (organizador del evento o admin)
+    if (req.usuario.rol !== 'admin') {
+      const evento = await pool.query(
+        'SELECT * FROM eventos WHERE id = $1 AND organizador_id = $2',
+        [eventoId, req.usuario.id]
+      );
+      
+      if (evento.rows.length === 0) {
+        return res.status(403).json({ error: 'No tienes permiso' });
+      }
+    }
+    
+    const result = await pool.query(
+      'SELECT id, nombre, email, rol, evento_id FROM usuarios WHERE evento_id = $1 AND rol = $2',
+      [eventoId, 'colaborador']
+    );
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('❌ Error obteniendo colaboradores:', error);
+    res.status(500).json({ error: 'Error al obtener colaboradores' });
+  }
+});
+
+// DELETE /api/colaboradores/:id - Eliminar colaborador
+app.delete('/api/colaboradores/:id', verificarToken, verificarOrganizador, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const organizadorId = req.usuario.id;
+    
+    // Verificar que el colaborador pertenece a un evento del organizador
+    const colaborador = await pool.query(`
+      SELECT u.*, e.organizador_id 
+      FROM usuarios u
+      JOIN eventos e ON u.evento_id = e.id
+      WHERE u.id = $1 AND u.rol = 'colaborador'
+    `, [id]);
+    
+    if (colaborador.rows.length === 0) {
+      return res.status(404).json({ error: 'Colaborador no encontrado' });
+    }
+    
+    if (colaborador.rows[0].organizador_id !== organizadorId && req.usuario.rol !== 'admin') {
+      return res.status(403).json({ error: 'No tienes permiso' });
+    }
+    
+    await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
+    
+    console.log('✅ Colaborador eliminado:', id);
+    res.json({ success: true });
+    
+  } catch (error) {
+    console.error('❌ Error eliminando colaborador:', error);
+    res.status(500).json({ error: 'Error al eliminar colaborador' });
+  }
+});
+
+// ===== ACCESO PARA CLIENTE Y COLABORADOR =====
+
+// GET /api/mi-evento - Cliente o Colaborador ve SU evento asignado
+app.get('/api/mi-evento', verificarToken, async (req, res) => {
+  try {
+    const { evento_id, rol } = req.usuario;
+    
+    if (rol !== 'cliente' && rol !== 'colaborador') {
+      return res.status(403).json({ error: 'Solo clientes y colaboradores usan este endpoint' });
+    }
+    
+    if (!evento_id) {
+      return res.status(404).json({ error: 'No tienes un evento asignado' });
+    }
+    
+    const evento = await pool.query('SELECT * FROM eventos WHERE id = $1', [evento_id]);
+    
+    if (evento.rows.length === 0) {
+      return res.status(404).json({ error: 'Evento no encontrado' });
+    }
+    
+    // Cargar mesas
+    const mesas = await pool.query(
+      'SELECT * FROM mesas WHERE id_evento = $1 ORDER BY id',
+      [evento_id]
+    );
+    evento.rows[0].mesas = mesas.rows;
+    
+    res.json(evento.rows[0]);
+  } catch (error) {
+    console.error('❌ Error obteniendo evento:', error);
+    res.status(500).json({ error: 'Error al obtener evento' });
+  }
+});
+
+// ===== CRON JOB: AUTO-ELIMINACIÓN DE EVENTOS FINALIZADOS =====
+
+const cron = require('node-cron');
+
+// Ejecutar diariamente a las 3:00 AM
+cron.schedule('0 3 * * *', async () => {
+  try {
+    console.log('🗑️  Ejecutando limpieza de eventos finalizados...');
+    
+    const tresDiasAtras = new Date();
+    tresDiasAtras.setDate(tresDiasAtras.getDate() - 3);
+    
+    const result = await pool.query(`
+      DELETE FROM eventos 
+      WHERE fecha_evento < $1 
+      AND estado = 'finalizado'
+      RETURNING id, nombre, fecha_evento
+    `, [tresDiasAtras]);
+    
+    if (result.rows.length > 0) {
+      console.log(`✅ Eliminados ${result.rows.length} eventos antiguos:`);
+      result.rows.forEach(e => {
+        console.log(`   - ${e.nombre} (${e.fecha_evento})`);
+      });
+    } else {
+      console.log('   No hay eventos para eliminar');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error en limpieza de eventos:', error);
+  }
+});
+
+// También marcar como finalizados los eventos cuya fecha ya pasó
+cron.schedule('0 1 * * *', async () => {
+  try {
+    console.log('📅 Marcando eventos pasados como finalizados...');
+    
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    
+    const result = await pool.query(`
+      UPDATE eventos 
+      SET estado = 'finalizado' 
+      WHERE fecha_evento < $1 
+      AND estado = 'activo'
+      RETURNING id, nombre
+    `, [hoy]);
+    
+    if (result.rows.length > 0) {
+      console.log(`✅ Marcados ${result.rows.length} eventos como finalizados`);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error marcando eventos:', error);
+  }
+});
+
+console.log('✅ Cron jobs configurados:');
+console.log('   - 01:00 AM: Marcar eventos como finalizados');
+console.log('   - 03:00 AM: Eliminar eventos antiguos');
