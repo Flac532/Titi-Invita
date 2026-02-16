@@ -3,238 +3,433 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin - Titi Invita</title>
+    <title>Panel Admin - Titi Invita</title>
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Estilos adicionales */
+        .iframe-container {
+            width: 100%;
+            height: calc(100vh - 150px);
+            border: none;
+            border-radius: 12px;
+            background: white;
+            overflow: hidden;
+        }
+        
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .modal-crear-usuario {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-crear-usuario.active {
+            display: flex;
+        }
+        
+        .modal-content-usuario {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #764ba2, #9a7bb8);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
     <script>
-        console.log('=================================');
-        console.log('🚀 ADMIN PANEL INICIANDO');
-        console.log('=================================');
+        console.log('🚀 Admin Panel Completo Iniciando...');
         
         const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
-        let allUsers = [];
-        let allEvents = [];
-        
-        // Verificar sesión
-        const usuarioStr = localStorage.getItem('titi_usuario_actual');
-        if (!usuarioStr) {
-            alert('No hay sesión activa. Redirigiendo a login...');
-            window.location.href = 'login.html';
-        }
+        let currentUser = null;
         
         function obtenerToken() {
             let token = localStorage.getItem('titi_token');
             if (!token) token = sessionStorage.getItem('titi_token');
-            if (!token) {
-                const sesion = localStorage.getItem('titi_sesion') || sessionStorage.getItem('titi_sesion');
-                if (sesion) {
-                    try { token = JSON.parse(sesion).token; } catch (e) {}
-                }
-            }
-            console.log('🔑 Token obtenido:', token ? 'SI (' + token.substring(0, 20) + '...)' : 'NO');
             return token;
         }
         
-        function showPage(pageName) {
-            console.log('');
-            console.log('📄 showPage(' + pageName + ')');
+        // Verificar sesión
+        document.addEventListener('DOMContentLoaded', function() {
+            const usuarioStr = localStorage.getItem('titi_usuario_actual');
+            if (!usuarioStr) {
+                window.location.href = 'login.html';
+                return;
+            }
             
+            currentUser = JSON.parse(usuarioStr);
+            if (currentUser.rol !== 'admin') {
+                alert('Acceso denegado. Solo administradores.');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            showPage('dashboard');
+        });
+        
+        // Navegación
+        function showPage(pageName) {
+            console.log('📄 Mostrando página:', pageName);
+            
+            // Ocultar todas
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             
+            // Mostrar seleccionada
             const page = document.getElementById(pageName);
             if (page) {
                 page.style.display = 'block';
-                console.log('✅ Página visible');
             }
             
-            const nav = document.querySelector('[data-page="' + pageName + '"]');
+            const nav = document.querySelector(`[data-page="${pageName}"]`);
             if (nav) nav.classList.add('active');
             
+            // Cargar datos según página
             if (pageName === 'usuarios') cargarUsuarios();
-            if (pageName === 'eventos') cargarEventos();
+            if (pageName === 'solicitudes') cargarSolicitudes();
+            if (pageName === 'todos-eventos') cargarTodosEventos();
         }
         
+        // Cargar usuarios
         async function cargarUsuarios() {
-            console.log('');
-            console.log('🔄 ============ CARGANDO USUARIOS ============');
+            console.log('📊 Cargando usuarios...');
             const tbody = document.getElementById('usersTableBody');
-            if (!tbody) {
-                console.error('❌ No existe usersTableBody');
-                return;
-            }
+            if (!tbody) return;
             
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px">⏳ Cargando usuarios...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">Cargando...</td></tr>';
             
             try {
                 const token = obtenerToken();
-                if (!token) {
-                    throw new Error('No hay token disponible');
-                }
-                
-                console.log('📡 Llamando a:', API_BASE + '/usuarios');
-                
                 const response = await fetch(API_BASE + '/usuarios', {
-                    method: 'GET',
                     headers: {
                         'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
                 
-                console.log('📡 Response status:', response.status);
-                console.log('📡 Response headers:', response.headers.get('content-type'));
+                if (!response.ok) throw new Error('Error ' + response.status);
                 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ Error response:', errorText);
-                    throw new Error('HTTP ' + response.status + ': ' + errorText.substring(0, 100));
-                }
+                const usuarios = await response.json();
+                console.log('✅ Usuarios:', usuarios.length);
                 
-                const data = await response.json();
-                console.log('📦 Datos recibidos (tipo):', typeof data);
-                console.log('📦 Es array?:', Array.isArray(data));
-                console.log('📦 Datos:', data);
-                
-                // ASEGURAR QUE SEA ARRAY
-                if (Array.isArray(data)) {
-                    allUsers = data;
-                } else if (data && typeof data === 'object' && data.usuarios) {
-                    allUsers = data.usuarios;
-                } else if (data && typeof data === 'object') {
-                    // Si es un objeto, intentar convertirlo a array
-                    allUsers = Object.values(data);
-                } else {
-                    allUsers = [];
-                }
-                
-                console.log('✅ allUsers (array):', allUsers.length, 'elementos');
-                
-                if (allUsers.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:#999">No hay usuarios registrados</td></tr>';
+                if (usuarios.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No hay usuarios</td></tr>';
                 } else {
                     let html = '';
-                    for (let i = 0; i < allUsers.length; i++) {
-                        const u = allUsers[i];
-                        console.log('  👤 Usuario ' + (i+1) + ':', u.nombre, '-', u.email);
-                        html += '<tr>' +
-                            '<td style="padding:12px">' + u.id + '</td>' +
-                            '<td style="padding:12px"><strong>' + u.nombre + '</strong></td>' +
-                            '<td style="padding:12px">' + u.email + '</td>' +
-                            '<td style="padding:12px"><span style="padding:4px 12px; background:#e8f5e9; color:#2e7d32; border-radius:12px; font-size:0.85rem; font-weight:600">' + u.rol + '</span></td>' +
-                            '<td style="padding:12px">0</td>' +
-                            '<td style="padding:12px">' + (u.fecha_creacion ? new Date(u.fecha_creacion).toLocaleDateString() : '-') + '</td>' +
-                            '<td style="padding:12px">-</td>' +
-                            '</tr>';
-                    }
+                    usuarios.forEach(u => {
+                        html += `<tr>
+                            <td>${u.id}</td>
+                            <td><strong>${u.nombre}</strong></td>
+                            <td>${u.email}</td>
+                            <td><span style="padding:4px 12px; background:#e8f5e9; color:#2e7d32; border-radius:12px">${u.rol}</span></td>
+                            <td>0</td>
+                            <td>${u.fecha_creacion ? new Date(u.fecha_creacion).toLocaleDateString() : '-'}</td>
+                            <td>
+                                <button onclick="editarUsuario(${u.id})" style="padding:6px 12px; background:#764ba2; color:white; border:none; border-radius:6px; cursor:pointer">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                    });
                     tbody.innerHTML = html;
-                    console.log('✅ Tabla renderizada con', allUsers.length, 'filas');
                 }
             } catch (error) {
-                console.error('❌ ERROR COMPLETO:', error);
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:40px; color:#d32f2f"><i class="fas fa-exclamation-circle"></i><br><br><strong>Error al cargar usuarios</strong><br>' + error.message + '</td></tr>';
+                console.error('❌ Error:', error);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red">Error al cargar</td></tr>';
             }
-            console.log('============================================');
         }
         
-        async function cargarEventos() {
-            console.log('');
-            console.log('🔄 ============ CARGANDO EVENTOS ============');
-            const container = document.getElementById('eventsContainer');
-            if (!container) {
-                console.error('❌ No existe eventsContainer');
-                return;
-            }
+        // Cargar solicitudes
+        async function cargarSolicitudes() {
+            console.log('📋 Cargando solicitudes...');
+            const container = document.getElementById('solicitudesContainer');
+            if (!container) return;
             
-            container.innerHTML = '<p style="text-align:center; padding:40px">⏳ Cargando eventos...</p>';
+            container.innerHTML = '<p style="text-align:center">Cargando...</p>';
             
             try {
                 const token = obtenerToken();
-                if (!token) {
-                    throw new Error('No hay token disponible');
-                }
-                
-                console.log('📡 Llamando a:', API_BASE + '/eventos-admin');
-                
-                const response = await fetch(API_BASE + '/eventos-admin', {
-                    method: 'GET',
+                const response = await fetch(API_BASE + '/solicitudes', {
                     headers: {
                         'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
                 
-                console.log('📡 Response status:', response.status);
+                if (!response.ok) throw new Error('Error ' + response.status);
                 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ Error response:', errorText);
-                    throw new Error('HTTP ' + response.status);
-                }
+                const solicitudes = await response.json();
+                console.log('✅ Solicitudes:', solicitudes.length);
                 
-                const data = await response.json();
-                console.log('📦 Datos recibidos:', typeof data, Array.isArray(data));
-                
-                // ASEGURAR QUE SEA ARRAY
-                if (Array.isArray(data)) {
-                    allEvents = data;
-                } else if (data && typeof data === 'object' && data.eventos) {
-                    allEvents = data.eventos;
+                if (solicitudes.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:60px; color:#999">
+                            <i class="fas fa-inbox" style="font-size:4rem; opacity:0.3; margin-bottom:20px"></i>
+                            <h3>No hay solicitudes pendientes</h3>
+                            <p>Todas las solicitudes han sido procesadas</p>
+                        </div>
+                    `;
                 } else {
-                    allEvents = [];
-                }
-                
-                console.log('✅ allEvents:', allEvents.length, 'elementos');
-                
-                if (allEvents.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; padding:40px; color:#999">No hay eventos registrados</p>';
-                } else {
-                    let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px">';
-                    for (let i = 0; i < allEvents.length; i++) {
-                        const e = allEvents[i];
-                        console.log('  📅 Evento ' + (i+1) + ':', e.nombre);
-                        html += '<div style="background:white; padding:24px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); transition:all 0.2s" onmouseover="this.style.transform=\'translateY(-4px)\'; this.style.boxShadow=\'0 8px 20px rgba(0,0,0,0.12)\'" onmouseout="this.style.transform=\'translateY(0)\'; this.style.boxShadow=\'0 2px 8px rgba(0,0,0,0.08)\'">' +
-                            '<h3 style="margin:0 0 12px 0; color:#2d3748">' + e.nombre + '</h3>' +
-                            '<p style="margin:8px 0; color:#718096; font-size:0.9rem"><i class="fas fa-calendar" style="margin-right:8px; color:#764ba2"></i>' + (e.fecha_evento ? new Date(e.fecha_evento).toLocaleDateString() : 'Sin fecha') + '</p>' +
-                            '<p style="margin:8px 0; color:#718096; font-size:0.9rem"><i class="fas fa-map-marker-alt" style="margin-right:8px; color:#764ba2"></i>' + (e.ubicacion || 'Sin ubicación') + '</p>' +
-                            '<p style="margin:8px 0; color:#718096; font-size:0.9rem"><i class="fas fa-table" style="margin-right:8px; color:#764ba2"></i>' + (e.mesas ? e.mesas.length : 0) + ' mesas</p>' +
-                            '</div>';
-                    }
+                    let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(400px,1fr)); gap:24px">';
+                    solicitudes.forEach(sol => {
+                        html += `
+                            <div style="background:white; padding:24px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); border-left:6px solid #FFA726">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:16px">
+                                    <h3 style="margin:0">${sol.nombre}</h3>
+                                    <span style="background:#FFA726; color:white; padding:4px 12px; border-radius:12px; font-size:0.75rem">PENDIENTE</span>
+                                </div>
+                                <div style="margin-bottom:16px">
+                                    <p style="margin:5px 0"><i class="fas fa-user"></i> ${sol.organizador_nombre}</p>
+                                    <p style="margin:5px 0"><i class="fas fa-envelope"></i> ${sol.organizador_email}</p>
+                                    <p style="margin:5px 0"><i class="fas fa-calendar"></i> ${new Date(sol.fecha_evento).toLocaleDateString()}</p>
+                                    <p style="margin:5px 0"><i class="fas fa-map-marker-alt"></i> ${sol.ubicacion || 'No especificada'}</p>
+                                </div>
+                                <div style="display:flex; gap:12px; margin-top:20px; padding-top:20px; border-top:2px solid #f0f0f0">
+                                    <button onclick="aprobarSolicitud(${sol.id})" style="flex:1; padding:12px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
+                                        <i class="fas fa-check"></i> Aprobar
+                                    </button>
+                                    <button onclick="rechazarSolicitud(${sol.id})" style="flex:1; padding:12px; background:#f44336; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
+                                        <i class="fas fa-times"></i> Rechazar
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
                     html += '</div>';
                     container.innerHTML = html;
-                    console.log('✅ Eventos renderizados');
                 }
             } catch (error) {
-                console.error('❌ ERROR:', error);
-                container.innerHTML = '<p style="text-align:center; padding:40px; color:#d32f2f"><i class="fas fa-exclamation-circle"></i><br><br><strong>Error al cargar eventos</strong><br>' + error.message + '</p>';
+                console.error('❌ Error:', error);
+                container.innerHTML = '<p style="text-align:center; color:red">Error al cargar solicitudes</p>';
             }
-            console.log('============================================');
         }
         
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ DOM Cargado');
+        // Aprobar solicitud
+        async function aprobarSolicitud(id) {
+            if (!confirm('¿Aprobar esta solicitud de evento?')) return;
             
-            showPage('dashboard');
-            cargarUsuarios();
-            cargarEventos();
-            
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.onclick = function() {
-                    if (confirm('¿Cerrar sesión?')) {
-                        localStorage.clear();
-                        sessionStorage.clear();
-                        window.location.href = 'login.html';
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/solicitudes/' + id + '/aprobar', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
                     }
-                };
+                });
+                
+                if (!response.ok) throw new Error('Error ' + response.status);
+                
+                alert('✅ Solicitud aprobada exitosamente');
+                cargarSolicitudes();
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert('Error al aprobar solicitud');
             }
+        }
+        
+        // Rechazar solicitud
+        async function rechazarSolicitud(id) {
+            const motivo = prompt('Motivo del rechazo (opcional):');
+            if (motivo === null) return;
             
-            console.log('✅ Admin panel listo');
-        });
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/solicitudes/' + id + '/rechazar', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ motivo })
+                });
+                
+                if (!response.ok) throw new Error('Error ' + response.status);
+                
+                alert('❌ Solicitud rechazada');
+                cargarSolicitudes();
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert('Error al rechazar solicitud');
+            }
+        }
+        
+        // Cargar todos los eventos
+        async function cargarTodosEventos() {
+            console.log('📅 Cargando todos los eventos...');
+            const container = document.getElementById('todosEventosContainer');
+            if (!container) return;
+            
+            container.innerHTML = '<p style="text-align:center">Cargando...</p>';
+            
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/eventos', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Error ' + response.status);
+                
+                const data = await response.json();
+                const eventos = data.eventos || data;
+                
+                console.log('✅ Eventos:', eventos.length);
+                
+                if (eventos.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:#999">No hay eventos</p>';
+                } else {
+                    let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(350px,1fr)); gap:24px">';
+                    eventos.forEach(e => {
+                        html += `
+                            <div style="background:white; padding:24px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer" onclick="verEventoCompleto(${e.id})">
+                                <h3 style="margin:0 0 12px 0">${e.nombre}</h3>
+                                <p style="margin:5px 0; color:#666"><i class="fas fa-user"></i> ${e.usuario_nombre || 'Usuario'}</p>
+                                <p style="margin:5px 0; color:#666"><i class="fas fa-calendar"></i> ${e.fecha_evento ? new Date(e.fecha_evento).toLocaleDateString() : 'Sin fecha'}</p>
+                                <p style="margin:5px 0; color:#666"><i class="fas fa-map-marker-alt"></i> ${e.ubicacion || 'Sin ubicación'}</p>
+                                <div style="margin-top:16px; padding-top:16px; border-top:2px solid #f0f0f0">
+                                    <button style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; width:100%">
+                                        <i class="fas fa-eye"></i> Ver Renderizado
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                container.innerHTML = '<p style="text-align:center; color:red">Error al cargar eventos</p>';
+            }
+        }
+        
+        // Ver evento completo (renderizado)
+        function verEventoCompleto(eventoId) {
+            window.open('cliente.html?evento=' + eventoId, '_blank');
+        }
+        
+        // Modal crear usuario
+        function abrirModalCrearUsuario() {
+            document.getElementById('modalCrearUsuario').classList.add('active');
+        }
+        
+        function cerrarModalCrearUsuario() {
+            document.getElementById('modalCrearUsuario').classList.remove('active');
+            document.getElementById('formCrearUsuario').reset();
+        }
+        
+        // Crear usuario
+        async function crearUsuario(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const data = {
+                nombre: formData.get('nombre'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                rol: formData.get('rol')
+            };
+            
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/usuarios', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) throw new Error('Error ' + response.status);
+                
+                alert('✅ Usuario creado exitosamente');
+                cerrarModalCrearUsuario();
+                cargarUsuarios();
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert('Error al crear usuario');
+            }
+        }
+        
+        // Logout
+        function logout() {
+            if (confirm('¿Cerrar sesión?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
     </script>
 </head>
 <body>
     <div class="admin-container">
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
                 <i class="fas fa-calendar-check"></i>
@@ -246,13 +441,17 @@
                     <i class="fas fa-tachometer-alt"></i>
                     <a>Dashboard</a>
                 </div>
+                <div class="nav-item" data-page="solicitudes" onclick="showPage('solicitudes')">
+                    <i class="fas fa-inbox"></i>
+                    <a>Solicitudes</a>
+                </div>
                 <div class="nav-item" data-page="usuarios" onclick="showPage('usuarios')">
                     <i class="fas fa-users"></i>
                     <a>Usuarios</a>
                 </div>
-                <div class="nav-item" data-page="eventos" onclick="showPage('eventos')">
+                <div class="nav-item" data-page="todos-eventos" onclick="showPage('todos-eventos')">
                     <i class="fas fa-calendar-alt"></i>
-                    <a>Eventos</a>
+                    <a>Todos los Eventos</a>
                 </div>
                 <div class="nav-item" data-page="mis-eventos" onclick="showPage('mis-eventos')">
                     <i class="fas fa-calendar-plus"></i>
@@ -261,79 +460,152 @@
             </nav>
             
             <div class="sidebar-footer">
-                <div class="nav-item" id="logoutBtn">
+                <div class="nav-item" onclick="location.href='index.html'">
+                    <i class="fas fa-home"></i>
+                    <a>Inicio</a>
+                </div>
+                <div class="nav-item" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i>
                     <a>Cerrar Sesión</a>
                 </div>
             </div>
         </aside>
 
+        <!-- Main Content -->
         <main class="main-content">
             <header class="top-bar">
-                <h1>Dashboard Admin</h1>
+                <h1 id="pageTitle">Dashboard Admin</h1>
             </header>
 
+            <!-- Dashboard -->
             <div class="page" id="dashboard" style="display:block; padding:30px">
                 <h2>Panel de Control</h2>
-                <div style="margin-top:30px">
-                    <button onclick="cargarUsuarios()" style="padding:12px 24px; background:linear-gradient(135deg, #764ba2, #9a7bb8); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:0 4px 12px rgba(118,75,162,0.3)">
-                        <i class="fas fa-sync-alt"></i> Recargar Usuarios
-                    </button>
-                    <button onclick="cargarEventos()" style="padding:12px 24px; background:linear-gradient(135deg, #764ba2, #9a7bb8); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; margin-left:10px; box-shadow:0 4px 12px rgba(118,75,162,0.3)">
-                        <i class="fas fa-sync-alt"></i> Recargar Eventos
-                    </button>
+                <p>Bienvenido al panel de administración de Titi Invita</p>
+                
+                <div style="margin-top:30px; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px">
+                    <div style="background:linear-gradient(135deg,#764ba2,#9a7bb8); color:white; padding:30px; border-radius:12px">
+                        <h3>Solicitudes Pendientes</h3>
+                        <p style="font-size:3rem; margin:10px 0" id="statSolicitudes">0</p>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#4CAF50,#45a049); color:white; padding:30px; border-radius:12px">
+                        <h3>Total Usuarios</h3>
+                        <p style="font-size:3rem; margin:10px 0" id="statUsuarios">0</p>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#2196F3,#1976D2); color:white; padding:30px; border-radius:12px">
+                        <h3>Total Eventos</h3>
+                        <p style="font-size:3rem; margin:10px 0" id="statEventos">0</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="page" id="usuarios" style="display:none; padding:30px">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px">
-                    <h2 style="margin:0">Gestión de Usuarios</h2>
-                    <button onclick="cargarUsuarios()" style="padding:12px 24px; background:linear-gradient(135deg, #764ba2, #9a7bb8); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:0 4px 12px rgba(118,75,162,0.3)">
+            <!-- Solicitudes -->
+            <div class="page" id="solicitudes" style="display:none; padding:30px">
+                <div style="display:flex; justify-content:space-between; margin-bottom:24px">
+                    <h2>Solicitudes de Eventos</h2>
+                    <button onclick="cargarSolicitudes()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
                         <i class="fas fa-sync-alt"></i> Actualizar
                     </button>
                 </div>
                 
-                <div style="background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06)">
+                <div id="solicitudesContainer">
+                    <p style="text-align:center">Cargando...</p>
+                </div>
+            </div>
+
+            <!-- Usuarios -->
+            <div class="page" id="usuarios" style="display:none; padding:30px">
+                <div style="display:flex; justify-content:space-between; margin-bottom:24px">
+                    <h2>Gestión de Usuarios</h2>
+                    <div>
+                        <button onclick="abrirModalCrearUsuario()" style="padding:10px 20px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; margin-right:10px">
+                            <i class="fas fa-plus"></i> Crear Usuario
+                        </button>
+                        <button onclick="cargarUsuarios()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
+                            <i class="fas fa-sync-alt"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08)">
                     <table style="width:100%; border-collapse:collapse">
                         <thead style="background:#fafbfc">
                             <tr>
-                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">ID</th>
-                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">NOMBRE</th>
-                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">EMAIL</th>
-                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">ROL</th>
-                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">EVENTOS</th>
-                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">REGISTRO</th>
-                                <th style="padding:16px; text-align:left; font-weight:600; text-transform:uppercase; font-size:0.85rem; color:#2d3748; letter-spacing:0.5px">ACCIONES</th>
+                                <th style="padding:16px; text-align:left">ID</th>
+                                <th style="padding:16px; text-align:left">NOMBRE</th>
+                                <th style="padding:16px; text-align:left">EMAIL</th>
+                                <th style="padding:16px; text-align:left">ROL</th>
+                                <th style="padding:16px; text-align:left">EVENTOS</th>
+                                <th style="padding:16px; text-align:left">REGISTRO</th>
+                                <th style="padding:16px; text-align:left">ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody id="usersTableBody" style="background:white">
                             <tr>
-                                <td colspan="7" style="padding:40px; text-align:center; color:#999">
-                                    Cargando usuarios...
-                                </td>
+                                <td colspan="7" style="padding:40px; text-align:center">Cargando...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <div class="page" id="eventos" style="display:none; padding:30px">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px">
-                    <h2 style="margin:0">Todos los Eventos</h2>
-                    <button onclick="cargarEventos()" style="padding:12px 24px; background:linear-gradient(135deg, #764ba2, #9a7bb8); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:0 4px 12px rgba(118,75,162,0.3)">
+            <!-- Todos los Eventos -->
+            <div class="page" id="todos-eventos" style="display:none; padding:30px">
+                <div style="display:flex; justify-content:space-between; margin-bottom:24px">
+                    <h2>Todos los Eventos (Renderizados)</h2>
+                    <button onclick="cargarTodosEventos()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer">
                         <i class="fas fa-sync-alt"></i> Actualizar
                     </button>
                 </div>
                 
-                <div id="eventsContainer">
-                    <p style="text-align:center; padding:40px; color:#999">Cargando eventos...</p>
+                <div id="todosEventosContainer">
+                    <p style="text-align:center">Cargando...</p>
                 </div>
             </div>
 
+            <!-- Mis Eventos -->
             <div class="page" id="mis-eventos" style="display:none">
-                <iframe src="cliente.html" style="width:100%; height:calc(100vh - 100px); border:none; border-radius:12px"></iframe>
+                <div class="iframe-container">
+                    <iframe src="cliente.html"></iframe>
+                </div>
             </div>
         </main>
+    </div>
+
+    <!-- Modal Crear Usuario -->
+    <div id="modalCrearUsuario" class="modal-crear-usuario">
+        <div class="modal-content-usuario">
+            <h2>Crear Nuevo Usuario</h2>
+            <form id="formCrearUsuario" onsubmit="crearUsuario(event)">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select name="rol" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="admin">Admin</option>
+                        <option value="organizador">Organizador</option>
+                        <option value="cliente">Cliente</option>
+                        <option value="colaborador">Colaborador</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i> Crear Usuario
+                </button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalCrearUsuario()">
+                    Cancelar
+                </button>
+            </form>
+        </div>
     </div>
 </body>
 </html>
