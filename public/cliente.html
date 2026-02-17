@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <style>
-        /* Estilos adicionales para roles y límites */
+        /* Estilos adicionales para roles */
         .role-badge {
             display: inline-block;
             padding: 2px 8px;
@@ -36,6 +36,11 @@
             color: white;
         }
         
+        .role-badge.colaborador {
+            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
+            color: white;
+        }
+        
         .event-limit-info {
             margin-top: 10px;
             padding: 8px 12px;
@@ -55,6 +60,102 @@
             50% { opacity: 0.8; }
             100% { opacity: 1; }
         }
+        
+        /* Modal Mejorado */
+        .modal {
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideInModal 0.3s ease;
+        }
+        
+        @keyframes slideInModal {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header h2,
+        .modal-header h3 {
+            font-size: 1.8rem;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 4px rgba(118,75,162,0.1);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #764ba2, #9a7bb8) !important;
+            color: white !important;
+            padding: 16px 24px !important;
+            border: none !important;
+            border-radius: 12px !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            font-size: 1.05rem !important;
+            transition: all 0.3s !important;
+            box-shadow: 0 4px 12px rgba(118,75,162,0.3) !important;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(118,75,162,0.4) !important;
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0 !important;
+            color: #2d3748 !important;
+            padding: 14px 24px !important;
+            border: none !important;
+            border-radius: 12px !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            font-size: 1rem !important;
+            transition: all 0.3s !important;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0 !important;
+        }
     </style>
 </head>
 <body>
@@ -71,7 +172,7 @@
                 <div class="user-info">
                     <div class="user-avatar" id="userAvatar">MG</div>
                     <div class="user-details">
-                        <strong id="userName">María González</strong>
+                        <strong id="userName">Usuario</strong>
                         <div>
                             <small id="userRole">Cliente</small>
                             <span id="roleBadge" class="role-badge cliente"></span>
@@ -107,20 +208,14 @@
                     
                     <div class="current-event-info">
                         <h4>Evento Actual:</h4>
-                        <h2 id="currentEventName">Boda de Ana y Carlos</h2>
-                        <p id="currentEventDate">15 de Junio, 2024 - 18:00</p>
-                        <p id="currentEventStatus">Estado: <span class="status-active">Activo</span></p>
+                        <h2 id="currentEventName">Sin evento</h2>
+                        <p id="currentEventDate">-</p>
+                        <p id="currentEventStatus">Estado: <span class="status-active">-</span></p>
                     </div>
                 </div>
                 
                 <div class="header-actions">
-                    <button class="btn-icon" id="shareBtn" title="Compartir Vista">
-                        <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="btn-icon" id="helpBtn" title="Ayuda">
-                        <i class="fas fa-question-circle"></i>
-                    </button>
-                    <button class="btn-icon" id="logoutBtn" title="Cerrar Sesión">
+                    <button class="btn-icon" id="logoutBtn" title="Cerrar Sesión" onclick="mostrarLogout()">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                     <button class="btn-icon" id="fullscreenBtn" title="Pantalla Completa">
@@ -145,11 +240,11 @@
                         <div class="stat-label">Sillas</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value" id="statSillasOcupadas">32</div>
+                        <div class="stat-value" id="statSillasOcupadas">0</div>
                         <div class="stat-label">Ocupadas</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value" id="statPorcentajeOcupacion">50%</div>
+                        <div class="stat-value" id="statPorcentajeOcupacion">0%</div>
                         <div class="stat-label">Ocupación</div>
                     </div>
                 </div>
@@ -157,7 +252,7 @@
                 <div class="progress-container">
                     <div class="progress-label">Ocupación Total</div>
                     <div class="progress-bar">
-                        <div class="progress-fill" id="ocupacionBar" style="width: 50%"></div>
+                        <div class="progress-fill" id="ocupacionBar" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
@@ -165,241 +260,166 @@
             <!-- Estadísticas de eventos -->
             <div class="panel-section event-stats">
                 <h3>
-                    <i class="fas fa-chart-bar"></i>
-                    Estadísticas de Eventos
+                    <i class="fas fa-chart-pie"></i>
+                    Resumen
                 </h3>
-                <div class="event-counts">
-                    <div class="count-item">
-                        <span class="count-value" id="totalEventsCount">1</span>
-                        <span class="count-label">Total Eventos</span>
+                <div class="stats-list">
+                    <div class="stat-row">
+                        <span class="count-label">Confirmados</span>
+                        <span class="count" id="confirmados">0</span>
                     </div>
-                    <div class="count-item">
-                        <span class="count-value" id="activeEventsCount">1</span>
-                        <span class="count-label">Activos</span>
+                    <div class="stat-row">
+                        <span class="count-label">Pendientes</span>
+                        <span class="count" id="pendientes">0</span>
                     </div>
-                    <div class="count-item">
-                        <span class="count-value" id="draftEventsCount">0</span>
-                        <span class="count-label">Borradores</span>
+                    <div class="stat-row">
+                        <span class="count-label">Rechazados</span>
+                        <span class="count" id="rechazados">0</span>
                     </div>
                 </div>
             </div>
         </aside>
-        
-        <!-- ===== COLUMNA 2: Área de Mesas (CENTRO) ===== -->
-        <section class="mesas-area">
+
+        <!-- ===== COLUMNA 2: Renderizado de Mesas ===== -->
+        <section class="mesas-section">
             <div class="mesas-header">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchGuests" placeholder="Buscar invitado en mesas...">
-                </div>
-                
-                <div class="mesas-controls">
-                    <button class="btn-icon" id="zoomInBtn" title="Acercar">
+                <h2>
+                    <i class="fas fa-chair"></i>
+                    Disposición de Mesas
+                </h2>
+                <div class="controls">
+                    <button class="btn-icon" id="btnZoomIn" title="Acercar">
                         <i class="fas fa-search-plus"></i>
                     </button>
-                    <button class="btn-icon" id="zoomOutBtn" title="Alejar">
+                    <button class="btn-icon" id="btnZoomOut" title="Alejar">
                         <i class="fas fa-search-minus"></i>
                     </button>
-                    <button class="btn-icon" id="resetViewBtn" title="Restablecer Vista">
-                        <i class="fas fa-expand-arrows-alt"></i>
-                    </button>
-                    <button class="btn-icon" id="changeLayoutBtn" title="Cambiar Disposición" onclick="mostrarOpcionesDisposicion()">
-                        <i class="fas fa-th"></i>
+                    <button class="btn-icon" id="btnFullscreen" title="Pantalla Completa">
+                        <i class="fas fa-expand"></i>
                     </button>
                 </div>
             </div>
-            
+
             <div class="mesas-container" id="mesasContainer">
-                <!-- Mesas se generarán aquí con JavaScript -->
-            </div>
-            
-            <div class="mesas-footer">
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-color sin-asignar"></div>
-                        <span>Sin Asignar</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color asignado"></div>
-                        <span>Asignado</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color confirmado"></div>
-                        <span>Confirmado</span>
-                    </div>
-                </div>
-                
-                <div class="view-options">
-                    <label class="checkbox">
-                        <input type="checkbox" id="showNames" checked>
-                        <span>Mostrar Nombres</span>
-                    </label>
-                    <label class="checkbox">
-                        <input type="checkbox" id="autoSave" checked>
-                        <span>Guardado Automático</span>
-                    </label>
-                    <label class="checkbox">
-                        <input type="checkbox" id="showGrid">
-                        <span>Mostrar Cuadrícula</span>
-                    </label>
+                <!-- Las mesas se renderizan aquí dinámicamente -->
+                <div class="empty-state">
+                    <i class="fas fa-chair"></i>
+                    <p>Selecciona un evento para ver las mesas</p>
                 </div>
             </div>
         </section>
-        
-        <!-- ===== COLUMNA 3: Configuración + Invitados (DERECHA) ===== -->
-        <aside class="right-panel">
-            <!-- FILA 1: Configuración del Evento -->
-            <div class="config-section">
-                <div class="panel-section">
-                    <h3>
-                        <i class="fas fa-sliders-h"></i>
-                        Configuración del Evento
-                    </h3>
-                    
+
+        <!-- ===== COLUMNA 3: Panel Configuración ===== -->
+        <aside class="config-panel">
+            <div class="tabs">
+                <button class="tab active" data-tab="config">
+                    <i class="fas fa-cog"></i> Configuración
+                </button>
+                <button class="tab" data-tab="invitados">
+                    <i class="fas fa-users"></i> Invitados
+                </button>
+            </div>
+
+            <!-- Tab Configuración -->
+            <div class="tab-content active" id="configTab">
+                <div class="config-section">
+                    <h3><i class="fas fa-info-circle"></i> Información del Evento</h3>
                     <div class="form-group">
                         <label for="eventName">Nombre del Evento *</label>
-                        <input type="text" id="eventName" placeholder="Ej: Boda de Ana y Carlos" value="Boda de Ana y Carlos">
+                        <input type="text" id="eventName" placeholder="Nombre del evento">
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-group">
                             <label for="eventDate">Fecha</label>
-                            <input type="date" id="eventDate" value="2024-06-15">
+                            <input type="date" id="eventDate">
                         </div>
                         <div class="form-group">
                             <label for="eventTime">Hora</label>
-                            <input type="time" id="eventTime" value="18:00">
+                            <input type="time" id="eventTime">
                         </div>
                     </div>
-                    
                     <div class="form-group">
                         <label for="eventDescription">Descripción</label>
-                        <textarea id="eventDescription" rows="2" placeholder="Descripción del evento...">Celebración de boda en el jardín principal</textarea>
+                        <textarea id="eventDescription" rows="3" placeholder="Descripción del evento"></textarea>
                     </div>
-                    
-                    <!-- Configuración de Disposición -->
+                    <button class="btn-primary" id="btnGuardarEvento" style="width: 100%;">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+
+                <div class="config-section">
+                    <h3><i class="fas fa-table"></i> Configuración de Mesas</h3>
                     <div class="form-group">
-                        <label>Disposición de Mesas</label>
-                        <div class="disposicion-row">
-                            <div class="form-group-small">
-                                <label for="numColumnas">Columnas</label>
-                                <input type="number" id="numColumnas" min="1" max="20" value="4" onchange="actualizarDisposicion()">
-                            </div>
-                            <div class="form-group-small">
-                                <label for="numFilas">Filas</label>
-                                <input type="number" id="numFilas" min="1" max="20" value="2" onchange="actualizarDisposicion()">
-                            </div>
-                            <div class="form-group-small">
-                                <label for="espaciado">Espaciado</label>
-                                <input type="number" id="espaciado" min="10" max="200" value="150" onchange="actualizarDisposicion()">
-                            </div>
-                        </div>
+                        <label for="numMesas">Número de Mesas</label>
+                        <input type="number" id="numMesas" min="1" max="50" value="8">
                     </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="numMesas">Número de Mesas</label>
-                            <input type="number" id="numMesas" min="1" max="100" value="8">
-                        </div>
-                        <div class="form-group">
-                            <label for="sillasPorMesa">Sillas por Mesa</label>
-                            <input type="number" id="sillasPorMesa" min="1" max="20" value="8">
-                        </div>
-                    </div>
-                    
                     <div class="form-group">
-                        <label for="formaMesa">Forma de la Mesa</label>
+                        <label for="sillasPorMesa">Sillas por Mesa</label>
+                        <input type="number" id="sillasPorMesa" min="2" max="20" value="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="formaMesa">Forma de las Mesas</label>
                         <select id="formaMesa">
                             <option value="rectangular">Rectangular</option>
-                            <option value="circular">Circular</option>
-                            <option value="cuadrada">Cuadrada</option>
+                            <option value="redonda">Redonda</option>
                         </select>
                     </div>
-                    
-                    <div class="button-group">
-                        <button class="btn-primary" id="btnCrearMesas">
-                            <i class="fas fa-sync"></i> Actualizar Mesas
-                        </button>
-                        <button class="btn-secondary" id="btnGuardarEvento">
-                            <i class="fas fa-save"></i> Guardar Cambios
-                        </button>
-                        <button class="btn-danger" id="btnFinalizarEvento" title="Eliminar Evento">
-                            <i class="fas fa-trash"></i> Eliminar
-                        </button>
-                    </div>
+                    <button class="btn-primary" id="btnCrearMesas" style="width: 100%;">
+                        <i class="fas fa-plus-circle"></i> Crear/Actualizar Mesas
+                    </button>
+                </div>
+
+                <div class="danger-zone">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Zona Peligrosa</h3>
+                    <button class="btn-danger" id="btnFinalizarEvento">
+                        <i class="fas fa-trash"></i> Eliminar Evento
+                    </button>
                 </div>
             </div>
-            
-            <!-- FILA 2: Lista de Invitados -->
-            <div class="guests-section">
-                <div class="panel-section">
-                    <h3>
-                        <i class="fas fa-users"></i>
-                        Lista de Invitados
-                    </h3>
-                    
-                    <div class="guest-search">
-                        <input type="text" id="guestSearch" placeholder="Buscar invitado...">
-                        <button class="btn-icon" id="addGuestBtn" title="Agregar Invitado">
-                            <i class="fas fa-user-plus"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="guest-filters">
-                        <select id="guestFilter">
-                            <option value="all">Todos los invitados</option>
-                            <option value="assigned">Asignados a mesa</option>
-                            <option value="unassigned">Sin asignar</option>
-                            <option value="confirmed">Confirmados</option>
-                        </select>
-                    </div>
-                    
-                    <div class="guests-list" id="guestsList">
-                        <!-- Lista de invitados se generará aquí -->
-                    </div>
-                    
-                    <div class="guest-actions">
-                        <button class="btn-secondary btn-small" id="importGuestsBtn">
-                            <i class="fas fa-file-import"></i> Importar CSV
-                        </button>
-                        <button class="btn-secondary btn-small" id="exportGuestsBtn">
-                            <i class="fas fa-file-export"></i> Exportar Lista
-                        </button>
-                        <button class="btn-secondary btn-small" id="sendInvitationsBtn">
-                            <i class="fas fa-envelope"></i> Enviar Invitaciones
-                        </button>
-                    </div>
+
+            <!-- Tab Invitados -->
+            <div class="tab-content" id="invitadosTab">
+                <div class="invitados-header">
+                    <input type="text" id="searchInvitado" placeholder="Buscar invitado en mesas..." class="search-input">
+                    <button class="btn-invitado btn-primary" id="addGuestBtn">
+                        <i class="fas fa-user-plus"></i> Agregar Invitado
+                    </button>
                 </div>
-                
-                <div class="panel-section guest-details-section">
-                    <h3>
-                        <i class="fas fa-info-circle"></i>
-                        Información de Invitado
-                    </h3>
-                    
-                    <div class="guest-details" id="guestDetails">
-                        <div class="empty-state">
-                            <i class="fas fa-user"></i>
-                            <p>Selecciona un invitado para ver sus detalles</p>
-                        </div>
+
+                <div class="invitados-filters">
+                    <select id="filterInvitados">
+                        <option value="">Todos los invitados</option>
+                        <option value="confirmado">Confirmados</option>
+                        <option value="pendiente">Pendientes</option>
+                        <option value="rechazado">Rechazados</option>
+                        <option value="sin-asignar">Sin asignar</option>
+                    </select>
+                </div>
+
+                <div class="invitados-list" id="invitadosList">
+                    <!-- Lista de invitados se renderiza aquí -->
+                    <div class="empty-invitados">
+                        <i class="fas fa-user-friends"></i>
+                        <p>No hay invitados agregados</p>
+                        <small>Agrega invitados para comenzar</small>
                     </div>
                 </div>
             </div>
         </aside>
     </main>
-    
+
     <!-- Modales -->
     <div class="modal" id="newEventModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-calendar-plus"></i> Nuevo Evento</h3>
+                <h2><i class="fas fa-calendar-plus"></i> Crear Nuevo Evento</h2>
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="newEventForm">
                     <div class="form-group">
                         <label for="newEventName">Nombre del Evento *</label>
-                        <input type="text" id="newEventName" required>
+                        <input type="text" id="newEventName" placeholder="Ej: Boda de Ana y Carlos" required>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
@@ -408,7 +428,7 @@
                         </div>
                         <div class="form-group">
                             <label for="newEventTime">Hora</label>
-                            <input type="time" id="newEventTime">
+                            <input type="time" id="newEventTime" value="18:00">
                         </div>
                     </div>
                     <div class="form-group">
@@ -429,7 +449,7 @@
                         <label>Configuración Inicial</label>
                         <div class="checkbox-group">
                             <input type="checkbox" id="useTemplate" checked>
-                            <label for="useTemplate">Usar plantilla predeterminada</label>
+                            <label for="useTemplate">Usar plantilla predeterminada (8 mesas, 8 sillas c/u)</label>
                         </div>
                     </div>
                     <div id="eventLimitWarning" style="display: none; color: #f44336; font-size: 0.9rem; margin-top: 10px;">
@@ -444,69 +464,22 @@
             </div>
         </div>
     </div>
-    
-    <!-- Modal Opciones de Disposición -->
-    <div class="modal" id="layoutModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-th"></i> Configurar Disposición</h3>
-                <button class="modal-close">&times;</button>
+
+    <!-- Modal Logout Bonito -->
+    <div id="logoutModal" class="modal" style="display:none">
+        <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideInModal 0.3s ease">
+            <div style="width:80px; height:80px; margin:0 auto 20px; background:linear-gradient(135deg, #667eea, #764ba2); border-radius:50%; display:flex; align-items:center; justify-content:center">
+                <i class="fas fa-sign-out-alt" style="font-size:2.5rem; color:white"></i>
             </div>
-            <div class="modal-body">
-                <div class="layout-options">
-                    <div class="layout-presets">
-                        <h4>Disposiciones Predefinidas</h4>
-                        <div class="preset-grid">
-                            <div class="preset-item" onclick="aplicarPreset(4, 2, 70)">
-                                <div class="preset-visual" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                </div>
-                                <span>4x2</span>
-                            </div>
-                            <div class="preset-item" onclick="aplicarPreset(3, 3, 80)">
-                                <div class="preset-visual" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                </div>
-                                <span>3x3</span>
-                            </div>
-                            <div class="preset-item" onclick="aplicarPreset(5, 2, 60)">
-                                <div class="preset-visual" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                    <div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div><div class="preset-mesa">M</div>
-                                </div>
-                                <span>5x2</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="layout-custom">
-                        <h4>Personalizado</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="customColumnas">Columnas</label>
-                                <input type="range" id="customColumnas" min="1" max="10" value="4" oninput="document.getElementById('columnasValue').textContent = this.value">
-                                <span id="columnasValue">4</span>
-                            </div>
-                            <div class="form-group">
-                                <label for="customFilas">Filas</label>
-                                <input type="range" id="customFilas" min="1" max="10" value="2" oninput="document.getElementById('filasValue').textContent = this.value">
-                                <span id="filasValue">2</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="customEspaciado">Espaciado (px)</label>
-                            <input type="range" id="customEspaciado" min="20" max="150" value="70" oninput="document.getElementById('espaciadoValue').textContent = this.value + 'px'">
-                            <span id="espaciadoValue">70px</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModal(document.getElementById('layoutModal'))">Cancelar</button>
-                <button class="btn-primary" onclick="aplicarDisposicionPersonalizada()">Aplicar</button>
+            <h2 style="margin:0 0 10px 0; font-size:1.8rem; color:#2d3748">¿Cerrar Sesión?</h2>
+            <p style="color:#718096; margin:0 0 30px 0">Tu sesión se cerrará y tendrás que volver a iniciar sesión</p>
+            <div style="display:flex; gap:12px">
+                <button onclick="cancelarLogout()" style="flex:1; padding:14px; background:#e2e8f0; color:#2d3748; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem; transition:all 0.3s">
+                    Cancelar
+                </button>
+                <button onclick="confirmarLogout()" style="flex:1; padding:14px; background:linear-gradient(135deg, #f44336, #d32f2f); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem; transition:all 0.3s">
+                    Salir
+                </button>
             </div>
         </div>
     </div>
@@ -518,103 +491,22 @@
     <script src="cliente.js"></script>
     
     <script>
-        // Funciones auxiliares para disposición
-        function mostrarOpcionesDisposicion() {
-            document.getElementById('layoutModal').style.display = 'flex';
+        // Funciones de logout
+        function mostrarLogout() {
+            document.getElementById('logoutModal').classList.add('active');
+            document.getElementById('logoutModal').style.display = 'flex';
         }
         
-        function aplicarPreset(columnas, filas, espaciado) {
-            document.getElementById('numColumnas').value = columnas;
-            document.getElementById('numFilas').value = filas;
-            document.getElementById('espaciado').value = espaciado;
-            actualizarDisposicion();
-            cerrarModal(document.getElementById('layoutModal'));
+        function cancelarLogout() {
+            document.getElementById('logoutModal').classList.remove('active');
+            document.getElementById('logoutModal').style.display = 'none';
         }
         
-        function aplicarDisposicionPersonalizada() {
-            const columnas = document.getElementById('customColumnas').value;
-            const filas = document.getElementById('customFilas').value;
-            const espaciado = document.getElementById('customEspaciado').value;
-            
-            document.getElementById('numColumnas').value = columnas;
-            document.getElementById('numFilas').value = filas;
-            document.getElementById('espaciado').value = espaciado;
-            actualizarDisposicion();
-            cerrarModal(document.getElementById('layoutModal'));
-        }
-        
-        function actualizarDisposicion() {
-            const columnas = document.getElementById('numColumnas').value;
-            const filas = document.getElementById('numFilas').value;
-            const espaciado = document.getElementById('espaciado').value;
-            
-            // Aquí iría la lógica para actualizar la disposición de las mesas
-            // Por ahora solo mostramos un mensaje
-            const toast = document.getElementById('messageToast');
-            if (toast) {
-                toast.textContent = `Disposición actualizada: ${columnas} columnas × ${filas} filas`;
-                toast.className = 'toast info show';
-                setTimeout(() => toast.classList.remove('show'), 2000);
-            }
-        }
-        
-        function cerrarModal(modal) {
-            modal.style.display = 'none';
+        function confirmarLogout() {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'login.html';
         }
     </script>
-
-
-
-<!-- Modal Logout Bonito -->
-<div id="logoutModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:10000; align-items:center; justify-content:center">
-    <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideInLogout 0.3s ease">
-        <div style="width:80px; height:80px; margin:0 auto 20px; background:linear-gradient(135deg, #667eea, #764ba2); border-radius:50%; display:flex; align-items:center; justify-content:center">
-            <i class="fas fa-sign-out-alt" style="font-size:2.5rem; color:white"></i>
-        </div>
-        <h2 style="margin:0 0 10px 0; font-size:1.8rem; color:#2d3748">¿Cerrar Sesión?</h2>
-        <p style="color:#718096; margin:0 0 30px 0">Tu sesión se cerrará y tendrás que volver a iniciar sesión</p>
-        <div style="display:flex; gap:12px">
-            <button onclick="cancelarLogout()" style="flex:1; padding:14px; background:#e2e8f0; color:#2d3748; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem; transition:all 0.3s">
-                Cancelar
-            </button>
-            <button onclick="confirmarLogout()" style="flex:1; padding:14px; background:linear-gradient(135deg, #f44336, #d32f2f); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem; transition:all 0.3s">
-                Salir
-            </button>
-        </div>
-    </div>
-</div>
-
-<style>
-@keyframes slideInLogout {
-    from {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-#logoutModal.active {
-    display: flex !important;
-}
-</style>
-
-<script>
-function mostrarLogout() {
-    document.getElementById('logoutModal').classList.add('active');
-}
-
-function cancelarLogout() {
-    document.getElementById('logoutModal').classList.remove('active');
-}
-
-function confirmarLogout() {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = 'login.html';
-}
-</script>
 </body>
 </html>
