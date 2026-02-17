@@ -336,6 +336,7 @@ async function handlePasswordReset() {
 
 // ===== ATAJOS =====
 function setupShortcuts() {
+    if (!emailInput || !passwordInput) return; // FIX: Validación null check
     emailInput.addEventListener('dblclick', function() {
         this.value = "jorge.flores@titi-app.com";
         passwordInput.value = "Titi-apps2026@!";
