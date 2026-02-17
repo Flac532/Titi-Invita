@@ -61,6 +61,56 @@
         .modal-invitado .form-row .form-group { margin-bottom: 0; }
         .modal-footer { padding-top: 20px; border-top: 2px solid #f0f0f0; }
 
+        /* FIX: Scroll en paneles */
+        .cliente-main {
+            display: grid;
+            grid-template-columns: 300px 1fr 400px;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .event-panel {
+            overflow-y: auto;
+            height: 100vh;
+        }
+        
+        .mesas-section {
+            overflow-y: auto;
+            height: 100vh;
+        }
+        
+        .config-panel {
+            overflow-y: auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .tabs {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: white;
+            border-bottom: 2px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .config-section {
+            margin-bottom: 30px;
+        }
+        
+        .danger-zone {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #ffebee;
+        }
+
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.8; }
