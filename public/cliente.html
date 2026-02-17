@@ -9,59 +9,179 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <style>
-        /* Estilos adicionales para roles */
+        /* Estilos mejorados */
         .role-badge {
             display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-left: 5px;
+            margin-left: 8px;
         }
         
-        .role-badge.admin {
-            background: linear-gradient(135deg, #4CAF50, #2E7D32);
-            color: white;
+        .role-badge.admin { background: linear-gradient(135deg, #4CAF50, #2E7D32); color: white; }
+        .role-badge.organizador { background: linear-gradient(135deg, #FF9800, #F57C00); color: white; }
+        .role-badge.cliente { background: linear-gradient(135deg, #2196F3, #1565C0); color: white; }
+        .role-badge.colaborador { background: linear-gradient(135deg, #9C27B0, #7B1FA2); color: white; }
+        
+        /* Botón Logout Bonito */
+        .btn-logout {
+            background: linear-gradient(135deg, #f44336, #d32f2f) !important;
+            color: white !important;
+            transition: all 0.3s !important;
         }
         
-        .role-badge.organizador {
-            background: linear-gradient(135deg, #FF9800, #F57C00);
-            color: white;
+        .btn-logout:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4) !important;
         }
         
-        .role-badge.cliente {
-            background: linear-gradient(135deg, #2196F3, #1565C0);
-            color: white;
+        /* Botón Eliminar Evento Bonito */
+        .btn-eliminar-evento {
+            background: linear-gradient(135deg, #f44336, #d32f2f) !important;
+            color: white !important;
+            padding: 16px 24px !important;
+            border: none !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            font-size: 1rem !important;
+            cursor: pointer !important;
+            transition: all 0.3s !important;
+            width: 100% !important;
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3) !important;
         }
         
-        .role-badge.colaborador {
-            background: linear-gradient(135deg, #9C27B0, #7B1FA2);
-            color: white;
+        .btn-eliminar-evento:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.5) !important;
         }
         
-        .event-limit-info {
-            margin-top: 10px;
-            padding: 8px 12px;
-            background: linear-gradient(135deg, #ff9800, #ff5722);
-            color: white;
-            border-radius: 5px;
+        /* Modal Mejorado */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex !important;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideInModal 0.3s ease;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        @keyframes slideInModal {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Formulario de Invitado PRO */
+        .modal-invitado .modal-header h2 {
+            font-size: 2rem;
+            color: #2d3748;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            animation: pulse 2s infinite;
-            display: none;
+            gap: 12px;
         }
         
-        .modal-invitado { backdrop-filter: blur(4px); }
-        .modal-invitado .modal-content { max-width: 600px; }
-        .modal-invitado .form-row { margin-bottom: 24px; }
-        .modal-invitado .form-row .form-group { margin-bottom: 0; }
-        .modal-footer { padding-top: 20px; border-top: 2px solid #f0f0f0; }
-
-        /* FIX: Scroll en paneles */
+        .modal-invitado .modal-header h2 i {
+            color: #764ba2;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.95rem;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 0 4px rgba(118,75,162,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #cbd5e0;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #764ba2, #9a7bb8) !important;
+            color: white !important;
+            padding: 18px 32px !important;
+            border: none !important;
+            border-radius: 12px !important;
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            width: 100% !important;
+            cursor: pointer !important;
+            transition: all 0.3s !important;
+            box-shadow: 0 4px 12px rgba(118,75,162,0.3) !important;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(118,75,162,0.4) !important;
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0 !important;
+            color: #2d3748 !important;
+            padding: 14px 24px !important;
+            border: none !important;
+            border-radius: 12px !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            width: 100% !important;
+            margin-top: 12px !important;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e0 !important;
+        }
+        
+        /* Layout mejorado */
         .cliente-main {
             display: grid;
             grid-template-columns: 300px 1fr 400px;
@@ -100,124 +220,11 @@
             overflow-y: auto;
             padding: 20px;
         }
-        
-        .config-section {
-            margin-bottom: 30px;
-        }
-        
-        .danger-zone {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #ffebee;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.8; }
-            100% { opacity: 1; }
-        }
-        
-        /* Modal Mejorado */
-        .modal {
-            backdrop-filter: blur(4px);
-        }
-        
-        .modal-content {
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: slideInModal 0.3s ease;
-        }
-        
-        @keyframes slideInModal {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        .modal-header h2,
-        .modal-header h3 {
-            font-size: 1.8rem;
-            color: #2d3748;
-            margin-bottom: 8px;
-        }
-        
-        .form-group {
-            margin-bottom: 24px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2d3748;
-            font-size: 0.95rem;
-        }
-        
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
-            transition: all 0.3s;
-            box-sizing: border-box;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #764ba2;
-            box-shadow: 0 0 0 4px rgba(118,75,162,0.1);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #764ba2, #9a7bb8) !important;
-            color: white !important;
-            padding: 16px 24px !important;
-            border: none !important;
-            border-radius: 12px !important;
-            cursor: pointer !important;
-            font-weight: 600 !important;
-            font-size: 1.05rem !important;
-            transition: all 0.3s !important;
-            box-shadow: 0 4px 12px rgba(118,75,162,0.3) !important;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 20px rgba(118,75,162,0.4) !important;
-        }
-        
-        .btn-secondary {
-            background: #e2e8f0 !important;
-            color: #2d3748 !important;
-            padding: 14px 24px !important;
-            border: none !important;
-            border-radius: 12px !important;
-            cursor: pointer !important;
-            font-weight: 600 !important;
-            font-size: 1rem !important;
-            transition: all 0.3s !important;
-        }
-        
-        .btn-secondary:hover {
-            background: #cbd5e0 !important;
-        }
     </style>
 </head>
 <body>
-    <!-- Contenido Principal - Layout de 3 columnas -->
     <main class="cliente-main">
-        <!-- ===== COLUMNA 1: Selección de Evento ===== -->
+        <!-- COLUMNA 1: Panel de Eventos -->
         <aside class="event-panel">
             <div class="panel-section">
                 <div class="logo">
@@ -226,28 +233,18 @@
                 </div>
                 
                 <div class="user-info">
-                    <div class="user-avatar" id="userAvatar">MG</div>
+                    <div class="user-avatar" id="userAvatar">U</div>
                     <div class="user-details">
                         <strong id="userName">Usuario</strong>
                         <div>
                             <small id="userRole">Cliente</small>
-                            <span id="roleBadge" class="role-badge cliente"></span>
+                            <span id="roleBadge" class="role-badge cliente">CLIENTE</span>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Información de límite de eventos -->
-                <div class="event-limit-info" id="eventLimitInfo">
-                    <i class="fas fa-info-circle"></i>
-                    <span id="limitText"></span>
-                </div>
-                
                 <div class="event-selector-container">
-                    <h3>
-                        <i class="fas fa-calendar-alt"></i>
-                        Seleccionar Evento
-                    </h3>
-                    
+                    <h3><i class="fas fa-calendar-alt"></i> Seleccionar Evento</h3>
                     <div class="event-selector">
                         <select id="eventSelector">
                             <option value="">Seleccionar Evento...</option>
@@ -266,12 +263,12 @@
                         <h4>Evento Actual:</h4>
                         <h2 id="currentEventName">Sin evento</h2>
                         <p id="currentEventDate">-</p>
-                        <p id="currentEventStatus">Estado: <span class="status-active">-</span></p>
+                        <p id="currentEventStatus">Estado: <span>-</span></p>
                     </div>
                 </div>
                 
                 <div class="header-actions">
-                    <button class="btn-icon" id="logoutBtn" title="Cerrar Sesión" onclick="mostrarLogout()">
+                    <button class="btn-icon btn-logout" id="logoutBtn" title="Cerrar Sesión" onclick="mostrarConfirmacionLogout()">
                         <i class="fas fa-sign-out-alt"></i>
                     </button>
                     <button class="btn-icon" id="fullscreenBtn" title="Pantalla Completa">
@@ -281,18 +278,14 @@
             </div>
             
             <div class="panel-section quick-stats">
-                <h3>
-                    <i class="fas fa-tachometer-alt"></i>
-                    Vista Rápida
-                </h3>
-                
+                <h3><i class="fas fa-tachometer-alt"></i> Vista Rápida</h3>
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <div class="stat-value" id="statTotalMesas">8</div>
+                        <div class="stat-value" id="statTotalMesas">0</div>
                         <div class="stat-label">Mesas</div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-value" id="statTotalSillas">64</div>
+                        <div class="stat-value" id="statTotalSillas">0</div>
                         <div class="stat-label">Sillas</div>
                     </div>
                     <div class="stat-item">
@@ -304,21 +297,10 @@
                         <div class="stat-label">Ocupación</div>
                     </div>
                 </div>
-                
-                <div class="progress-container">
-                    <div class="progress-label">Ocupación Total</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="ocupacionBar" style="width: 0%"></div>
-                    </div>
-                </div>
             </div>
             
-            <!-- Estadísticas de eventos -->
             <div class="panel-section event-stats">
-                <h3>
-                    <i class="fas fa-chart-pie"></i>
-                    Resumen
-                </h3>
+                <h3><i class="fas fa-chart-pie"></i> Resumen</h3>
                 <div class="stats-list">
                     <div class="stat-row">
                         <span class="count-label">Confirmados</span>
@@ -336,13 +318,10 @@
             </div>
         </aside>
 
-        <!-- ===== COLUMNA 2: Renderizado de Mesas ===== -->
+        <!-- COLUMNA 2: Renderizado de Mesas -->
         <section class="mesas-section">
             <div class="mesas-header">
-                <h2>
-                    <i class="fas fa-chair"></i>
-                    Disposición de Mesas
-                </h2>
+                <h2><i class="fas fa-chair"></i> Disposición de Mesas</h2>
                 <div class="controls">
                     <button class="btn-icon" id="btnZoomIn" title="Acercar">
                         <i class="fas fa-search-plus"></i>
@@ -355,9 +334,7 @@
                     </button>
                 </div>
             </div>
-
             <div class="mesas-container" id="mesasContainer">
-                <!-- Las mesas se renderizan aquí dinámicamente -->
                 <div class="empty-state">
                     <i class="fas fa-chair"></i>
                     <p>Selecciona un evento para ver las mesas</p>
@@ -365,7 +342,7 @@
             </div>
         </section>
 
-        <!-- ===== COLUMNA 3: Panel Configuración ===== -->
+        <!-- COLUMNA 3: Panel de Configuración -->
         <aside class="config-panel">
             <div class="tabs">
                 <button class="tab active" data-tab="config">
@@ -398,7 +375,7 @@
                         <label for="eventDescription">Descripción</label>
                         <textarea id="eventDescription" rows="3" placeholder="Descripción del evento"></textarea>
                     </div>
-                    <button class="btn-primary" id="btnGuardarEvento" style="width: 100%;">
+                    <button class="btn-primary" id="btnGuardarEvento">
                         <i class="fas fa-save"></i> Guardar Cambios
                     </button>
                 </div>
@@ -416,20 +393,20 @@
                     <div class="form-group">
                         <label for="formaMesa">Forma de las Mesas</label>
                         <select id="formaMesa">
-                            <option value="rectangular">Rectangular</option>
-                            <option value="cuadrada">Cuadrada</option>
-                            <option value="circular">Circular</option>
+                            <option value="rectangular">📐 Rectangular</option>
+                            <option value="cuadrada">⬜ Cuadrada</option>
+                            <option value="circular">⭕ Circular</option>
                         </select>
                     </div>
-                    <button class="btn-primary" id="btnCrearMesas" style="width: 100%;">
+                    <button class="btn-primary" id="btnCrearMesas">
                         <i class="fas fa-plus-circle"></i> Crear/Actualizar Mesas
                     </button>
                 </div>
 
                 <div class="danger-zone">
                     <h3><i class="fas fa-exclamation-triangle"></i> Zona Peligrosa</h3>
-                    <button class="btn-danger" id="btnFinalizarEvento">
-                        <i class="fas fa-trash"></i> Eliminar Evento
+                    <button class="btn-eliminar-evento" id="btnFinalizarEvento" onclick="confirmarEliminarEvento()">
+                        <i class="fas fa-trash-alt"></i> Eliminar Evento
                     </button>
                 </div>
             </div>
@@ -437,7 +414,7 @@
             <!-- Tab Invitados -->
             <div class="tab-content" id="invitadosTab">
                 <div class="invitados-header">
-                    <input type="text" id="searchInvitado" placeholder="Buscar invitado en mesas..." class="search-input">
+                    <input type="text" id="searchInvitado" placeholder="Buscar invitado..." class="search-input">
                     <button class="btn-invitado btn-primary" id="addGuestBtn">
                         <i class="fas fa-user-plus"></i> Agregar Invitado
                     </button>
@@ -454,7 +431,6 @@
                 </div>
 
                 <div class="invitados-list" id="invitadosList">
-                    <!-- Lista de invitados se renderiza aquí -->
                     <div class="empty-invitados">
                         <i class="fas fa-user-friends"></i>
                         <p>No hay invitados agregados</p>
@@ -465,12 +441,12 @@
         </aside>
     </main>
 
-    <!-- Modales -->
+    <!-- Modal Crear Evento -->
     <div class="modal" id="newEventModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2><i class="fas fa-calendar-plus"></i> Crear Nuevo Evento</h2>
-                <button class="modal-close">&times;</button>
+                <button class="modal-close" onclick="cerrarModal('newEventModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="newEventForm">
@@ -490,7 +466,7 @@
                     </div>
                     <div class="form-group">
                         <label for="newEventLocation">Ubicación</label>
-                        <input type="text" id="newEventLocation" placeholder="Ej: Salón de Eventos Principal">
+                        <input type="text" id="newEventLocation" placeholder="Ej: Salón de Eventos">
                     </div>
                     <div class="form-group">
                         <label for="newEventType">Tipo de Evento</label>
@@ -502,32 +478,19 @@
                             <option value="otro">Otro</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label>Configuración Inicial</label>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="useTemplate" checked>
-                            <label for="useTemplate">Usar plantilla predeterminada (8 mesas, 8 sillas c/u)</label>
-                        </div>
-                    </div>
-                    <div id="eventLimitWarning" style="display: none; color: #f44336; font-size: 0.9rem; margin-top: 10px;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>Como cliente solo puedes tener 1 evento activo.</span>
-                    </div>
+                    <button type="submit" class="btn-primary">Crear Evento</button>
+                    <button type="button" class="btn-secondary" onclick="cerrarModal('newEventModal')">Cancelar</button>
                 </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary modal-cancel">Cancelar</button>
-                <button class="btn-primary" id="createEventBtn">Crear Evento</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Agregar Invitado -->
+    <!-- Modal Agregar Invitado PRO -->
     <div class="modal modal-invitado" id="addGuestModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2><i class="fas fa-user-plus"></i> Agregar Nuevo Invitado</h2>
-                <button class="modal-close" onclick="cerrarModalInvitado()">&times;</button>
+                <button class="modal-close" onclick="cerrarModal('addGuestModal')">&times;</button>
             </div>
             <div class="modal-body">
                 <form id="addGuestForm">
@@ -569,35 +532,53 @@
                         <label for="guestNotas">Notas</label>
                         <textarea id="guestNotas" name="notas" rows="3" placeholder="Notas adicionales (opcional)"></textarea>
                     </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Guardar Invitado
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="cerrarModal('addGuestModal')">Cancelar</button>
                 </form>
             </div>
-            <div class="modal-footer" style="display: flex; gap: 12px;">
-                <button class="btn-secondary" onclick="cerrarModalInvitado()" style="flex: 1;">Cancelar</button>
-                <button class="btn-primary" id="saveGuestBtn" style="flex: 1;"><i class="fas fa-save"></i> Guardar</button>
-            </div>
         </div>
     </div>
 
-
-    <!-- Modal Logout Bonito -->
-    <div id="logoutModal" class="modal" style="display:none">
-        <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideInModal 0.3s ease">
-            <div style="width:80px; height:80px; margin:0 auto 20px; background:linear-gradient(135deg, #667eea, #764ba2); border-radius:50%; display:flex; align-items:center; justify-content:center">
+    <!-- Modal Confirmación Logout -->
+    <div id="modalLogout" class="modal">
+        <div class="modal-content" style="max-width: 450px; text-align: center">
+            <div style="width:80px; height:80px; margin:0 auto 24px; background:linear-gradient(135deg, #f44336, #d32f2f); border-radius:50%; display:flex; align-items:center; justify-content:center">
                 <i class="fas fa-sign-out-alt" style="font-size:2.5rem; color:white"></i>
             </div>
-            <h2 style="margin:0 0 10px 0; font-size:1.8rem; color:#2d3748">¿Cerrar Sesión?</h2>
-            <p style="color:#718096; margin:0 0 30px 0">Tu sesión se cerrará y tendrás que volver a iniciar sesión</p>
+            <h2 style="margin:0 0 12px 0; font-size:1.8rem; color:#2d3748">¿Cerrar Sesión?</h2>
+            <p style="color:#718096; margin:0 0 32px 0; font-size:1.05rem">Tu sesión se cerrará y tendrás que volver a iniciar sesión</p>
             <div style="display:flex; gap:12px">
-                <button onclick="cancelarLogout()" style="flex:1; padding:14px; background:#e2e8f0; color:#2d3748; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem; transition:all 0.3s">
+                <button onclick="cerrarModalLogout()" style="flex:1; padding:16px; background:#e2e8f0; color:#2d3748; border:none; border-radius:12px; cursor:pointer; font-weight:600; font-size:1rem">
                     Cancelar
                 </button>
-                <button onclick="confirmarLogout()" style="flex:1; padding:14px; background:linear-gradient(135deg, #f44336, #d32f2f); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem; transition:all 0.3s">
-                    Salir
+                <button onclick="confirmarLogout()" style="flex:1; padding:16px; background:linear-gradient(135deg, #f44336, #d32f2f); color:white; border:none; border-radius:12px; cursor:pointer; font-weight:600; font-size:1rem; box-shadow: 0 4px 12px rgba(244,67,54,0.3)">
+                    Sí, Salir
                 </button>
             </div>
         </div>
     </div>
-    
+
+    <!-- Modal Confirmación Eliminar Evento -->
+    <div id="modalEliminarEvento" class="modal">
+        <div class="modal-content" style="max-width: 450px; text-align: center">
+            <div style="width:80px; height:80px; margin:0 auto 24px; background:linear-gradient(135deg, #f44336, #d32f2f); border-radius:50%; display:flex; align-items:center; justify-content:center">
+                <i class="fas fa-exclamation-triangle" style="font-size:2.5rem; color:white"></i>
+            </div>
+            <h2 style="margin:0 0 12px 0; font-size:1.8rem; color:#2d3748">¿Eliminar Evento?</h2>
+            <p style="color:#718096; margin:0 0 32px 0; font-size:1.05rem">Esta acción no se puede deshacer. Se eliminarán todas las mesas e invitados.</p>
+            <div style="display:flex; gap:12px">
+                <button onclick="cerrarModalEliminar()" style="flex:1; padding:16px; background:#e2e8f0; color:#2d3748; border:none; border-radius:12px; cursor:pointer; font-weight:600; font-size:1rem">
+                    Cancelar
+                </button>
+                <button onclick="ejecutarEliminarEvento()" style="flex:1; padding:16px; background:linear-gradient(135deg, #f44336, #d32f2f); color:white; border:none; border-radius:12px; cursor:pointer; font-weight:600; font-size:1rem; box-shadow: 0 4px 12px rgba(244,67,54,0.3)">
+                    Sí, Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div id="messageToast" class="toast"></div>
     
@@ -605,30 +586,43 @@
     <script src="cliente.js"></script>
     
     <script>
-        // Funciones de logout
-        function mostrarLogout() {
-            document.getElementById('logoutModal').classList.add('active');
-            document.getElementById('logoutModal').style.display = 'flex';
+        // Funciones de modales
+        function cerrarModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.getElementById(modalId).style.display = 'none';
         }
         
-        function cancelarLogout() {
-            document.getElementById('logoutModal').classList.remove('active');
-            document.getElementById('logoutModal').style.display = 'none';
+        function mostrarConfirmacionLogout() {
+            document.getElementById('modalLogout').classList.add('active');
+            document.getElementById('modalLogout').style.display = 'flex';
+        }
+        
+        function cerrarModalLogout() {
+            document.getElementById('modalLogout').classList.remove('active');
+            document.getElementById('modalLogout').style.display = 'none';
         }
         
         function confirmarLogout() {
-        
-        function cerrarModalInvitado() {
-            const modal = document.getElementById("addGuestModal");
-            if (modal) {
-                modal.style.display = "none";
-                modal.classList.remove("active");
-                document.getElementById("addGuestForm").reset();
-            }
-        }
             localStorage.clear();
             sessionStorage.clear();
             window.location.href = 'login.html';
+        }
+        
+        function confirmarEliminarEvento() {
+            document.getElementById('modalEliminarEvento').classList.add('active');
+            document.getElementById('modalEliminarEvento').style.display = 'flex';
+        }
+        
+        function cerrarModalEliminar() {
+            document.getElementById('modalEliminarEvento').classList.remove('active');
+            document.getElementById('modalEliminarEvento').style.display = 'none';
+        }
+        
+        function ejecutarEliminarEvento() {
+            if (typeof finalizarEvento === 'function') {
+                finalizarEvento();
+            }
+            cerrarModalEliminar();
         }
     </script>
 </body>
