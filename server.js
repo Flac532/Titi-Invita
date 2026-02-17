@@ -1204,6 +1204,103 @@ app.get('/api/mi-evento', verificarToken, async (req, res) => {
 
 // ===== CRON JOBS =====
 
+
+// ============================================
+// ENDPOINTS DE GESTIÓN DE USUARIOS (ADMIN)
+// ============================================
+
+// PUT - Editar usuario (ADMIN)
+app.put('/api/usuarios/:id', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, email, rol, password } = req.body;
+        
+        console.log('📝 Editando usuario:', id);
+        
+        // Construir query dinámicamente
+        let updateFields = [];
+        let values = [];
+        let paramCount = 1;
+        
+        if (nombre) {
+            updateFields.push(`nombre = $${paramCount++}`);
+            values.push(nombre);
+        }
+        
+        if (email) {
+            updateFields.push(`email = $${paramCount++}`);
+            values.push(email);
+        }
+        
+        if (rol) {
+            updateFields.push(`rol = $${paramCount++}`);
+            values.push(rol);
+        }
+        
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            updateFields.push(`password_hash = $${paramCount++}`);
+            values.push(hashedPassword);
+        }
+        
+        if (updateFields.length === 0) {
+            return res.status(400).json({ error: 'No hay campos para actualizar' });
+        }
+        
+        values.push(id);
+        
+        const query = `
+            UPDATE usuarios 
+            SET ${updateFields.join(', ')}
+            WHERE id = $${paramCount}
+            RETURNING id, nombre, email, rol, fecha_creacion
+        `;
+        
+        const result = await pool.query(query, values);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        
+        console.log('✅ Usuario actualizado:', result.rows[0].id);
+        res.json({ success: true, usuario: result.rows[0] });
+        
+    } catch (error) {
+        console.error('❌ Error actualizando usuario:', error);
+        res.status(500).json({ error: 'Error al actualizar usuario' });
+    }
+});
+
+// DELETE - Eliminar usuario (ADMIN)
+app.delete('/api/usuarios/:id', verificarToken, verificarAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        console.log('🗑️  Intentando eliminar usuario:', id);
+        
+        // Verificar que no sea el admin actual
+        if (parseInt(id) === req.usuario.id) {
+            return res.status(400).json({ error: 'No puedes eliminarte a ti mismo' });
+        }
+        
+        const result = await pool.query(
+            'DELETE FROM usuarios WHERE id = $1 RETURNING id, nombre',
+            [id]
+        );
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Usuario no encontrado' });
+        }
+        
+        console.log('✅ Usuario eliminado:', result.rows[0].nombre);
+        res.json({ success: true, mensaje: 'Usuario eliminado correctamente' });
+        
+    } catch (error) {
+        console.error('❌ Error eliminando usuario:', error);
+        res.status(500).json({ error: 'Error al eliminar usuario' });
+    }
+});
+
 cron.schedule('0 3 * * *', async () => {
   try {
     console.log('🗑️  Limpieza de eventos finalizados...');
