@@ -55,6 +55,12 @@
             display: none;
         }
         
+        .modal-invitado { backdrop-filter: blur(4px); }
+        .modal-invitado .modal-content { max-width: 600px; }
+        .modal-invitado .form-row { margin-bottom: 24px; }
+        .modal-invitado .form-row .form-group { margin-bottom: 0; }
+        .modal-footer { padding-top: 20px; border-top: 2px solid #f0f0f0; }
+
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.8; }
@@ -465,6 +471,63 @@
         </div>
     </div>
 
+    <!-- Modal Agregar Invitado -->
+    <div class="modal modal-invitado" id="addGuestModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> Agregar Nuevo Invitado</h2>
+                <button class="modal-close" onclick="cerrarModalInvitado()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addGuestForm">
+                    <div class="form-group">
+                        <label for="guestName">Nombre Completo *</label>
+                        <input type="text" id="guestName" name="nombre" placeholder="Ej: María García López" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="guestEmail">Correo Electrónico</label>
+                        <input type="email" id="guestEmail" name="email" placeholder="maria@ejemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="guestPhone">Teléfono</label>
+                        <input type="tel" id="guestPhone" name="telefono" placeholder="+52 123 456 7890">
+                    </div>
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div class="form-group">
+                            <label for="guestMesa">Mesa</label>
+                            <select id="guestMesa" name="mesa">
+                                <option value="">Sin asignar</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="guestSilla">Silla</label>
+                            <select id="guestSilla" name="silla" disabled>
+                                <option value="">Primero selecciona mesa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="guestEstado">Estado</label>
+                        <select id="guestEstado" name="estado">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="confirmado">Confirmado</option>
+                            <option value="rechazado">Rechazado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="guestNotas">Notas</label>
+                        <textarea id="guestNotas" name="notas" rows="3" placeholder="Notas adicionales (opcional)"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 12px;">
+                <button class="btn-secondary" onclick="cerrarModalInvitado()" style="flex: 1;">Cancelar</button>
+                <button class="btn-primary" id="saveGuestBtn" style="flex: 1;"><i class="fas fa-save"></i> Guardar</button>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Modal Logout Bonito -->
     <div id="logoutModal" class="modal" style="display:none">
         <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideInModal 0.3s ease">
@@ -503,6 +566,15 @@
         }
         
         function confirmarLogout() {
+        
+        function cerrarModalInvitado() {
+            const modal = document.getElementById("addGuestModal");
+            if (modal) {
+                modal.style.display = "none";
+                modal.classList.remove("active");
+                document.getElementById("addGuestForm").reset();
+            }
+        }
             localStorage.clear();
             sessionStorage.clear();
             window.location.href = 'login.html';
