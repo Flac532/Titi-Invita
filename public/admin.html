@@ -7,69 +7,336 @@
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .iframe-container {
-            width: 100%;
-            height: calc(100vh - 150px);
-            border: none;
-            border-radius: 12px;
-            background: white;
-            overflow: hidden;
+        /* Notificaciones */
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f44336;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            animation: pulse-badge 2s infinite;
         }
         
-        .iframe-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
         
-        .modal {
-            display: none;
+        .notification-toast {
             position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: none;
+            align-items: center;
+            gap: 16px;
+            z-index: 10001;
+            animation: slideInRight 0.3s ease;
+            max-width: 400px;
+        }
+        
+        .notification-toast.show {
+            display: flex;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .notification-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        
+        .notification-icon.success {
+            background: #e8f5e9;
+            color: #4CAF50;
+        }
+        
+        .notification-icon.info {
+            background: #e3f2fd;
+            color: #2196F3;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+        
+        .notification-message {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+        
+        .notification-close {
+            cursor: pointer;
+            color: #cbd5e0;
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+        
+        .notification-close:hover {
+            color: #2d3748;
+        }
+        
+        /* Stats Cards Mejoradas */
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
+            height: 4px;
         }
         
-        .modal.active {
-            display: flex !important;
+        .stat-card.purple::before { background: linear-gradient(135deg, #764ba2, #9a7bb8); }
+        .stat-card.green::before { background: linear-gradient(135deg, #4CAF50, #45a049); }
+        .stat-card.blue::before { background: linear-gradient(135deg, #2196F3, #1976D2); }
+        .stat-card.orange::before { background: linear-gradient(135deg, #FFA726, #FF9800); }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .stat-icon.purple { background: linear-gradient(135deg, #764ba2, #9a7bb8); color: white; }
+        .stat-icon.green { background: linear-gradient(135deg, #4CAF50, #45a049); color: white; }
+        .stat-icon.blue { background: linear-gradient(135deg, #2196F3, #1976D2); color: white; }
+        .stat-icon.orange { background: linear-gradient(135deg, #FFA726, #FF9800); color: white; }
+        
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #2d3748;
+            line-height: 1;
+        }
+        
+        /* Tabla de usuarios mejorada */
+        .users-table {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .table-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .table-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box input {
+            padding: 10px 16px 10px 40px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 8px;
+            width: 250px;
+            transition: all 0.3s;
+        }
+        
+        .search-box input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .user-row {
+            display: grid;
+            grid-template-columns: 60px 1fr 1.5fr 120px 100px 150px 150px;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s;
+        }
+        
+        .user-row:hover {
+            background: #f7fafc;
+        }
+        
+        .user-avatar-cell {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #764ba2, #9a7bb8);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .user-email {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .role-badge.admin { background: #e8f5e9; color: #2e7d32; }
+        .role-badge.organizador { background: #fff3e0; color: #f57c00; }
+        .role-badge.cliente { background: #e3f2fd; color: #1976d2; }
+        .role-badge.colaborador { background: #f3e5f5; color: #7b1fa2; }
+        
+        .event-count {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-icon-action {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-icon-action.edit {
+            background: #e3f2fd;
+            color: #2196F3;
+        }
+        
+        .btn-icon-action.edit:hover {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-icon-action.delete {
+            background: #ffebee;
+            color: #f44336;
+        }
+        
+        .btn-icon-action.delete:hover {
+            background: #f44336;
+            color: white;
+        }
+        
+        /* Modal mejorado */
+        .modal {
+            backdrop-filter: blur(4px);
         }
         
         .modal-content {
-            background: white;
-            padding: 40px;
             border-radius: 20px;
-            max-width: 550px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
+            padding: 40px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: slideIn 0.3s ease;
+            animation: slideInModal 0.3s ease;
+            max-width: 550px;
         }
         
-        @keyframes slideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        @keyframes slideInModal {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
         .modal-content h2 {
             margin: 0 0 24px 0;
             font-size: 1.8rem;
             color: #2d3748;
-            display: flex;
-            align-items: center;
-            gap: 12px;
         }
         
         .form-group {
@@ -147,15 +414,40 @@
             border-left: 4px solid #764ba2;
         }
         
-        .campos-extra h4 {
-            margin: 0 0 16px 0;
-            color: #764ba2;
-            font-size: 1rem;
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #cbd5e0;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .iframe-container {
+            width: 100%;
+            height: calc(100vh - 150px);
+            border: none;
+            border-radius: 12px;
+            background: white;
+            overflow: hidden;
+        }
+        
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
         }
     </style>
     <script>
         const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
         let currentUser = null;
+        let usuarios = [];
+        let solicitudesPendientes = 0;
+        let usuariosCount = 0;
+        let checkInterval = null;
         let organizadores = [];
         let todosEventos = [];
         
@@ -177,8 +469,140 @@
                 return;
             }
             
-            showPage('dashboard');
+            inicializarDashboard();
+            checkInterval = setInterval(checkNuevasSolicitudes, 30000);
         });
+        
+        async function inicializarDashboard() {
+            await cargarEstadisticas();
+            showPage('dashboard');
+        }
+        
+        async function cargarEstadisticas() {
+            try {
+                const token = obtenerToken();
+                
+                const [solicitudesRes, usuariosRes, eventosRes] = await Promise.all([
+                    fetch(API_BASE + '/solicitudes', { headers: { 'Authorization': 'Bearer ' + token }}),
+                    fetch(API_BASE + '/usuarios', { headers: { 'Authorization': 'Bearer ' + token }}),
+                    fetch(API_BASE + '/eventos', { headers: { 'Authorization': 'Bearer ' + token }})
+                ]);
+                
+                const solicitudes = await solicitudesRes.json();
+                usuarios = await usuariosRes.json();
+                const eventosData = await eventosRes.json();
+                todosEventos = eventosData.eventos || eventosData;
+                
+                const eventosPorUsuario = {};
+                todosEventos.forEach(e => {
+                    const userId = e.id_usuario || e.organizador_id;
+                    if (userId) {
+                        eventosPorUsuario[userId] = (eventosPorUsuario[userId] || 0) + 1;
+                    }
+                });
+                
+                usuarios.forEach(u => {
+                    u.eventCount = eventosPorUsuario[u.id] || 0;
+                });
+                
+                const numSolicitudes = solicitudes.length;
+                const numUsuarios = usuarios.length;
+                const numEventos = todosEventos.length;
+                const numActivos = todosEventos.filter(e => e.estado === 'activo').length;
+                
+                document.getElementById('statSolicitudes').textContent = numSolicitudes;
+                document.getElementById('statUsuarios').textContent = numUsuarios;
+                document.getElementById('statEventos').textContent = numEventos;
+                document.getElementById('statActivos').textContent = numActivos;
+                
+                actualizarBadgeSolicitudes(numSolicitudes);
+                
+                if (numUsuarios > usuariosCount && usuariosCount > 0) {
+                    mostrarNotificacion('Nuevo Usuario', 'Se ha registrado un nuevo usuario', 'success');
+                }
+                
+                solicitudesPendientes = numSolicitudes;
+                usuariosCount = numUsuarios;
+                
+                console.log('✅ Estadísticas:', { solicitudes: numSolicitudes, usuarios: numUsuarios, eventos: numEventos });
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+            }
+        }
+        
+        async function checkNuevasSolicitudes() {
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/solicitudes', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const solicitudes = await response.json();
+                const nuevoCont = solicitudes.length;
+                
+                if (nuevoCont > solicitudesPendientes) {
+                    mostrarNotificacion('Nueva Solicitud', 'Tienes una nueva solicitud de evento pendiente', 'info');
+                    playNotificationSound();
+                }
+                
+                solicitudesPendientes = nuevoCont;
+                document.getElementById('statSolicitudes').textContent = nuevoCont;
+                actualizarBadgeSolicitudes(nuevoCont);
+                
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        function actualizarBadgeSolicitudes(count) {
+            const navSolicitudes = document.querySelector('[data-page="solicitudes"]');
+            let badge = navSolicitudes.querySelector('.notification-badge');
+            
+            if (count > 0) {
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'notification-badge';
+                    navSolicitudes.style.position = 'relative';
+                    navSolicitudes.appendChild(badge);
+                }
+                badge.textContent = count;
+            } else if (badge) {
+                badge.remove();
+            }
+        }
+        
+        function mostrarNotificacion(titulo, mensaje, tipo = 'info') {
+            const toast = document.getElementById('notificationToast');
+            const icon = toast.querySelector('.notification-icon');
+            const title = toast.querySelector('.notification-title');
+            const msg = toast.querySelector('.notification-message');
+            
+            icon.className = 'notification-icon ' + tipo;
+            icon.innerHTML = tipo === 'success' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-bell"></i>';
+            title.textContent = titulo;
+            msg.textContent = mensaje;
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 5000);
+        }
+        
+        function playNotificationSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.value = 0.1;
+                oscillator.start();
+                setTimeout(() => oscillator.stop(), 200);
+            } catch (e) {
+                console.log('Sin sonido');
+            }
+        }
         
         function showPage(pageName) {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
@@ -190,79 +614,148 @@
             const nav = document.querySelector(`[data-page="${pageName}"]`);
             if (nav) nav.classList.add('active');
             
-            if (pageName === 'usuarios') cargarUsuarios();
+            if (pageName === 'usuarios') renderizarUsuarios();
             if (pageName === 'solicitudes') cargarSolicitudes();
             if (pageName === 'todos-eventos') cargarTodosEventos();
         }
         
-        async function cargarUsuarios() {
-            const tbody = document.getElementById('usersTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">Cargando...</td></tr>';
+        function renderizarUsuarios() {
+            const container = document.getElementById('usersContainer');
+            const searchTerm = (document.getElementById('searchUsers')?.value || '').toLowerCase();
+            
+            const usuariosFiltrados = usuarios.filter(u => 
+                u.nombre.toLowerCase().includes(searchTerm) ||
+                u.email.toLowerCase().includes(searchTerm) ||
+                u.rol.toLowerCase().includes(searchTerm)
+            );
+            
+            if (usuariosFiltrados.length === 0) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><h3>No hay usuarios</h3></div>';
+                return;
+            }
+            
+            let html = '';
+            usuariosFiltrados.forEach(u => {
+                const iniciales = u.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+                html += `
+                    <div class="user-row">
+                        <div class="user-avatar-cell">${iniciales}</div>
+                        <div class="user-name">${u.nombre}</div>
+                        <div class="user-email">${u.email}</div>
+                        <div><span class="role-badge ${u.rol}">${u.rol}</span></div>
+                        <div class="event-count">${u.eventCount || 0}</div>
+                        <div style="color:#718096; font-size:0.85rem">${u.fecha_creacion ? new Date(u.fecha_creacion).toLocaleDateString() : '-'}</div>
+                        <div class="user-actions">
+                            <button class="btn-icon-action edit" onclick="editarUsuario(${u.id})" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon-action delete" onclick="eliminarUsuario(${u.id}, '${u.nombre.replace(/'/g, "\\\'")}')" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function buscarUsuarios() {
+            renderizarUsuarios();
+        }
+        
+        async function eliminarUsuario(id, nombre) {
+            if (!confirm(`¿Eliminar usuario "${nombre}"?\n\nEsta acción no se puede deshacer.`)) return;
             
             try {
                 const token = obtenerToken();
-                const response = await fetch(API_BASE + '/usuarios', {
+                const response = await fetch(API_BASE + '/usuarios/' + id, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (!response.ok) throw new Error('Error');
+                
+                mostrarNotificacion('Usuario Eliminado', `"${nombre}" eliminado correctamente`, 'success');
+                await cargarEstadisticas();
+                renderizarUsuarios();
+                
+            } catch (error) {
+                alert('Error al eliminar');
+            }
+        }
+        
+        let usuarioEditando = null;
+        
+        async function editarUsuario(id) {
+            usuarioEditando = usuarios.find(u => u.id === id);
+            if (!usuarioEditando) return;
+            
+            document.getElementById('editUserId').value = usuarioEditando.id;
+            document.getElementById('editUserName').value = usuarioEditando.nombre;
+            document.getElementById('editUserEmail').value = usuarioEditando.email;
+            document.getElementById('editUserRol').value = usuarioEditando.rol;
+            document.getElementById('editUserPassword').value = '';
+            
+            document.getElementById('modalEditarUsuario').classList.add('active');
+        }
+        
+        function cerrarModalEditar() {
+            document.getElementById('modalEditarUsuario').classList.remove('active');
+            usuarioEditando = null;
+        }
+        
+        async function guardarEdicionUsuario(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const id = formData.get('id');
+            const data = {
+                nombre: formData.get('nombre'),
+                email: formData.get('email'),
+                rol: formData.get('rol')
+            };
+            
+            const password = formData.get('password');
+            if (password) data.password = password;
+            
+            try {
+                const token = obtenerToken();
+                const response = await fetch(API_BASE + '/usuarios/' + id, {
+                    method: 'PUT',
                     headers: {
                         'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify(data)
                 });
                 
-                if (!response.ok) throw new Error('Error ' + response.status);
-                const usuarios = await response.json();
+                if (!response.ok) throw new Error('Error');
                 
-                if (usuarios.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No hay usuarios</td></tr>';
-                } else {
-                    let html = '';
-                    usuarios.forEach(u => {
-                        html += `<tr>
-                            <td>${u.id}</td>
-                            <td><strong>${u.nombre}</strong></td>
-                            <td>${u.email}</td>
-                            <td><span style="padding:4px 12px; background:#e8f5e9; color:#2e7d32; border-radius:12px">${u.rol}</span></td>
-                            <td>0</td>
-                            <td>${u.fecha_creacion ? new Date(u.fecha_creacion).toLocaleDateString() : '-'}</td>
-                            <td>
-                                <button onclick="editarUsuario(${u.id})" style="padding:6px 12px; background:#764ba2; color:white; border:none; border-radius:6px; cursor:pointer">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </td>
-                        </tr>`;
-                    });
-                    tbody.innerHTML = html;
-                }
+                mostrarNotificacion('Usuario Actualizado', 'Cambios guardados', 'success');
+                cerrarModalEditar();
+                await cargarEstadisticas();
+                renderizarUsuarios();
+                
             } catch (error) {
-                console.error('Error:', error);
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:red">Error</td></tr>';
+                alert('Error al actualizar');
             }
         }
         
         async function cargarSolicitudes() {
             const container = document.getElementById('solicitudesContainer');
-            if (!container) return;
             container.innerHTML = '<p style="text-align:center">Cargando...</p>';
             
             try {
                 const token = obtenerToken();
                 const response = await fetch(API_BASE + '/solicitudes', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization': 'Bearer ' + token }
                 });
                 
-                if (!response.ok) throw new Error('Error');
                 const solicitudes = await response.json();
                 
                 if (solicitudes.length === 0) {
-                    container.innerHTML = `
-                        <div style="text-align:center; padding:60px; color:#999">
-                            <i class="fas fa-inbox" style="font-size:4rem; opacity:0.3"></i>
-                            <h3>No hay solicitudes pendientes</h3>
-                        </div>
-                    `;
+                    container.innerHTML = '<div style="text-align:center; padding:60px; color:#999"><i class="fas fa-inbox" style="font-size:4rem; opacity:0.3"></i><h3>No hay solicitudes pendientes</h3></div>';
                 } else {
                     let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(400px,1fr)); gap:24px">';
                     solicitudes.forEach(sol => {
@@ -292,25 +785,21 @@
                     container.innerHTML = html;
                 }
             } catch (error) {
-                console.error('Error:', error);
                 container.innerHTML = '<p style="text-align:center; color:red">Error</p>';
             }
         }
         
         async function aprobarSolicitud(id) {
-            if (!confirm('¿Aprobar esta solicitud?')) return;
-            
+            if (!confirm('¿Aprobar?')) return;
             try {
                 const token = obtenerToken();
                 await fetch(API_BASE + '/solicitudes/' + id + '/aprobar', {
                     method: 'PUT',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization': 'Bearer ' + token }
                 });
-                alert('✅ Aprobada');
+                mostrarNotificacion('Solicitud Aprobada', 'El evento ha sido aprobado', 'success');
                 cargarSolicitudes();
+                cargarEstadisticas();
             } catch (error) {
                 alert('Error');
             }
@@ -319,19 +808,16 @@
         async function rechazarSolicitud(id) {
             const motivo = prompt('Motivo (opcional):');
             if (motivo === null) return;
-            
             try {
                 const token = obtenerToken();
                 await fetch(API_BASE + '/solicitudes/' + id + '/rechazar', {
                     method: 'PUT',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ motivo })
                 });
-                alert('❌ Rechazada');
+                mostrarNotificacion('Solicitud Rechazada', 'El evento ha sido rechazado', 'info');
                 cargarSolicitudes();
+                cargarEstadisticas();
             } catch (error) {
                 alert('Error');
             }
@@ -339,19 +825,14 @@
         
         async function cargarTodosEventos() {
             const container = document.getElementById('todosEventosContainer');
-            if (!container) return;
             container.innerHTML = '<p style="text-align:center">Cargando...</p>';
             
             try {
                 const token = obtenerToken();
                 const response = await fetch(API_BASE + '/eventos', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization': 'Bearer ' + token }
                 });
                 
-                if (!response.ok) throw new Error('Error');
                 const data = await response.json();
                 const eventos = data.eventos || data;
                 
@@ -377,7 +858,6 @@
                     container.innerHTML = html;
                 }
             } catch (error) {
-                console.error('Error:', error);
                 container.innerHTML = '<p style="text-align:center; color:red">Error</p>';
             }
         }
@@ -399,51 +879,21 @@
         }
         
         async function cargarOrganizadores() {
-            try {
-                const token = obtenerToken();
-                const response = await fetch(API_BASE + '/usuarios', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) return;
-                const usuarios = await response.json();
-                organizadores = usuarios.filter(u => u.rol === 'organizador');
-                
-                const select = document.getElementById('selectOrganizador');
-                select.innerHTML = '<option value="">Seleccionar...</option>';
-                organizadores.forEach(org => {
-                    select.innerHTML += `<option value="${org.id}">${org.nombre} (${org.email})</option>`;
-                });
-            } catch (error) {
-                console.error('Error:', error);
-            }
+            organizadores = usuarios.filter(u => u.rol === 'organizador');
+            const select = document.getElementById('selectOrganizador');
+            select.innerHTML = '<option value="">Seleccionar...</option>';
+            organizadores.forEach(org => {
+                select.innerHTML += `<option value="${org.id}">${org.nombre} (${org.email})</option>`;
+            });
         }
         
         async function cargarTodosEventosParaAdmin() {
-            try {
-                const token = obtenerToken();
-                const response = await fetch(API_BASE + '/eventos', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) return;
-                const data = await response.json();
-                todosEventos = data.eventos || data;
-            } catch (error) {
-                console.error('Error:', error);
-            }
+            // Ya tenemos todosEventos cargado
         }
         
         function mostrarCamposSegunRol() {
             const rol = document.getElementById('selectRol').value;
-            const campos = document.getElementById('camposColaborador');
-            campos.style.display = rol === 'colaborador' ? 'block' : 'none';
+            document.getElementById('camposColaborador').style.display = rol === 'colaborador' ? 'block' : 'none';
         }
         
         function cambiarOrganizador() {
@@ -506,9 +956,11 @@
                     throw new Error(error.error || 'Error');
                 }
                 
-                alert('✅ Usuario creado');
+                mostrarNotificacion('Usuario Creado', 'El usuario ha sido creado exitosamente', 'success');
                 cerrarModalCrearUsuario();
-                cargarUsuarios();
+                await cargarEstadisticas();
+                renderizarUsuarios();
+                
             } catch (error) {
                 alert(error.message);
             }
@@ -574,27 +1026,57 @@
 
         <main class="main-content">
             <header class="top-bar">
-                <h1 id="pageTitle">Dashboard Admin</h1>
+                <h1>Dashboard Admin</h1>
             </header>
 
+            <!-- Dashboard -->
             <div class="page" id="dashboard" style="display:block; padding:30px">
                 <h2>Panel de Control</h2>
+                
                 <div style="margin-top:30px; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px">
-                    <div style="background:linear-gradient(135deg,#764ba2,#9a7bb8); color:white; padding:30px; border-radius:12px">
-                        <h3>Solicitudes</h3>
-                        <p style="font-size:3rem; margin:10px 0">0</p>
+                    <div class="stat-card purple">
+                        <div class="stat-header">
+                            <div class="stat-label">Solicitudes Pendientes</div>
+                            <div class="stat-icon purple">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="statSolicitudes">0</div>
                     </div>
-                    <div style="background:linear-gradient(135deg,#4CAF50,#45a049); color:white; padding:30px; border-radius:12px">
-                        <h3>Usuarios</h3>
-                        <p style="font-size:3rem; margin:10px 0">0</p>
+                    
+                    <div class="stat-card green">
+                        <div class="stat-header">
+                            <div class="stat-label">Total Usuarios</div>
+                            <div class="stat-icon green">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="statUsuarios">0</div>
                     </div>
-                    <div style="background:linear-gradient(135deg,#2196F3,#1976D2); color:white; padding:30px; border-radius:12px">
-                        <h3>Eventos</h3>
-                        <p style="font-size:3rem; margin:10px 0">0</p>
+                    
+                    <div class="stat-card blue">
+                        <div class="stat-header">
+                            <div class="stat-label">Total Eventos</div>
+                            <div class="stat-icon blue">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="statEventos">0</div>
+                    </div>
+                    
+                    <div class="stat-card orange">
+                        <div class="stat-header">
+                            <div class="stat-label">Eventos Activos</div>
+                            <div class="stat-icon orange">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="statActivos">0</div>
                     </div>
                 </div>
             </div>
 
+            <!-- Solicitudes -->
             <div class="page" id="solicitudes" style="display:none; padding:30px">
                 <div style="display:flex; justify-content:space-between; margin-bottom:24px">
                     <h2>Solicitudes de Eventos</h2>
@@ -605,39 +1087,26 @@
                 <div id="solicitudesContainer"></div>
             </div>
 
+            <!-- Usuarios -->
             <div class="page" id="usuarios" style="display:none; padding:30px">
-                <div style="display:flex; justify-content:space-between; margin-bottom:24px">
-                    <h2>Gestión de Usuarios</h2>
-                    <div>
-                        <button onclick="abrirModalCrearUsuario()" style="padding:10px 20px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; margin-right:10px; font-weight:600">
-                            <i class="fas fa-plus"></i> Crear Usuario
-                        </button>
-                        <button onclick="cargarUsuarios()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
-                            <i class="fas fa-sync-alt"></i> Actualizar
-                        </button>
+                <div class="users-table">
+                    <div class="table-header">
+                        <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
+                        <div style="display:flex; gap:12px; align-items:center">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchUsers" placeholder="Buscar usuarios..." oninput="buscarUsuarios()">
+                            </div>
+                            <button onclick="abrirModalCrearUsuario()" style="padding:10px 20px; background:rgba(255,255,255,0.2); color:white; border:2px solid rgba(255,255,255,0.3); border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s">
+                                <i class="fas fa-plus"></i> Crear Usuario
+                            </button>
+                        </div>
                     </div>
-                </div>
-                
-                <div style="background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08)">
-                    <table style="width:100%; border-collapse:collapse">
-                        <thead style="background:#fafbfc">
-                            <tr>
-                                <th style="padding:16px; text-align:left">ID</th>
-                                <th style="padding:16px; text-align:left">NOMBRE</th>
-                                <th style="padding:16px; text-align:left">EMAIL</th>
-                                <th style="padding:16px; text-align:left">ROL</th>
-                                <th style="padding:16px; text-align:left">EVENTOS</th>
-                                <th style="padding:16px; text-align:left">REGISTRO</th>
-                                <th style="padding:16px; text-align:left">ACCIONES</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersTableBody" style="background:white">
-                            <tr><td colspan="7" style="padding:40px; text-align:center">Cargando...</td></tr>
-                        </tbody>
-                    </table>
+                    <div id="usersContainer"></div>
                 </div>
             </div>
 
+            <!-- Todos los Eventos -->
             <div class="page" id="todos-eventos" style="display:none; padding:30px">
                 <div style="display:flex; justify-content:space-between; margin-bottom:24px">
                     <h2>Todos los Eventos</h2>
@@ -648,6 +1117,7 @@
                 <div id="todosEventosContainer"></div>
             </div>
 
+            <!-- Mis Eventos -->
             <div class="page" id="mis-eventos" style="display:none">
                 <div class="iframe-container">
                     <iframe src="cliente.html"></iframe>
@@ -710,9 +1180,46 @@
         </div>
     </div>
 
+    <!-- Modal Editar Usuario -->
+    <div id="modalEditarUsuario" class="modal">
+        <div class="modal-content">
+            <h2><i class="fas fa-edit"></i> Editar Usuario</h2>
+            <form onsubmit="guardarEdicionUsuario(event)">
+                <input type="hidden" id="editUserId" name="id">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" id="editUserName" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="editUserEmail" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select id="editUserRol" name="rol" required>
+                        <option value="admin">Admin</option>
+                        <option value="organizador">Organizador</option>
+                        <option value="cliente">Cliente</option>
+                        <option value="colaborador">Colaborador</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nueva Contraseña (opcional)</label>
+                    <input type="password" id="editUserPassword" name="password" placeholder="Dejar vacío para no cambiar">
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEditar()">
+                    Cancelar
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal Logout -->
     <div id="logoutModal" class="modal">
-        <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideIn 0.3s ease">
+        <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideInModal 0.3s ease">
             <div style="width:80px; height:80px; margin:0 auto 20px; background:linear-gradient(135deg, #667eea, #764ba2); border-radius:50%; display:flex; align-items:center; justify-content:center">
                 <i class="fas fa-sign-out-alt" style="font-size:2.5rem; color:white"></i>
             </div>
@@ -726,6 +1233,20 @@
                     Salir
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Toast de Notificaciones -->
+    <div id="notificationToast" class="notification-toast">
+        <div class="notification-icon info">
+            <i class="fas fa-bell"></i>
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">Notificación</div>
+            <div class="notification-message">Mensaje</div>
+        </div>
+        <div class="notification-close" onclick="document.getElementById('notificationToast').classList.remove('show')">
+            <i class="fas fa-times"></i>
         </div>
     </div>
 </body>
