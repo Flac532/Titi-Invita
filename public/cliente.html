@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="cliente.css">
     <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
     <style>
         /* Estilos mejorados */
         .role-badge {
@@ -26,7 +25,6 @@
         .role-badge.cliente { background: linear-gradient(135deg, #2196F3, #1565C0); color: white; }
         .role-badge.colaborador { background: linear-gradient(135deg, #9C27B0, #7B1FA2); color: white; }
         
-        /* Botón Logout Bonito */
         .btn-logout {
             background: linear-gradient(135deg, #f44336, #d32f2f) !important;
             color: white !important;
@@ -38,7 +36,6 @@
             box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4) !important;
         }
         
-        /* Botón Eliminar Evento Bonito */
         .btn-eliminar-evento {
             background: linear-gradient(135deg, #f44336, #d32f2f) !important;
             color: white !important;
@@ -58,7 +55,6 @@
             box-shadow: 0 6px 20px rgba(244, 67, 54, 0.5) !important;
         }
         
-        /* Modal Mejorado */
         .modal {
             display: none;
             position: fixed;
@@ -94,7 +90,6 @@
             to { transform: translateY(0); opacity: 1; }
         }
         
-        /* Formulario de Invitado PRO */
         .modal-invitado .modal-header h2 {
             font-size: 2rem;
             color: #2d3748;
@@ -181,7 +176,6 @@
             background: #cbd5e0 !important;
         }
         
-        /* Layout mejorado */
         .cliente-main {
             display: grid;
             grid-template-columns: 300px 1fr 400px;
@@ -219,6 +213,27 @@
             flex: 1;
             overflow-y: auto;
             padding: 20px;
+        }
+
+        /* Mesas Header SIN botones molestos */
+        .mesas-header {
+            padding: 20px;
+            background: white;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mesas-header h2 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 1.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
         }
     </style>
 </head>
@@ -318,7 +333,7 @@
             </div>
         </aside>
 
-        <!-- COLUMNA 2: Renderizado de Mesas -->
+        <!-- COLUMNA 2: Renderizado de Mesas (SIN botones molestos) -->
         <section class="mesas-section">
             <div class="mesas-header">
                 <h2><i class="fas fa-chair"></i> Disposición de Mesas</h2>
@@ -441,50 +456,6 @@
         </aside>
     </main>
 
-    <!-- Modal Crear Evento -->
-    <div class="modal" id="newEventModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-calendar-plus"></i> Crear Nuevo Evento</h2>
-                <button class="modal-close" onclick="cerrarModal('newEventModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="newEventForm">
-                    <div class="form-group">
-                        <label for="newEventName">Nombre del Evento *</label>
-                        <input type="text" id="newEventName" placeholder="Ej: Boda de Ana y Carlos" required>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="newEventDate">Fecha *</label>
-                            <input type="date" id="newEventDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newEventTime">Hora</label>
-                            <input type="time" id="newEventTime" value="18:00">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="newEventLocation">Ubicación</label>
-                        <input type="text" id="newEventLocation" placeholder="Ej: Salón de Eventos">
-                    </div>
-                    <div class="form-group">
-                        <label for="newEventType">Tipo de Evento</label>
-                        <select id="newEventType">
-                            <option value="boda">Boda</option>
-                            <option value="conferencia">Conferencia</option>
-                            <option value="fiesta">Fiesta</option>
-                            <option value="corporativo">Evento Corporativo</option>
-                            <option value="otro">Otro</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn-primary">Crear Evento</button>
-                    <button type="button" class="btn-secondary" onclick="cerrarModal('newEventModal')">Cancelar</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal Agregar Invitado PRO -->
     <div class="modal modal-invitado" id="addGuestModal">
         <div class="modal-content">
@@ -496,41 +467,15 @@
                 <form id="addGuestForm">
                     <div class="form-group">
                         <label for="guestName">Nombre Completo *</label>
-                        <input type="text" id="guestName" name="nombre" placeholder="Ej: María García López" required>
+                        <input type="text" id="guestName" placeholder="Ej: María García López" required>
                     </div>
                     <div class="form-group">
                         <label for="guestEmail">Correo Electrónico</label>
-                        <input type="email" id="guestEmail" name="email" placeholder="maria@ejemplo.com">
+                        <input type="email" id="guestEmail" placeholder="maria@ejemplo.com">
                     </div>
                     <div class="form-group">
                         <label for="guestPhone">Teléfono</label>
-                        <input type="tel" id="guestPhone" name="telefono" placeholder="+52 123 456 7890">
-                    </div>
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div class="form-group">
-                            <label for="guestMesa">Mesa</label>
-                            <select id="guestMesa" name="mesa">
-                                <option value="">Sin asignar</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="guestSilla">Silla</label>
-                            <select id="guestSilla" name="silla" disabled>
-                                <option value="">Primero selecciona mesa</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="guestEstado">Estado</label>
-                        <select id="guestEstado" name="estado">
-                            <option value="pendiente">Pendiente</option>
-                            <option value="confirmado">Confirmado</option>
-                            <option value="rechazado">Rechazado</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="guestNotas">Notas</label>
-                        <textarea id="guestNotas" name="notas" rows="3" placeholder="Notas adicionales (opcional)"></textarea>
+                        <input type="tel" id="guestPhone" placeholder="+52 123 456 7890">
                     </div>
                     <button type="submit" class="btn-primary">
                         <i class="fas fa-save"></i> Guardar Invitado
@@ -579,14 +524,12 @@
         </div>
     </div>
 
-    <!-- Toast -->
     <div id="messageToast" class="toast"></div>
     
     <script src="login.js"></script>
     <script src="cliente.js"></script>
     
     <script>
-        // Funciones de modales
         function cerrarModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
             document.getElementById(modalId).style.display = 'none';
