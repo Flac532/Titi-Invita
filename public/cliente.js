@@ -1,5 +1,5 @@
-// cliente.js - Sistema de gestión de eventos ARREGLADO Y FUNCIONAL
-// Versión: 3.0 - Con 3 formas de mesas y validaciones
+// cliente.js - VERSIÓN ARREGLADA v2 - Sin errores de mesas
+// Fix: mesas.forEach error + botones innecesarios
 
 const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
 let currentUser = null;
@@ -12,9 +12,8 @@ let invitados = [];
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Iniciando cliente.js arreglado');
+    console.log('🚀 Iniciando cliente.js v2');
     
-    // Verificar autenticación
     const usuarioStr = localStorage.getItem('titi_usuario_actual');
     if (!usuarioStr) {
         window.location.href = 'login.html';
@@ -22,9 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     currentUser = JSON.parse(usuarioStr);
-    console.log('✅ Usuario cargado:', currentUser.nombre, '- Rol:', currentUser.rol);
+    console.log('✅ Usuario:', currentUser.nombre, '- Rol:', currentUser.rol);
     
-    // Inicializar interfaz
     inicializarInterfaz();
     cargarEventos();
     setupEventListeners();
@@ -35,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================
 
 function inicializarInterfaz() {
-    // Actualizar info de usuario
     const userName = document.getElementById('userName');
     const userRole = document.getElementById('userRole');
     const roleBadge = document.getElementById('roleBadge');
@@ -58,49 +55,47 @@ function inicializarInterfaz() {
 // ============================================
 
 function setupEventListeners() {
-    console.log('📌 Configurando event listeners...');
+    console.log('📌 Configurando event listeners');
     
-    // Botón nuevo evento
+    // Nuevo evento
     const newEventBtn = document.getElementById('newEventBtn');
     if (newEventBtn) {
         newEventBtn.addEventListener('click', () => abrirModalNuevoEvento());
     }
     
-    // Botón refrescar
+    // Refrescar
     const refreshEventsBtn = document.getElementById('refreshEventsBtn');
     if (refreshEventsBtn) {
         refreshEventsBtn.addEventListener('click', () => cargarEventos());
     }
     
-    // Selector de eventos
+    // Selector
     const eventSelector = document.getElementById('eventSelector');
     if (eventSelector) {
         eventSelector.addEventListener('change', (e) => {
-            if (e.target.value) {
-                cargarEvento(e.target.value);
-            }
+            if (e.target.value) cargarEvento(e.target.value);
         });
     }
     
-    // Botón guardar evento
+    // Guardar evento
     const btnGuardarEvento = document.getElementById('btnGuardarEvento');
     if (btnGuardarEvento) {
         btnGuardarEvento.addEventListener('click', () => guardarCambiosEvento());
     }
     
-    // Botón crear mesas
+    // Crear mesas
     const btnCrearMesas = document.getElementById('btnCrearMesas');
     if (btnCrearMesas) {
         btnCrearMesas.addEventListener('click', () => crearActualizarMesas());
     }
     
-    // Botón agregar invitado ← FIX PRINCIPAL
+    // Agregar invitado
     const addGuestBtn = document.getElementById('addGuestBtn');
     const addGuestModal = document.getElementById('addGuestModal');
     if (addGuestBtn && addGuestModal) {
         addGuestBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            console.log('✅ Abriendo modal de invitado');
+            console.log('✅ Abriendo modal invitado');
             addGuestModal.classList.add('active');
             addGuestModal.style.display = 'flex';
         });
@@ -117,7 +112,7 @@ function setupEventListeners() {
         });
     });
     
-    // Cerrar modal al hacer click fuera
+    // Click fuera del modal
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', function(e) {
             if (e.target === this) {
@@ -155,20 +150,19 @@ async function cargarEventos() {
             endpoint = '/mi-evento';
         }
         
-        console.log('📥 Cargando eventos desde:', endpoint);
+        console.log('📥 Cargando desde:', endpoint);
         
         const response = await fetch(API_BASE + endpoint, {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         
-        if (!response.ok) throw new Error('Error al cargar eventos');
+        if (!response.ok) throw new Error('Error al cargar');
         
         const data = await response.json();
         const eventos = Array.isArray(data) ? data : (data.eventos || [data]);
         
-        console.log('✅ Eventos cargados:', eventos.length);
+        console.log('✅ Eventos:', eventos.length);
         
-        // Llenar selector
         const eventSelector = document.getElementById('eventSelector');
         if (eventSelector) {
             eventSelector.innerHTML = '<option value="">Seleccionar Evento...</option>';
@@ -179,7 +173,6 @@ async function cargarEventos() {
                 eventSelector.appendChild(option);
             });
             
-            // Cargar primer evento automáticamente
             if (eventos.length > 0) {
                 eventSelector.value = eventos[0].id;
                 cargarEvento(eventos[0].id);
@@ -187,7 +180,7 @@ async function cargarEventos() {
         }
         
     } catch (error) {
-        console.error('❌ Error cargando eventos:', error);
+        console.error('❌ Error:', error);
         showToast('Error al cargar eventos', 'error');
     }
 }
@@ -205,18 +198,17 @@ async function cargarEvento(eventoId) {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         
-        if (!response.ok) throw new Error('Error al cargar evento');
+        if (!response.ok) throw new Error('Error');
         
         currentEvent = await response.json();
-        console.log('✅ Evento cargado:', currentEvent);
+        console.log('✅ Evento:', currentEvent);
         
-        // Actualizar UI
         actualizarInfoEvento();
         await cargarMesas(eventoId);
         await cargarInvitados(eventoId);
         
     } catch (error) {
-        console.error('❌ Error cargando evento:', error);
+        console.error('❌ Error:', error);
         showToast('Error al cargar evento', 'error');
     }
 }
@@ -230,7 +222,6 @@ function actualizarInfoEvento() {
     
     const currentEventName = document.getElementById('currentEventName');
     const currentEventDate = document.getElementById('currentEventDate');
-    const currentEventStatus = document.getElementById('currentEventStatus');
     const eventName = document.getElementById('eventName');
     const eventDate = document.getElementById('eventDate');
     const eventTime = document.getElementById('eventTime');
@@ -241,12 +232,7 @@ function actualizarInfoEvento() {
         const fecha = new Date(currentEvent.fecha_evento);
         currentEventDate.textContent = fecha.toLocaleDateString();
     }
-    if (currentEventStatus) {
-        const statusSpan = currentEventStatus.querySelector('span');
-        if (statusSpan) statusSpan.textContent = currentEvent.estado || 'activo';
-    }
     
-    // Formulario
     if (eventName) eventName.value = currentEvent.nombre || '';
     if (eventDate && currentEvent.fecha_evento) {
         const fecha = new Date(currentEvent.fecha_evento);
@@ -260,51 +246,67 @@ function actualizarInfoEvento() {
 }
 
 // ============================================
-// CARGAR MESAS
+// CARGAR MESAS - FIX PRINCIPAL
 // ============================================
 
 async function cargarMesas(eventoId) {
     try {
-        console.log('📥 Cargando mesas del evento:', eventoId);
+        console.log('📥 Cargando mesas...');
         
         const token = obtenerToken();
         const response = await fetch(API_BASE + '/eventos/' + eventoId + '/mesas', {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         
-        if (!response.ok) throw new Error('Error al cargar mesas');
+        if (!response.ok) {
+            console.log('⚠️  No hay mesas o error en API');
+            mesas = [];
+            renderizarMesas([]);
+            return;
+        }
         
-        mesas = await response.json();
-        console.log('✅ Mesas cargadas:', mesas.length);
+        const data = await response.json();
+        console.log('📦 Respuesta mesas:', data);
+        
+        // FIX: Asegurar que siempre sea un array
+        if (Array.isArray(data)) {
+            mesas = data;
+        } else if (data && typeof data === 'object') {
+            // Si es un objeto con propiedad mesas
+            mesas = data.mesas || data.data || [];
+        } else {
+            mesas = [];
+        }
+        
+        console.log('✅ Mesas procesadas:', mesas.length);
         
         renderizarMesas(mesas);
         actualizarEstadisticas();
         
     } catch (error) {
-        console.error('❌ Error cargando mesas:', error);
+        console.error('❌ Error:', error);
         mesas = [];
         renderizarMesas([]);
     }
 }
 
 // ============================================
-// RENDERIZAR MESAS - FIX PRINCIPAL
+// RENDERIZAR MESAS - FIX COMPLETO
 // ============================================
 
-function renderizarMesas(mesas) {
+function renderizarMesas(mesasArray) {
     const container = document.getElementById('mesasContainer');
     if (!container) {
-        console.error('❌ Container de mesas no encontrado');
+        console.error('❌ Container no encontrado');
         return;
     }
     
-    console.log('🎨 Renderizando', mesas.length, 'mesas');
+    console.log('🎨 Renderizando mesas:', mesasArray);
     
-    // Limpiar
     container.innerHTML = '';
     
-    // Si no hay mesas, mostrar empty state
-    if (!mesas || mesas.length === 0) {
+    // FIX: Validar que sea array
+    if (!Array.isArray(mesasArray) || mesasArray.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-chair"></i>
@@ -316,20 +318,24 @@ function renderizarMesas(mesas) {
     }
     
     // Renderizar cada mesa
-    mesas.forEach(mesa => {
+    mesasArray.forEach(mesa => {
         if (!mesa) return;
         
-        const mesaElement = crearElementoMesa(mesa);
-        if (mesaElement) {
-            container.appendChild(mesaElement);
+        try {
+            const mesaElement = crearElementoMesa(mesa);
+            if (mesaElement) {
+                container.appendChild(mesaElement);
+            }
+        } catch (error) {
+            console.error('Error renderizando mesa:', mesa.id, error);
         }
     });
     
-    console.log('✅ Mesas renderizadas');
+    console.log('✅ Renderizado completo');
 }
 
 // ============================================
-// CREAR ELEMENTO MESA - FIX COMPLETO
+// CREAR ELEMENTO MESA
 // ============================================
 
 function crearElementoMesa(mesa) {
@@ -340,37 +346,33 @@ function crearElementoMesa(mesa) {
     mesaDiv.style.left = (mesa.posicion_x || 50) + 'px';
     mesaDiv.style.top = (mesa.posicion_y || 50) + 'px';
     mesaDiv.style.cursor = 'move';
-    mesaDiv.style.transition = 'all 0.3s';
     
     const forma = mesa.forma || 'rectangular';
     
-    // Configuración según forma
     if (forma === 'circular') {
         mesaDiv.style.width = '150px';
         mesaDiv.style.height = '150px';
         mesaDiv.style.borderRadius = '50%';
         mesaDiv.style.background = '#8B4513';
         mesaDiv.style.border = '6px solid #654321';
-        mesaDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
     } else if (forma === 'cuadrada') {
         mesaDiv.style.width = '150px';
         mesaDiv.style.height = '150px';
         mesaDiv.style.borderRadius = '12px';
         mesaDiv.style.background = '#8B4513';
         mesaDiv.style.border = '6px solid #654321';
-        mesaDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-    } else { // rectangular
+    } else {
         mesaDiv.style.width = '200px';
         mesaDiv.style.height = '100px';
         mesaDiv.style.borderRadius = '12px';
         mesaDiv.style.background = '#8B4513';
         mesaDiv.style.border = '6px solid #654321';
-        mesaDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
     }
     
-    // Título de la mesa
+    mesaDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+    
+    // Título
     const titulo = document.createElement('div');
-    titulo.className = 'mesa-titulo';
     titulo.textContent = mesa.nombre || `Mesa ${mesa.numero}`;
     titulo.style.position = 'absolute';
     titulo.style.top = '50%';
@@ -383,13 +385,11 @@ function crearElementoMesa(mesa) {
     titulo.style.pointerEvents = 'none';
     mesaDiv.appendChild(titulo);
     
-    // Agregar sillas
+    // Sillas
     const numSillas = mesa.capacidad || 8;
     for (let i = 0; i < numSillas; i++) {
         const silla = crearSilla(i, numSillas, forma, mesa.id);
-        if (silla) {
-            mesaDiv.appendChild(silla);
-        }
+        if (silla) mesaDiv.appendChild(silla);
     }
     
     return mesaDiv;
@@ -417,10 +417,8 @@ function crearSilla(index, total, forma, mesaId) {
     silla.style.color = 'white';
     silla.style.fontSize = '11px';
     silla.style.fontWeight = 'bold';
-    silla.style.transition = 'all 0.3s';
     silla.textContent = index + 1;
     
-    // Hover effect
     silla.addEventListener('mouseenter', function() {
         this.style.background = '#764ba2';
         this.style.transform = 'scale(1.1)';
@@ -431,7 +429,7 @@ function crearSilla(index, total, forma, mesaId) {
         this.style.transform = 'scale(1)';
     });
     
-    // Posicionar silla según forma
+    // Posicionar
     if (forma === 'circular') {
         const angulo = (360 / total) * index;
         const radianes = (angulo - 90) * (Math.PI / 180);
@@ -441,37 +439,32 @@ function crearSilla(index, total, forma, mesaId) {
     } else if (forma === 'cuadrada') {
         const lado = Math.floor(index / Math.ceil(total / 4));
         const posEnLado = index % Math.ceil(total / 4);
-        const espaciado = 40;
-        
-        if (lado === 0) { // Arriba
-            silla.style.left = (20 + posEnLado * espaciado) + 'px';
+        if (lado === 0) {
+            silla.style.left = (20 + posEnLado * 40) + 'px';
             silla.style.top = '-40px';
-        } else if (lado === 1) { // Derecha
+        } else if (lado === 1) {
             silla.style.left = '160px';
-            silla.style.top = (20 + posEnLado * espaciado) + 'px';
-        } else if (lado === 2) { // Abajo
-            silla.style.left = (20 + posEnLado * espaciado) + 'px';
+            silla.style.top = (20 + posEnLado * 40) + 'px';
+        } else if (lado === 2) {
+            silla.style.left = (20 + posEnLado * 40) + 'px';
             silla.style.top = '160px';
-        } else { // Izquierda
+        } else {
             silla.style.left = '-40px';
-            silla.style.top = (20 + posEnLado * espaciado) + 'px';
+            silla.style.top = (20 + posEnLado * 40) + 'px';
         }
-    } else { // rectangular
-        const espaciado = 45;
-        
-        if (index < 2) { // Lados cortos
+    } else {
+        if (index < 2) {
             silla.style.left = index === 0 ? '-40px' : '210px';
             silla.style.top = '35px';
-        } else { // Lados largos
+        } else {
             const pos = index - 2;
             const mitad = Math.floor((total - 2) / 2);
-            
-            if (pos < mitad) { // Arriba
-                silla.style.left = (20 + pos * espaciado) + 'px';
+            if (pos < mitad) {
+                silla.style.left = (20 + pos * 45) + 'px';
                 silla.style.top = '-40px';
-            } else { // Abajo
+            } else {
                 const posAbajo = pos - mitad;
-                silla.style.left = (20 + posAbajo * espaciado) + 'px';
+                silla.style.left = (20 + posAbajo * 45) + 'px';
                 silla.style.top = '110px';
             }
         }
@@ -486,7 +479,7 @@ function crearSilla(index, total, forma, mesaId) {
 
 async function crearActualizarMesas() {
     if (!currentEvent) {
-        showToast('Selecciona un evento primero', 'error');
+        showToast('Selecciona un evento', 'error');
         return;
     }
     
@@ -495,11 +488,11 @@ async function crearActualizarMesas() {
     const formaMesa = document.getElementById('formaMesa').value;
     
     if (!numMesas || !sillasPorMesa) {
-        showToast('Completa todos los campos', 'error');
+        showToast('Completa los campos', 'error');
         return;
     }
     
-    console.log('🔨 Creando mesas:', { numMesas, sillasPorMesa, formaMesa });
+    console.log('🔨 Creando:', { numMesas, sillasPorMesa, formaMesa });
     
     try {
         const token = obtenerToken();
@@ -516,13 +509,13 @@ async function crearActualizarMesas() {
             })
         });
         
-        if (!response.ok) throw new Error('Error al crear mesas');
+        if (!response.ok) throw new Error('Error');
         
-        showToast('Mesas creadas exitosamente', 'success');
+        showToast('Mesas creadas', 'success');
         await cargarMesas(currentEvent.id);
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌', error);
         showToast('Error al crear mesas', 'error');
     }
 }
@@ -538,16 +531,20 @@ async function cargarInvitados(eventoId) {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         
-        if (!response.ok) throw new Error('Error al cargar invitados');
+        if (!response.ok) {
+            invitados = [];
+            return;
+        }
         
-        invitados = await response.json();
-        console.log('✅ Invitados cargados:', invitados.length);
+        const data = await response.json();
+        invitados = Array.isArray(data) ? data : (data.invitados || []);
         
+        console.log('✅ Invitados:', invitados.length);
         renderizarInvitados(invitados);
         actualizarEstadisticas();
         
     } catch (error) {
-        console.error('❌ Error cargando invitados:', error);
+        console.error('Error invitados:', error);
         invitados = [];
     }
 }
@@ -566,8 +563,7 @@ function renderizarInvitados(invitados) {
         container.innerHTML = `
             <div class="empty-invitados">
                 <i class="fas fa-user-friends"></i>
-                <p>No hay invitados agregados</p>
-                <small>Agrega invitados para comenzar</small>
+                <p>No hay invitados</p>
             </div>
         `;
         return;
@@ -577,35 +573,27 @@ function renderizarInvitados(invitados) {
         const div = document.createElement('div');
         div.className = 'invitado-item';
         div.innerHTML = `
-            <div class="invitado-info">
-                <strong>${inv.nombre}</strong>
-                <small>${inv.email || 'Sin email'}</small>
-            </div>
-            <div class="invitado-estado ${inv.estado}">
-                ${inv.estado}
-            </div>
+            <div><strong>${inv.nombre}</strong></div>
+            <div class="invitado-estado">${inv.estado}</div>
         `;
         container.appendChild(div);
     });
 }
 
 // ============================================
-// ACTUALIZAR ESTADÍSTICAS
+// ESTADÍSTICAS
 // ============================================
 
 function actualizarEstadisticas() {
+    const totalMesas = mesas.length;
+    const totalSillas = mesas.reduce((sum, m) => sum + (m.capacidad || 0), 0);
+    const ocupadas = invitados.filter(i => i.mesa_id).length;
+    const porcentaje = totalSillas > 0 ? Math.round((ocupadas / totalSillas) * 100) : 0;
+    
     const statTotalMesas = document.getElementById('statTotalMesas');
     const statTotalSillas = document.getElementById('statTotalSillas');
     const statSillasOcupadas = document.getElementById('statSillasOcupadas');
     const statPorcentajeOcupacion = document.getElementById('statPorcentajeOcupacion');
-    const confirmados = document.getElementById('confirmados');
-    const pendientes = document.getElementById('pendientes');
-    const rechazados = document.getElementById('rechazados');
-    
-    const totalMesas = mesas.length;
-    const totalSillas = mesas.reduce((sum, m) => sum + (m.capacidad || 0), 0);
-    const ocupadas = invitados.filter(i => i.mesa_id && i.silla_numero).length;
-    const porcentaje = totalSillas > 0 ? Math.round((ocupadas / totalSillas) * 100) : 0;
     
     if (statTotalMesas) statTotalMesas.textContent = totalMesas;
     if (statTotalSillas) statTotalSillas.textContent = totalSillas;
@@ -615,6 +603,10 @@ function actualizarEstadisticas() {
     const conf = invitados.filter(i => i.estado === 'confirmado').length;
     const pend = invitados.filter(i => i.estado === 'pendiente').length;
     const rech = invitados.filter(i => i.estado === 'rechazado').length;
+    
+    const confirmados = document.getElementById('confirmados');
+    const pendientes = document.getElementById('pendientes');
+    const rechazados = document.getElementById('rechazados');
     
     if (confirmados) confirmados.textContent = conf;
     if (pendientes) pendientes.textContent = pend;
@@ -632,21 +624,15 @@ function obtenerToken() {
 function showToast(message, type = 'success') {
     const toast = document.getElementById('messageToast');
     if (!toast) return;
-    
     toast.textContent = message;
     toast.className = `toast ${type} show`;
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-    }, 3000);
+    setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 function cambiarTab(tabName) {
-    // Desactivar todos los tabs
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     
-    // Activar el tab seleccionado
     const tab = document.querySelector(`[data-tab="${tabName}"]`);
     const content = document.getElementById(tabName + 'Tab');
     
@@ -697,7 +683,7 @@ async function guardarCambiosEvento() {
 
 async function finalizarEvento() {
     if (!currentEvent) return;
-    if (!confirm('¿Eliminar este evento?')) return;
+    if (!confirm('¿Eliminar evento?')) return;
     
     try {
         const token = obtenerToken();
@@ -713,8 +699,8 @@ async function finalizarEvento() {
         cargarEventos();
         
     } catch (error) {
-        showToast('Error al eliminar', 'error');
+        showToast('Error', 'error');
     }
 }
 
-console.log('✅ cliente.js cargado y arreglado');
+console.log('✅ cliente.js v2 cargado');
