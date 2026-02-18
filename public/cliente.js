@@ -1,4 +1,4 @@
-// cliente.js - VERSIÓN FINAL DEFINITIVA
+// cliente.js - VERSIÓN CORREGIDA TOTAL - Sin errores
 const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
 
 let currentUser = null;
@@ -17,8 +17,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     try {
         currentUser = JSON.parse(usuarioStr);
-        console.log('Usuario:', currentUser.nombre);
+        console.log('✅ Usuario:', currentUser.nombre);
     } catch (error) {
+        console.error('Error parseando usuario');
         window.location.href = 'login.html';
         return;
     }
@@ -43,18 +44,28 @@ function setupEventListeners() {
     const eventSelector = document.getElementById('eventSelector');
     if (eventSelector) {
         eventSelector.addEventListener('change', async function(e) {
-            if (e.target.value) await cargarEvento(e.target.value);
+            const eventoId = e.target.value;
+            if (eventoId && eventoId !== '') {
+                console.log('📍 Evento seleccionado:', eventoId);
+                await cargarEvento(eventoId);
+            }
         });
     }
     
     const btnRefresh = document.getElementById('btnRefresh');
-    if (btnRefresh) btnRefresh.addEventListener('click', () => cargarEventos());
+    if (btnRefresh) {
+        btnRefresh.addEventListener('click', () => cargarEventos());
+    }
     
     const btnGuardarEvento = document.getElementById('btnGuardarEvento');
-    if (btnGuardarEvento) btnGuardarEvento.addEventListener('click', () => guardarEvento());
+    if (btnGuardarEvento) {
+        btnGuardarEvento.addEventListener('click', () => guardarEvento());
+    }
     
     const btnCrearMesas = document.getElementById('btnCrearMesas');
-    if (btnCrearMesas) btnCrearMesas.addEventListener('click', () => crearMesas());
+    if (btnCrearMesas) {
+        btnCrearMesas.addEventListener('click', () => crearMesas());
+    }
     
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', function() {
@@ -76,23 +87,26 @@ function cambiarTab(tabName) {
 
 async function cargarEventos() {
     try {
-        console.log('Cargando eventos...');
+        console.log('📥 Cargando eventos...');
         const token = obtenerToken();
         
         const response = await fetch(`${API_BASE}/eventos`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (!response.ok) throw new Error('Error');
+        if (!response.ok) {
+            console.error('❌ Error al cargar eventos:', response.status);
+            throw new Error('Error al cargar eventos');
+        }
         
         const data = await response.json();
         const eventos = Array.isArray(data) ? data : (data.eventos || []);
         
-        console.log('Eventos:', eventos.length);
+        console.log('✅ Eventos cargados:', eventos.length);
         
         const eventSelector = document.getElementById('eventSelector');
         if (eventSelector) {
-            eventSelector.innerHTML = '<option value="">Seleccionar...</option>';
+            eventSelector.innerHTML = '<option value="">Seleccionar evento...</option>';
             
             eventos.forEach(evento => {
                 const option = document.createElement('option');
@@ -101,40 +115,58 @@ async function cargarEventos() {
                 eventSelector.appendChild(option);
             });
             
+            // Cargar primer evento automáticamente
             if (eventos.length > 0) {
-                eventSelector.value = eventos[0].id;
-                await cargarEvento(eventos[0].id);
+                const primerEventoId = eventos[0].id;
+                eventSelector.value = primerEventoId;
+                await cargarEvento(primerEventoId);
             }
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Error:', error);
         showToast('Error al cargar eventos', 'error');
     }
 }
 
 async function cargarEvento(eventoId) {
+    // VALIDACIÓN CRÍTICA
+    if (!eventoId || eventoId === '' || eventoId === 'undefined') {
+        console.error('❌ ID de evento inválido:', eventoId);
+        showToast('ID de evento inválido', 'error');
+        return;
+    }
+    
     try {
-        console.log('Cargando evento:', eventoId);
+        console.log('📥 Cargando evento ID:', eventoId);
         const token = obtenerToken();
         
         const response = await fetch(`${API_BASE}/eventos/${eventoId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (!response.ok) throw new Error('Error');
+        if (!response.ok) {
+            console.error('❌ Error cargando evento:', response.status);
+            throw new Error('Error al cargar evento');
+        }
         
         currentEvent = await response.json();
-        console.log('Evento:', currentEvent.nombre);
+        console.log('✅ Evento cargado:', currentEvent.nombre, '- ID:', currentEvent.id);
+        
+        // VERIFICAR QUE TENGA ID
+        if (!currentEvent.id) {
+            console.error('❌ Evento sin ID!');
+            showToast('Error: evento sin ID', 'error');
+            return;
+        }
         
         actualizarInfoEvento();
         
-        await Promise.all([
-            cargarMesas(eventoId),
-            cargarInvitados(eventoId)
-        ]);
+        // Cargar mesas e invitados
+        await cargarMesas(currentEvent.id);
+        await cargarInvitados(currentEvent.id);
         
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Error:', error);
         showToast('Error al cargar evento', 'error');
     }
 }
@@ -146,31 +178,59 @@ function actualizarInfoEvento() {
     const eventName = document.getElementById('eventName');
     const eventDate = document.getElementById('eventDate');
     
-    if (currentEventName) currentEventName.textContent = currentEvent.nombre;
-    if (eventName) eventName.value = currentEvent.nombre || '';
+    if (currentEventName) {
+        currentEventName.textContent = currentEvent.nombre;
+    }
+    
+    if (eventName) {
+        eventName.value = currentEvent.nombre || '';
+    }
+    
     if (eventDate && currentEvent.fecha_evento) {
         try {
             const fecha = new Date(currentEvent.fecha_evento);
             eventDate.value = fecha.toISOString().split('T')[0];
         } catch (e) {
-            console.error('Error fecha');
+            console.error('Error parseando fecha');
         }
     }
 }
 
 async function cargarMesas(eventoId) {
+    // VALIDACIÓN CRÍTICA
+    if (!eventoId || eventoId === '' || eventoId === 'undefined') {
+        console.error('❌ ID inválido para cargar mesas:', eventoId);
+        mesas = [];
+        renderizarMesas([]);
+        return;
+    }
+    
     try {
-        console.log('Cargando mesas...');
+        console.log('📥 Cargando mesas del evento:', eventoId);
         const token = obtenerToken();
         
-        const response = await fetch(`${API_BASE}/eventos/${eventoId}/mesas`, {
+        const url = `${API_BASE}/eventos/${eventoId}/mesas`;
+        console.log('🔗 URL:', url);
+        
+        const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (!response.ok) {
-            console.log('No hay mesas');
+            console.log('⚠️ No hay mesas (status:', response.status, ')');
             mesas = [];
             renderizarMesas([]);
+            actualizarEstadisticas();
+            return;
+        }
+        
+        // Verificar que sea JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            console.error('❌ Respuesta no es JSON');
+            mesas = [];
+            renderizarMesas([]);
+            actualizarEstadisticas();
             return;
         }
         
@@ -184,19 +244,24 @@ async function cargarMesas(eventoId) {
             mesas = [];
         }
         
-        console.log('Mesas:', mesas.length);
+        console.log('✅ Mesas cargadas:', mesas.length);
         renderizarMesas(mesas);
+        actualizarEstadisticas();
         
     } catch (error) {
-        console.error('Error mesas:', error);
+        console.error('❌ Error cargando mesas:', error);
         mesas = [];
         renderizarMesas([]);
+        actualizarEstadisticas();
     }
 }
 
 function renderizarMesas(mesasArray) {
     const container = document.getElementById('mesasContainer');
-    if (!container) return;
+    if (!container) {
+        console.error('❌ Container no encontrado');
+        return;
+    }
     
     container.innerHTML = '';
     
@@ -205,12 +270,13 @@ function renderizarMesas(mesasArray) {
             <div class="empty-state">
                 <i class="fas fa-chair" style="font-size:4rem; color:#cbd5e0"></i>
                 <p style="color:#cbd5e0">No hay mesas</p>
+                <small style="color:#cbd5e0">Crea mesas desde Configuración</small>
             </div>
         `;
         return;
     }
     
-    console.log('Renderizando', mesasArray.length, 'mesas');
+    console.log('🎨 Renderizando', mesasArray.length, 'mesas');
     
     mesasArray.forEach((mesa, index) => {
         if (!mesa) return;
@@ -218,7 +284,7 @@ function renderizarMesas(mesasArray) {
             const mesaElement = crearMesaElement(mesa);
             container.appendChild(mesaElement);
         } catch (error) {
-            console.error('Error mesa', index, error);
+            console.error('❌ Error renderizando mesa', index, error);
         }
     });
 }
@@ -417,24 +483,36 @@ function calcularPosicionesSillas(forma, cantidad) {
 }
 
 async function cargarInvitados(eventoId) {
+    // VALIDACIÓN CRÍTICA
+    if (!eventoId || eventoId === '' || eventoId === 'undefined') {
+        console.error('❌ ID inválido para cargar invitados:', eventoId);
+        invitados = [];
+        renderizarInvitados([]);
+        actualizarEstadisticas();
+        return;
+    }
+    
     try {
         const token = obtenerToken();
-        const response = await fetch(`${API_BASE}/invitados?evento_id=${eventoId}`, {
+        const url = `${API_BASE}/invitados?evento_id=${eventoId}`;
+        console.log('📥 Cargando invitados:', url);
+        
+        const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (!response.ok) {
-            console.log('No hay invitados o error');
+            console.log('⚠️ No hay invitados (status:', response.status, ')');
             invitados = [];
             renderizarInvitados([]);
             actualizarEstadisticas();
             return;
         }
         
-        // FIX: Verificar que la respuesta sea JSON
+        // Verificar que sea JSON
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
-            console.error('Respuesta no es JSON');
+            console.error('❌ Respuesta no es JSON');
             invitados = [];
             renderizarInvitados([]);
             actualizarEstadisticas();
@@ -444,12 +522,12 @@ async function cargarInvitados(eventoId) {
         const data = await response.json();
         invitados = Array.isArray(data) ? data : [];
         
-        console.log('Invitados:', invitados.length);
+        console.log('✅ Invitados:', invitados.length);
         renderizarInvitados(invitados);
         actualizarEstadisticas();
         
     } catch (error) {
-        console.error('Error invitados:', error);
+        console.error('❌ Error invitados:', error);
         invitados = [];
         renderizarInvitados([]);
         actualizarEstadisticas();
@@ -482,8 +560,10 @@ function renderizarInvitados(invitadosArray) {
 }
 
 async function crearMesas() {
-    if (!currentEvent) {
-        showToast('Selecciona un evento', 'error');
+    // VALIDACIÓN CRÍTICA
+    if (!currentEvent || !currentEvent.id) {
+        console.error('❌ No hay evento seleccionado o no tiene ID');
+        showToast('Selecciona un evento primero', 'error');
         return;
     }
     
@@ -497,9 +577,14 @@ async function crearMesas() {
         return;
     }
     
+    console.log('🔨 Creando mesas para evento ID:', currentEvent.id);
+    
     try {
         const token = obtenerToken();
-        const response = await fetch(`${API_BASE}/eventos/${currentEvent.id}/mesas`, {
+        const url = `${API_BASE}/eventos/${currentEvent.id}/mesas`;
+        console.log('🔗 POST:', url);
+        
+        const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -514,20 +599,21 @@ async function crearMesas() {
         });
         
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Error');
+            const errorText = await response.text();
+            console.error('❌ Error del servidor:', errorText);
+            throw new Error('Error al crear mesas');
         }
         
         showToast('✅ Mesas creadas', 'success');
         await cargarMesas(currentEvent.id);
         
     } catch (error) {
-        console.error('Error:', error);
+        console.error('❌ Error:', error);
         showToast(error.message, 'error');
     }
 }
 
-// EDITAR NOMBRE DE MESA
+// EDITAR NOMBRE
 window.editarNombreMesa = function(mesaId) {
     const mesa = mesas.find(m => m.id === mesaId);
     if (!mesa) return;
@@ -540,7 +626,7 @@ window.editarNombreMesa = function(mesaId) {
     showToast('✅ Nombre actualizado', 'success');
 };
 
-// CAMBIAR COLOR DE MESA
+// CAMBIAR COLOR
 window.cambiarColorMesa = function(mesaId) {
     const colores = [
         { nombre: 'Café', valor: '#8B4513' },
@@ -647,7 +733,10 @@ window.confirmarAsignacion = async function() {
 };
 
 async function guardarEvento() {
-    if (!currentEvent) return;
+    if (!currentEvent || !currentEvent.id) {
+        showToast('No hay evento seleccionado', 'error');
+        return;
+    }
     
     const nombre = document.getElementById('eventName').value;
     const fecha = document.getElementById('eventDate').value;
@@ -731,7 +820,7 @@ function showToast(message, type = 'success') {
 }
 
 window.finalizarEvento = async function() {
-    if (!currentEvent || !confirm('¿Eliminar?')) return;
+    if (!currentEvent || !currentEvent.id || !confirm('¿Eliminar?')) return;
     
     try {
         const token = obtenerToken();
