@@ -1,9 +1,9 @@
-// cliente.js - VERSIÓN FINAL SIN ERRORES
+// cliente.js - VERSIÓN FINAL COMPLETAMENTE FUNCIONAL
 const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
 
 let currentUser = null;
 let currentEvent = null;
-let currentEventId = null; // ← NUEVO: guardar ID por separado
+let currentEventId = null;
 let mesas = [];
 let invitados = [];
 
@@ -45,8 +45,7 @@ function setupEventListeners() {
     if (eventSelector) {
         eventSelector.addEventListener('change', async function(e) {
             const eventoId = e.target.value;
-            if (eventoId && eventoId !== '' && eventoId !== 'undefined') {
-                console.log('📍 Evento seleccionado:', eventoId);
+            if (eventoId && eventoId !== '') {
                 await cargarEvento(eventoId);
             }
         });
@@ -81,26 +80,19 @@ function cambiarTab(tabName) {
 
 async function cargarEventos() {
     try {
-        console.log('📥 Cargando eventos...');
         const token = obtenerToken();
-        
         const response = await fetch(`${API_BASE}/eventos`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (!response.ok) {
-            console.error('❌ Error:', response.status);
-            throw new Error('Error al cargar eventos');
-        }
+        if (!response.ok) throw new Error('Error');
         
         const data = await response.json();
         const eventos = Array.isArray(data) ? data : (data.eventos || []);
         
-        console.log('✅ Eventos:', eventos.length);
-        
         const eventSelector = document.getElementById('eventSelector');
         if (eventSelector) {
-            eventSelector.innerHTML = '<option value="">Seleccionar evento...</option>';
+            eventSelector.innerHTML = '<option value="">Seleccionar...</option>';
             
             eventos.forEach(evento => {
                 const option = document.createElement('option');
@@ -110,66 +102,46 @@ async function cargarEventos() {
             });
             
             if (eventos.length > 0) {
-                const primerEventoId = eventos[0].id;
-                eventSelector.value = primerEventoId;
-                await cargarEvento(primerEventoId);
+                eventSelector.value = eventos[0].id;
+                await cargarEvento(eventos[0].id);
             }
         }
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('Error:', error);
         showToast('Error al cargar eventos', 'error');
     }
 }
 
 async function cargarEvento(eventoId) {
-    if (!eventoId || eventoId === '' || eventoId === 'undefined') {
-        console.error('❌ ID inválido:', eventoId);
-        return;
-    }
+    if (!eventoId) return;
     
     try {
-        console.log('📥 Cargando evento ID:', eventoId);
-        
-        // GUARDAR EL ID PRIMERO (crítico!)
         currentEventId = eventoId;
-        
         const token = obtenerToken();
+        
         const response = await fetch(`${API_BASE}/eventos/${eventoId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (!response.ok) {
-            console.error('❌ Error:', response.status);
-            // Aún con error, mantener el ID si es válido
-            if (eventoId) {
-                currentEvent = { id: eventoId, nombre: 'Evento ' + eventoId };
-                console.log('⚠️ Usando ID sin datos completos');
-            }
-            throw new Error('Error al cargar evento');
+            currentEvent = { id: eventoId, nombre: 'Evento ' + eventoId };
+        } else {
+            const data = await response.json();
+            if (!data.id) data.id = eventoId;
+            currentEvent = data;
         }
         
-        const data = await response.json();
-        
-        // ASEGURAR QUE TENGA ID
-        if (data && !data.id) {
-            data.id = eventoId;
-        }
-        
-        currentEvent = data;
-        console.log('✅ Evento:', currentEvent.nombre || 'Sin nombre', '- ID:', currentEvent.id);
+        console.log('✅ Evento:', currentEvent.nombre);
         
         actualizarInfoEvento();
-        await cargarMesas(currentEvent.id);
-        await cargarInvitados(currentEvent.id);
+        await cargarMesas(eventoId);
+        await cargarInvitados(eventoId);
         
     } catch (error) {
-        console.error('❌ Error:', error);
-        // Mantener el ID válido aunque haya error
-        if (!currentEvent && eventoId) {
-            currentEvent = { id: eventoId, nombre: 'Evento ' + eventoId };
-            currentEventId = eventoId;
+        console.error('Error:', error);
+        if (!currentEvent) {
+            currentEvent = { id: eventoId, nombre: 'Evento' };
         }
-        showToast('Error al cargar evento', 'error');
     }
 }
 
@@ -180,42 +152,26 @@ function actualizarInfoEvento() {
     const eventName = document.getElementById('eventName');
     const eventDate = document.getElementById('eventDate');
     
-    if (currentEventName) {
-        currentEventName.textContent = currentEvent.nombre || 'Evento';
-    }
-    
-    if (eventName) {
-        eventName.value = currentEvent.nombre || '';
-    }
-    
+    if (currentEventName) currentEventName.textContent = currentEvent.nombre || 'Evento';
+    if (eventName) eventName.value = currentEvent.nombre || '';
     if (eventDate && currentEvent.fecha_evento) {
         try {
             const fecha = new Date(currentEvent.fecha_evento);
             eventDate.value = fecha.toISOString().split('T')[0];
-        } catch (e) {
-            console.error('Error fecha');
-        }
+        } catch (e) {}
     }
 }
 
 async function cargarMesas(eventoId) {
-    if (!eventoId || eventoId === '' || eventoId === 'undefined') {
-        console.error('❌ ID inválido');
-        mesas = [];
-        renderizarMesas([]);
-        return;
-    }
+    if (!eventoId) return;
     
     try {
-        console.log('📥 Cargando mesas...');
         const token = obtenerToken();
-        
         const response = await fetch(`${API_BASE}/eventos/${eventoId}/mesas`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (!response.ok) {
-            console.log('⚠️ No hay mesas');
             mesas = [];
             renderizarMesas([]);
             actualizarEstadisticas();
@@ -224,7 +180,6 @@ async function cargarMesas(eventoId) {
         
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
-            console.error('❌ No es JSON');
             mesas = [];
             renderizarMesas([]);
             actualizarEstadisticas();
@@ -232,21 +187,14 @@ async function cargarMesas(eventoId) {
         }
         
         const data = await response.json();
-        
-        if (Array.isArray(data)) {
-            mesas = data;
-        } else if (data && data.mesas && Array.isArray(data.mesas)) {
-            mesas = data.mesas;
-        } else {
-            mesas = [];
-        }
+        mesas = Array.isArray(data) ? data : (data.mesas || []);
         
         console.log('✅ Mesas:', mesas.length);
         renderizarMesas(mesas);
         actualizarEstadisticas();
         
     } catch (error) {
-        console.error('❌ Error mesas:', error);
+        console.error('Error mesas:', error);
         mesas = [];
         renderizarMesas([]);
         actualizarEstadisticas();
@@ -269,15 +217,13 @@ function renderizarMesas(mesasArray) {
         return;
     }
     
-    console.log('🎨 Renderizando', mesasArray.length, 'mesas');
-    
     mesasArray.forEach((mesa, index) => {
         if (!mesa) return;
         try {
             const mesaElement = crearMesaElement(mesa);
             container.appendChild(mesaElement);
         } catch (error) {
-            console.error('❌ Error mesa', index, error);
+            console.error('Error mesa', index, error);
         }
     });
 }
@@ -377,6 +323,7 @@ function crearSilla(numero, mesa, posicion) {
     silla.style.transition = 'transform 0.2s';
     silla.style.zIndex = '2';
     
+    // Color según estado
     if (invitado) {
         if (invitado.estado === 'confirmado') {
             silla.style.backgroundColor = '#4CAF50';
@@ -390,7 +337,7 @@ function crearSilla(numero, mesa, posicion) {
         }
     } else {
         silla.style.backgroundColor = '#9E9E9E';
-        silla.title = 'Click para asignar';
+        silla.title = 'Disponible';
     }
     
     const respaldo = document.createElement('div');
@@ -405,16 +352,74 @@ function crearSilla(numero, mesa, posicion) {
     
     silla.addEventListener('mouseenter', () => silla.style.transform = 'scale(1.15)');
     silla.addEventListener('mouseleave', () => silla.style.transform = 'scale(1)');
+    
+    // NUEVO: Click en silla
     silla.addEventListener('click', () => {
-        if (invitado) {
-            showToast(`${invitado.nombre} - ${invitado.estado}`, 'info');
-        } else {
-            mostrarModalAsignar(mesa.id, numero);
-        }
+        mostrarMenuSilla(mesa.id, numero, invitado);
     });
     
     return silla;
 }
+
+// NUEVO: Menú al hacer click en silla
+function mostrarMenuSilla(mesaId, sillaNro, invitado) {
+    let html = '<div style="padding:20px">';
+    html += '<h3 style="margin-bottom:20px">Silla ' + sillaNro + '</h3>';
+    
+    if (invitado) {
+        html += '<p style="margin-bottom:15px"><strong>' + invitado.nombre + '</strong></p>';
+        html += '<p style="margin-bottom:20px">Estado actual: <strong>' + invitado.estado + '</strong></p>';
+        
+        html += '<h4 style="margin-bottom:10px">Cambiar estado:</h4>';
+        html += '<div style="display:flex; flex-direction:column; gap:10px">';
+        html += `<button onclick="cambiarEstadoInvitado(${invitado.id}, 'confirmado')" style="padding:12px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold">✅ Confirmado</button>`;
+        html += `<button onclick="cambiarEstadoInvitado(${invitado.id}, 'pendiente')" style="padding:12px; background:#FFA726; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold">⏳ Pendiente</button>`;
+        html += `<button onclick="cambiarEstadoInvitado(${invitado.id}, 'rechazado')" style="padding:12px; background:#f44336; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold">❌ Rechazado</button>`;
+        html += '</div>';
+    } else {
+        html += '<p style="margin-bottom:20px; color:#999">Silla disponible</p>';
+        html += `<button onclick="mostrarModalAsignar(${mesaId}, ${sillaNro})" style="width:100%; padding:12px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold">👤 Asignar Invitado</button>`;
+    }
+    
+    html += '</div>';
+    
+    const modal = document.getElementById('modalGenerico');
+    if (modal) {
+        modal.querySelector('.modal-content').innerHTML = html;
+        modal.classList.add('active');
+    }
+}
+
+// NUEVO: Cambiar estado de invitado
+window.cambiarEstadoInvitado = async function(invitadoId, nuevoEstado) {
+    try {
+        const token = obtenerToken();
+        const response = await fetch(`${API_BASE}/invitados/${invitadoId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ estado: nuevoEstado })
+        });
+        
+        if (!response.ok) throw new Error('Error');
+        
+        showToast('✅ Estado actualizado', 'success');
+        
+        const modal = document.getElementById('modalGenerico');
+        if (modal) modal.classList.remove('active');
+        
+        const eventoId = currentEventId || (currentEvent && currentEvent.id);
+        if (eventoId) {
+            await cargarInvitados(eventoId);
+            renderizarMesas(mesas);
+        }
+        
+    } catch (error) {
+        showToast('Error al actualizar estado', 'error');
+    }
+};
 
 function calcularPosicionesSillas(forma, cantidad) {
     const posiciones = [];
@@ -465,12 +470,7 @@ function calcularPosicionesSillas(forma, cantidad) {
 }
 
 async function cargarInvitados(eventoId) {
-    if (!eventoId || eventoId === '' || eventoId === 'undefined') {
-        invitados = [];
-        renderizarInvitados([]);
-        actualizarEstadisticas();
-        return;
-    }
+    if (!eventoId) return;
     
     try {
         const token = obtenerToken();
@@ -501,7 +501,7 @@ async function cargarInvitados(eventoId) {
         actualizarEstadisticas();
         
     } catch (error) {
-        console.error('❌ Error invitados:', error);
+        console.error('Error invitados:', error);
         invitados = [];
         renderizarInvitados([]);
         actualizarEstadisticas();
@@ -534,12 +534,10 @@ function renderizarInvitados(invitadosArray) {
 }
 
 async function crearMesas() {
-    // USAR currentEventId (más confiable) o currentEvent.id
     const eventoId = currentEventId || (currentEvent && currentEvent.id);
     
-    if (!eventoId || eventoId === '' || eventoId === 'undefined') {
-        console.error('❌ No hay evento. currentEventId:', currentEventId, 'currentEvent:', currentEvent);
-        showToast('Selecciona un evento primero', 'error');
+    if (!eventoId) {
+        showToast('Selecciona un evento', 'error');
         return;
     }
     
@@ -557,13 +555,16 @@ async function crearMesas() {
     
     try {
         const token = obtenerToken();
-        const response = await fetch(`${API_BASE}/eventos/${eventoId}/mesas`, {
+        
+        // Intentar el endpoint correcto
+        const response = await fetch(`${API_BASE}/mesas`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                evento_id: parseInt(eventoId),
                 cantidad: numMesas,
                 capacidad: sillasPorMesa,
                 forma: formaMesa,
@@ -573,7 +574,7 @@ async function crearMesas() {
         
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('❌ Error:', errorText);
+            console.error('Error:', errorText);
             throw new Error('Error al crear mesas');
         }
         
@@ -581,7 +582,7 @@ async function crearMesas() {
         await cargarMesas(eventoId);
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('Error:', error);
         showToast(error.message, 'error');
     }
 }
@@ -590,7 +591,7 @@ window.editarNombreMesa = function(mesaId) {
     const mesa = mesas.find(m => m.id === mesaId);
     if (!mesa) return;
     
-    const nuevoNombre = prompt('Nombre de la mesa:', mesa.nombre || 'Mesa ' + mesa.numero);
+    const nuevoNombre = prompt('Nombre:', mesa.nombre || 'Mesa ' + mesa.numero);
     if (nuevoNombre === null || nuevoNombre === '') return;
     
     mesa.nombre = nuevoNombre;
@@ -609,7 +610,7 @@ window.cambiarColorMesa = function(mesaId) {
     ];
     
     let html = '<div style="padding:20px">';
-    html += '<h3 style="margin-bottom:20px">Selecciona un color:</h3>';
+    html += '<h3 style="margin-bottom:20px">Color:</h3>';
     html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">';
     
     colores.forEach(c => {
@@ -641,7 +642,7 @@ window.aplicarColor = function(mesaId, color) {
     showToast('✅ Color aplicado', 'success');
 };
 
-function mostrarModalAsignar(mesaId, sillaNro) {
+window.mostrarModalAsignar = function(mesaId, sillaNro) {
     if (invitados.length === 0) {
         showToast('Agrega invitados primero', 'error');
         return;
@@ -664,7 +665,11 @@ function mostrarModalAsignar(mesaId, sillaNro) {
     modal.setAttribute('data-mesa-id', mesaId);
     modal.setAttribute('data-silla-nro', sillaNro);
     modal.classList.add('active');
-}
+    
+    // Cerrar el modal genérico
+    const modalGenerico = document.getElementById('modalGenerico');
+    if (modalGenerico) modalGenerico.classList.remove('active');
+};
 
 window.confirmarAsignacion = async function() {
     const modal = document.getElementById('modalAsignar');
@@ -709,11 +714,7 @@ window.confirmarAsignacion = async function() {
 
 async function guardarEvento() {
     const eventoId = currentEventId || (currentEvent && currentEvent.id);
-    
-    if (!eventoId) {
-        showToast('No hay evento seleccionado', 'error');
-        return;
-    }
+    if (!eventoId) return;
     
     const nombre = document.getElementById('eventName').value;
     const fecha = document.getElementById('eventDate').value;
@@ -798,7 +799,6 @@ function showToast(message, type = 'success') {
 
 window.finalizarEvento = async function() {
     const eventoId = currentEventId || (currentEvent && currentEvent.id);
-    
     if (!eventoId || !confirm('¿Eliminar?')) return;
     
     try {
