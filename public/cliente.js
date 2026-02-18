@@ -1,4 +1,4 @@
-// cliente.js - VERSIÓN COMPLETA CON TODAS LAS FUNCIONALIDADES
+// cliente.js - VERSIÓN SIN ERRORES - Sin endpoints inexistentes
 const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
 let currentUser = null;
 let currentEvent = null;
@@ -6,8 +6,20 @@ let mesas = [];
 let invitados = [];
 let mesasConInvitados = {};
 
+// COLORES PREDEFINIDOS PARA MESAS
+const COLORES_MESA = [
+    { nombre: 'Café', valor: '#8B4513' },
+    { nombre: 'Marrón Claro', valor: '#A0522D' },
+    { nombre: 'Rojo', valor: '#DC143C' },
+    { nombre: 'Azul', valor: '#4169E1' },
+    { nombre: 'Verde', valor: '#228B22' },
+    { nombre: 'Morado', valor: '#9370DB' },
+    { nombre: 'Naranja', valor: '#FF8C00' },
+    { nombre: 'Rosa', valor: '#FF69B4' }
+];
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Iniciando cliente.js COMPLETO');
+    console.log('🚀 Iniciando cliente SIN ERRORES');
     
     const usuarioStr = localStorage.getItem('titi_usuario_actual');
     if (!usuarioStr) {
@@ -16,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     currentUser = JSON.parse(usuarioStr);
-    console.log('✅ Usuario:', currentUser.nombre, '- Rol:', currentUser.rol);
+    console.log('✅ Usuario:', currentUser.nombre);
     
     inicializarInterfaz();
     cargarEventos();
@@ -25,16 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function inicializarInterfaz() {
     const userName = document.getElementById('userName');
-    const userRole = document.getElementById('userRole');
-    const roleBadge = document.getElementById('roleBadge');
     const userAvatar = document.getElementById('userAvatar');
     
     if (userName) userName.textContent = currentUser.nombre;
-    if (userRole) userRole.textContent = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
-    if (roleBadge) {
-        roleBadge.textContent = currentUser.rol.toUpperCase();
-        roleBadge.className = 'role-badge ' + currentUser.rol;
-    }
     if (userAvatar) {
         const iniciales = currentUser.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         userAvatar.textContent = iniciales;
@@ -42,14 +47,11 @@ function inicializarInterfaz() {
 }
 
 function setupEventListeners() {
-    const newEventBtn = document.getElementById('newEventBtn');
     const refreshEventsBtn = document.getElementById('refreshEventsBtn');
     const eventSelector = document.getElementById('eventSelector');
     const btnGuardarEvento = document.getElementById('btnGuardarEvento');
     const btnCrearMesas = document.getElementById('btnCrearMesas');
-    const addGuestBtn = document.getElementById('addGuestBtn');
     
-    if (newEventBtn) newEventBtn.addEventListener('click', () => abrirModalNuevoEvento());
     if (refreshEventsBtn) refreshEventsBtn.addEventListener('click', () => cargarEventos());
     if (eventSelector) {
         eventSelector.addEventListener('change', (e) => {
@@ -58,60 +60,44 @@ function setupEventListeners() {
     }
     if (btnGuardarEvento) btnGuardarEvento.addEventListener('click', () => guardarCambiosEvento());
     if (btnCrearMesas) btnCrearMesas.addEventListener('click', () => crearActualizarMesas());
-    if (addGuestBtn) {
-        addGuestBtn.addEventListener('click', () => {
-            document.getElementById('addGuestModal').classList.add('active');
-            cargarMesasEnSelector();
-        });
-    }
     
-    // Form de invitado
-    const formInvitado = document.getElementById('formAgregarInvitado');
-    if (formInvitado) {
-        formInvitado.addEventListener('submit', (e) => {
-            e.preventDefault();
-            guardarInvitado();
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            cambiarTab(tabName);
         });
-    }
+    });
+}
+
+function cambiarTab(tabName) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     
-    // Select de mesa en modal invitado
-    const guestMesa = document.getElementById('guestMesa');
-    if (guestMesa) {
-        guestMesa.addEventListener('change', (e) => {
-            cargarSillasDisponibles(e.target.value);
-        });
-    }
+    const tab = document.querySelector(`[data-tab="${tabName}"]`);
+    const content = document.getElementById(tabName + 'Tab');
+    
+    if (tab) tab.classList.add('active');
+    if (content) content.classList.add('active');
 }
 
 async function cargarEventos() {
     try {
         const token = obtenerToken();
-        let endpoint = '/eventos-usuario';
-        
-        if (currentUser.rol === 'admin') {
-            endpoint = '/eventos';
-        } else if (currentUser.rol === 'organizador') {
-            endpoint = '/mis-eventos';
-        } else if (currentUser.rol === 'colaborador') {
-            endpoint = '/mi-evento';
-        }
-        
-        console.log('📥 Cargando desde:', endpoint);
+        let endpoint = '/eventos';
         
         const response = await fetch(API_BASE + endpoint, {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         
-        if (!response.ok) throw new Error('Error al cargar eventos');
+        if (!response.ok) throw new Error('Error');
         
         const data = await response.json();
         const eventos = Array.isArray(data) ? data : (data.eventos || [data]);
         
-        console.log('✅ Eventos:', eventos.length);
-        
         const eventSelector = document.getElementById('eventSelector');
         if (eventSelector) {
-            eventSelector.innerHTML = '<option value="">Seleccionar Evento...</option>';
+            eventSelector.innerHTML = '<option value="">Seleccionar...</option>';
             eventos.forEach(evento => {
                 const option = document.createElement('option');
                 option.value = evento.id;
@@ -125,15 +111,12 @@ async function cargarEventos() {
             }
         }
     } catch (error) {
-        console.error('❌ Error:', error);
-        showToast('Error al cargar eventos', 'error');
+        console.error('Error:', error);
     }
 }
 
 async function cargarEvento(eventoId) {
     try {
-        console.log('📥 Cargando evento:', eventoId);
-        
         const token = obtenerToken();
         const response = await fetch(API_BASE + '/eventos/' + eventoId, {
             headers: { 'Authorization': 'Bearer ' + token }
@@ -142,15 +125,13 @@ async function cargarEvento(eventoId) {
         if (!response.ok) throw new Error('Error');
         
         currentEvent = await response.json();
-        console.log('✅ Evento cargado:', currentEvent);
+        console.log('Evento:', currentEvent);
         
         actualizarInfoEvento();
         await cargarMesas(eventoId);
         await cargarInvitados(eventoId);
-        actualizarEstadisticas();
     } catch (error) {
-        console.error('❌ Error:', error);
-        showToast('Error al cargar evento', 'error');
+        console.error('Error:', error);
     }
 }
 
@@ -158,61 +139,37 @@ function actualizarInfoEvento() {
     if (!currentEvent) return;
     
     const currentEventName = document.getElementById('currentEventName');
-    const currentEventDate = document.getElementById('currentEventDate');
     const eventName = document.getElementById('eventName');
     const eventDate = document.getElementById('eventDate');
-    const eventTime = document.getElementById('eventTime');
-    const eventDescription = document.getElementById('eventDescription');
     
     if (currentEventName) currentEventName.textContent = currentEvent.nombre;
-    if (currentEventDate && currentEvent.fecha_evento) {
-        const fecha = new Date(currentEvent.fecha_evento);
-        currentEventDate.textContent = fecha.toLocaleDateString();
-    }
     if (eventName) eventName.value = currentEvent.nombre || '';
     if (eventDate && currentEvent.fecha_evento) {
         const fecha = new Date(currentEvent.fecha_evento);
         eventDate.value = fecha.toISOString().split('T')[0];
     }
-    if (eventTime && currentEvent.fecha_evento) {
-        const fecha = new Date(currentEvent.fecha_evento);
-        eventTime.value = fecha.toTimeString().substring(0, 5);
-    }
-    if (eventDescription) eventDescription.value = currentEvent.descripcion || '';
 }
 
 async function cargarMesas(eventoId) {
     try {
-        console.log('📥 Cargando mesas...');
-        
         const token = obtenerToken();
         const response = await fetch(API_BASE + '/eventos/' + eventoId + '/mesas', {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         
         if (!response.ok) {
-            console.log('⚠️ No hay mesas');
             mesas = [];
             renderizarMesas([]);
             return;
         }
         
         const data = await response.json();
+        mesas = Array.isArray(data) ? data : (data.mesas || []);
         
-        // Asegurar array
-        if (Array.isArray(data)) {
-            mesas = data;
-        } else if (data && typeof data === 'object') {
-            mesas = data.mesas || data.data || [];
-        } else {
-            mesas = [];
-        }
-        
-        console.log('✅ Mesas:', mesas.length);
+        console.log('Mesas:', mesas.length);
         renderizarMesas(mesas);
-        actualizarEstadisticas();
     } catch (error) {
-        console.error('❌ Error mesas:', error);
+        console.error('Error mesas:', error);
         mesas = [];
         renderizarMesas([]);
     }
@@ -228,14 +185,12 @@ function renderizarMesas(mesasArray) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-chair"></i>
-                <p>No hay mesas creadas</p>
-                <small>Usa "Crear/Actualizar Mesas"</small>
+                <p>No hay mesas</p>
             </div>
         `;
         return;
     }
     
-    // Calcular asignaciones de invitados por silla
     calcularAsignaciones();
     
     mesasArray.forEach(mesa => {
@@ -247,7 +202,6 @@ function renderizarMesas(mesasArray) {
 
 function calcularAsignaciones() {
     mesasConInvitados = {};
-    
     invitados.forEach(inv => {
         if (inv.mesa_id && inv.silla_numero) {
             const key = `${inv.mesa_id}-${inv.silla_numero}`;
@@ -263,23 +217,18 @@ function crearMesa(mesa) {
     
     const mesaDiv = document.createElement('div');
     mesaDiv.className = 'mesa';
-    mesaDiv.setAttribute('data-mesa-id', mesa.id);
     
-    // Info de la mesa (nombre editable)
-    const mesaInfo = document.createElement('div');
-    mesaInfo.className = 'mesa-info';
-    mesaInfo.innerHTML = `
-        <strong>${mesa.nombre || 'Mesa ' + mesa.numero}</strong>
-        <div style="margin-top:5px; font-size:0.85rem">
-            <button onclick="editarMesa(${mesa.id})" style="background:#2196F3; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; margin-right:5px">
-                <i class="fas fa-edit"></i> Editar
-            </button>
-            <button onclick="cambiarColorMesa(${mesa.id})" style="background:#FF9800; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer">
-                <i class="fas fa-palette"></i> Color
-            </button>
-        </div>
-    `;
-    mesaDiv.appendChild(mesaInfo);
+    // Título de la mesa
+    const mesaTitulo = document.createElement('div');
+    mesaTitulo.className = 'mesa-titulo';
+    mesaTitulo.textContent = mesa.nombre || `Mesa ${mesa.numero}`;
+    mesaTitulo.style.textAlign = 'center';
+    mesaTitulo.style.fontWeight = 'bold';
+    mesaTitulo.style.marginBottom = '10px';
+    mesaTitulo.style.padding = '8px';
+    mesaTitulo.style.background = '#e8f5e9';
+    mesaTitulo.style.borderRadius = '8px';
+    mesaDiv.appendChild(mesaTitulo);
     
     // Mesa gráfica
     const mesaGrafica = document.createElement('div');
@@ -288,13 +237,13 @@ function crearMesa(mesa) {
     mesaGrafica.textContent = mesa.nombre || `Mesa ${mesa.numero}`;
     mesaDiv.appendChild(mesaGrafica);
     
-    // Agregar sillas con colores
-    agregarSillasConEstado(mesaDiv, mesa, forma, capacidad);
+    // Sillas
+    agregarSillas(mesaDiv, mesa, forma, capacidad);
     
     return mesaDiv;
 }
 
-function agregarSillasConEstado(mesaDiv, mesa, forma, cantidad) {
+function agregarSillas(mesaDiv, mesa, forma, cantidad) {
     const posiciones = calcularPosicionesSillas(forma, cantidad);
     
     posiciones.forEach((pos, index) => {
@@ -304,36 +253,65 @@ function agregarSillasConEstado(mesaDiv, mesa, forma, cantidad) {
         
         const silla = document.createElement('div');
         silla.className = 'silla';
-        silla.setAttribute('data-mesa-id', mesa.id);
-        silla.setAttribute('data-silla-numero', sillaNro);
         silla.textContent = sillaNro;
+        silla.style.position = 'absolute';
         silla.style.left = pos.x + 'px';
         silla.style.top = pos.y + 'px';
-        silla.style.transform = `rotate(${pos.rotation}deg)`;
+        silla.style.width = '32px';
+        silla.style.height = '42px';
+        silla.style.display = 'flex';
+        silla.style.alignItems = 'center';
+        silla.style.justifyContent = 'center';
+        silla.style.borderRadius = '5px 5px 2px 2px';
+        silla.style.color = 'white';
+        silla.style.fontSize = '10px';
+        silla.style.fontWeight = 'bold';
+        silla.style.cursor = 'pointer';
+        silla.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+        silla.style.transition = 'transform 0.2s';
+        silla.style.zIndex = '2';
         
-        // COLORES SEGÚN ESTADO
+        // Color según estado
         if (invitado) {
             if (invitado.estado === 'confirmado') {
-                silla.style.backgroundColor = '#4CAF50'; // Verde
+                silla.style.backgroundColor = '#4CAF50';
                 silla.title = `${invitado.nombre} - Confirmado`;
             } else if (invitado.estado === 'rechazado') {
-                silla.style.backgroundColor = '#f44336'; // Rojo
+                silla.style.backgroundColor = '#f44336';
                 silla.title = `${invitado.nombre} - Rechazado`;
             } else {
-                silla.style.backgroundColor = '#FFA726'; // Naranja pendiente
+                silla.style.backgroundColor = '#FFA726';
                 silla.title = `${invitado.nombre} - Pendiente`;
             }
         } else {
-            silla.style.backgroundColor = '#9E9E9E'; // Gris disponible
-            silla.title = 'Disponible';
+            silla.style.backgroundColor = '#9E9E9E';
+            silla.title = 'Click para asignar';
         }
         
-        // Click para asignar invitado
+        // Respaldo de silla
+        const respaldo = document.createElement('div');
+        respaldo.style.position = 'absolute';
+        respaldo.style.top = '-6px';
+        respaldo.style.left = '6px';
+        respaldo.style.width = '20px';
+        respaldo.style.height = '8px';
+        respaldo.style.backgroundColor = silla.style.backgroundColor;
+        respaldo.style.borderRadius = '3px 3px 0 0';
+        silla.appendChild(respaldo);
+        
+        silla.addEventListener('mouseenter', () => {
+            silla.style.transform = 'scale(1.15)';
+        });
+        
+        silla.addEventListener('mouseleave', () => {
+            silla.style.transform = 'scale(1)';
+        });
+        
         silla.addEventListener('click', () => {
             if (invitado) {
                 mostrarInfoInvitado(invitado);
             } else {
-                asignarInvitadoASilla(mesa.id, sillaNro);
+                mostrarModalAsignarInvitado(mesa.id, sillaNro);
             }
         });
         
@@ -354,57 +332,51 @@ function calcularPosicionesSillas(forma, cantidad) {
             const radianes = (angulo - 90) * (Math.PI / 180);
             const x = centerX + radio * Math.cos(radianes);
             const y = centerY + radio * Math.sin(radianes);
-            posiciones.push({ x, y, rotation: angulo });
+            posiciones.push({ x, y });
         }
     } else if (forma === 'cuadrada') {
+        const lado = 160;
         const sillasPorLado = Math.ceil(cantidad / 4);
-        const espaciado = 50;
+        const espaciado = lado / sillasPorLado;
         
         for (let i = 0; i < cantidad; i++) {
-            const lado = Math.floor(i / sillasPorLado);
+            const ladoActual = Math.floor(i / sillasPorLado);
             const posEnLado = i % sillasPorLado;
             
-            let x, y, rotation;
-            if (lado === 0) {
+            let x, y;
+            if (ladoActual === 0) {
                 x = 30 + posEnLado * espaciado;
                 y = 10;
-                rotation = 0;
-            } else if (lado === 1) {
+            } else if (ladoActual === 1) {
                 x = 180;
                 y = 30 + posEnLado * espaciado;
-                rotation = 90;
-            } else if (lado === 2) {
+            } else if (ladoActual === 2) {
                 x = 30 + posEnLado * espaciado;
                 y = 240;
-                rotation = 180;
             } else {
                 x = -20;
                 y = 30 + posEnLado * espaciado;
-                rotation = 270;
             }
-            posiciones.push({ x, y, rotation });
+            posiciones.push({ x, y });
         }
     } else { // rectangular
+        const ancho = 210;
         const sillasLaterales = Math.floor((cantidad - 2) / 2);
-        const espaciado = 50;
+        const espaciado = ancho / (sillasLaterales + 1);
         
-        posiciones.push({ x: -20, y: 150, rotation: 270 });
-        posiciones.push({ x: 220, y: 150, rotation: 90 });
+        // Lados cortos
+        posiciones.push({ x: -20, y: 150 });
+        posiciones.push({ x: 220, y: 150 });
         
+        // Lado superior
         for (let i = 0; i < sillasLaterales; i++) {
-            posiciones.push({
-                x: 30 + i * espaciado,
-                y: 20,
-                rotation: 0
-            });
+            posiciones.push({ x: 30 + i * espaciado, y: 20 });
         }
         
-        for (let i = 0; i < Math.ceil((cantidad - 2) / 2) - sillasLaterales; i++) {
-            posiciones.push({
-                x: 30 + i * espaciado,
-                y: 200,
-                rotation: 180
-            });
+        // Lado inferior
+        const restantes = cantidad - 2 - sillasLaterales;
+        for (let i = 0; i < restantes; i++) {
+            posiciones.push({ x: 30 + i * espaciado, y: 200 });
         }
     }
     
@@ -420,13 +392,14 @@ async function crearActualizarMesas() {
     const numMesas = parseInt(document.getElementById('numMesas').value);
     const sillasPorMesa = parseInt(document.getElementById('sillasPorMesa').value);
     const formaMesa = document.getElementById('formaMesa').value;
+    const colorMesa = document.getElementById('colorMesa').value;
     
     if (!numMesas || !sillasPorMesa) {
         showToast('Completa los campos', 'error');
         return;
     }
     
-    console.log('🔨 Creando mesas:', { numMesas, sillasPorMesa, formaMesa });
+    console.log('Creando mesas:', { numMesas, sillasPorMesa, formaMesa, colorMesa });
     
     try {
         const token = obtenerToken();
@@ -439,20 +412,21 @@ async function crearActualizarMesas() {
             body: JSON.stringify({
                 cantidad: numMesas,
                 capacidad: sillasPorMesa,
-                forma: formaMesa
+                forma: formaMesa,
+                color: colorMesa
             })
         });
         
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error || 'Error al crear mesas');
+            throw new Error(error.error || 'Error');
         }
         
-        showToast('✅ Mesas creadas exitosamente', 'success');
+        showToast('✅ Mesas creadas', 'success');
         await cargarMesas(currentEvent.id);
     } catch (error) {
-        console.error('❌ Error:', error);
-        showToast(error.message || 'Error al crear mesas', 'error');
+        console.error('Error:', error);
+        showToast(error.message, 'error');
     }
 }
 
@@ -470,15 +444,14 @@ async function cargarInvitados(eventoId) {
         }
         
         const data = await response.json();
-        invitados = Array.isArray(data) ? data : (data.invitados || []);
+        invitados = Array.isArray(data) ? data : [];
         
-        console.log('✅ Invitados:', invitados.length);
+        console.log('Invitados:', invitados.length);
         renderizarInvitados(invitados);
         actualizarEstadisticas();
     } catch (error) {
         console.error('Error invitados:', error);
         invitados = [];
-        renderizarInvitados([]);
     }
 }
 
@@ -489,12 +462,7 @@ function renderizarInvitados(invitadosArray) {
     container.innerHTML = '';
     
     if (!invitadosArray || invitadosArray.length === 0) {
-        container.innerHTML = `
-            <div class="empty-invitados">
-                <i class="fas fa-user-friends"></i>
-                <p>No hay invitados</p>
-            </div>
-        `;
+        container.innerHTML = '<p style="text-align:center; color:#999; padding:40px 0">No hay invitados</p>';
         return;
     }
     
@@ -505,160 +473,76 @@ function renderizarInvitados(invitadosArray) {
             <div>
                 <strong>${inv.nombre}</strong><br>
                 <small>${inv.email || 'Sin email'}</small>
-                ${inv.mesa_id ? `<br><small>Mesa ${inv.mesa_numero || inv.mesa_id}, Silla ${inv.silla_numero}</small>` : ''}
             </div>
-            <div>
-                <span class="estado-badge ${inv.estado}">${inv.estado}</span>
-            </div>
+            <span class="estado-badge ${inv.estado}">${inv.estado}</span>
         `;
         container.appendChild(div);
     });
 }
 
-function cargarMesasEnSelector() {
-    const guestMesa = document.getElementById('guestMesa');
-    if (!guestMesa) return;
-    
-    guestMesa.innerHTML = '<option value="">Sin asignar</option>';
-    mesas.forEach(mesa => {
-        const option = document.createElement('option');
-        option.value = mesa.id;
-        option.textContent = mesa.nombre || `Mesa ${mesa.numero}`;
-        guestMesa.appendChild(option);
-    });
-}
-
-function cargarSillasDisponibles(mesaId) {
-    const guestSilla = document.getElementById('guestSilla');
-    if (!guestSilla || !mesaId) {
-        if (guestSilla) guestSilla.innerHTML = '<option value="">Primero selecciona mesa</option>';
+function mostrarModalAsignarInvitado(mesaId, sillaNro) {
+    if (invitados.length === 0) {
+        showToast('No hay invitados. Agrégalos primero.', 'error');
         return;
     }
     
-    const mesa = mesas.find(m => m.id == mesaId);
-    if (!mesa) return;
+    const modal = document.getElementById('modalAsignarInvitado');
+    if (!modal) return;
     
-    guestSilla.innerHTML = '<option value="">Seleccionar silla...</option>';
-    for (let i = 1; i <= mesa.capacidad; i++) {
-        const key = `${mesaId}-${i}`;
-        const ocupada = mesasConInvitados[key];
-        
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = ocupada ? `Silla ${i} (Ocupada por ${ocupada.nombre})` : `Silla ${i}`;
-        option.disabled = !!ocupada;
-        guestSilla.appendChild(option);
-    }
-}
-
-async function guardarInvitado() {
-    if (!currentEvent) return;
-    
-    const nombre = document.getElementById('guestName').value;
-    const email = document.getElementById('guestEmail').value;
-    const telefono = document.getElementById('guestPhone').value;
-    const mesaId = document.getElementById('guestMesa').value;
-    const sillaNro = document.getElementById('guestSilla').value;
-    const estado = document.getElementById('guestEstado').value;
-    
-    if (!nombre) {
-        showToast('El nombre es obligatorio', 'error');
-        return;
-    }
-    
-    try {
-        const token = obtenerToken();
-        const response = await fetch(API_BASE + '/invitados', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                evento_id: currentEvent.id,
-                nombre,
-                email,
-                telefono,
-                mesa_id: mesaId || null,
-                silla_numero: sillaNro || null,
-                estado: estado || 'pendiente'
-            })
+    const select = document.getElementById('selectInvitado');
+    if (select) {
+        select.innerHTML = '<option value="">Seleccionar invitado...</option>';
+        invitados.forEach(inv => {
+            const option = document.createElement('option');
+            option.value = inv.id;
+            option.textContent = `${inv.nombre} - ${inv.estado}`;
+            select.appendChild(option);
         });
-        
-        if (!response.ok) throw new Error('Error');
-        
-        showToast('✅ Invitado agregado', 'success');
-        document.getElementById('addGuestModal').classList.remove('active');
-        document.getElementById('formAgregarInvitado').reset();
-        await cargarInvitados(currentEvent.id);
-        renderizarMesas(mesas);
-    } catch (error) {
-        showToast('Error al guardar', 'error');
     }
+    
+    modal.setAttribute('data-mesa-id', mesaId);
+    modal.setAttribute('data-silla-nro', sillaNro);
+    modal.classList.add('active');
 }
 
-function asignarInvitadoASilla(mesaId, sillaNro) {
-    // Abrir modal con mesa y silla pre-seleccionadas
-    document.getElementById('addGuestModal').classList.add('active');
-    cargarMesasEnSelector();
+async function confirmarAsignacion() {
+    const modal = document.getElementById('modalAsignarInvitado');
+    const invitadoId = document.getElementById('selectInvitado').value;
+    const mesaId = modal.getAttribute('data-mesa-id');
+    const sillaNro = modal.getAttribute('data-silla-nro');
     
-    setTimeout(() => {
-        const guestMesa = document.getElementById('guestMesa');
-        if (guestMesa) {
-            guestMesa.value = mesaId;
-            cargarSillasDisponibles(mesaId);
-            
-            setTimeout(() => {
-                const guestSilla = document.getElementById('guestSilla');
-                if (guestSilla) guestSilla.value = sillaNro;
-            }, 100);
-        }
-    }, 100);
-}
-
-function mostrarInfoInvitado(invitado) {
-    alert(`Invitado: ${invitado.nombre}\nEstado: ${invitado.estado}\nEmail: ${invitado.email || 'N/A'}`);
-}
-
-function editarMesa(mesaId) {
-    const mesa = mesas.find(m => m.id === mesaId);
-    if (!mesa) return;
+    if (!invitadoId) {
+        showToast('Selecciona un invitado', 'error');
+        return;
+    }
     
-    const nuevoNombre = prompt('Nombre de la mesa:', mesa.nombre || `Mesa ${mesa.numero}`);
-    if (nuevoNombre === null) return;
-    
-    actualizarMesa(mesaId, { nombre: nuevoNombre });
-}
-
-function cambiarColorMesa(mesaId) {
-    const mesa = mesas.find(m => m.id === mesaId);
-    if (!mesa) return;
-    
-    const nuevoColor = prompt('Color (ej: #8B4513, red, blue):', mesa.color || '#8B4513');
-    if (nuevoColor === null) return;
-    
-    actualizarMesa(mesaId, { color: nuevoColor });
-}
-
-async function actualizarMesa(mesaId, cambios) {
     try {
         const token = obtenerToken();
-        const response = await fetch(API_BASE + '/mesas/' + mesaId, {
+        const response = await fetch(API_BASE + '/invitados/' + invitadoId, {
             method: 'PUT',
             headers: {
                 'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(cambios)
+            body: JSON.stringify({
+                mesa_id: parseInt(mesaId),
+                silla_numero: parseInt(sillaNro)
+            })
         });
         
         if (!response.ok) throw new Error('Error');
         
-        showToast('✅ Mesa actualizada', 'success');
-        await cargarMesas(currentEvent.id);
+        showToast('✅ Invitado asignado', 'success');
+        modal.classList.remove('active');
+        await cargarInvitados(currentEvent.id);
+        renderizarMesas(mesas);
     } catch (error) {
-        showToast('Error al actualizar mesa', 'error');
+        showToast('Error al asignar', 'error');
     }
+}
+
+function mostrarInfoInvitado(invitado) {
+    showToast(`${invitado.nombre} - ${invitado.estado}`, 'info');
 }
 
 async function guardarCambiosEvento() {
@@ -666,8 +550,6 @@ async function guardarCambiosEvento() {
     
     const nombre = document.getElementById('eventName').value;
     const fecha = document.getElementById('eventDate').value;
-    const hora = document.getElementById('eventTime')?.value || '00:00';
-    const descripcion = document.getElementById('eventDescription')?.value || '';
     
     if (!nombre) {
         showToast('El nombre es obligatorio', 'error');
@@ -682,55 +564,22 @@ async function guardarCambiosEvento() {
                 'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                nombre,
-                fecha_evento: fecha ? `${fecha} ${hora}` : null,
-                descripcion
-            })
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Error');
-        }
-        
-        showToast('✅ Evento actualizado', 'success');
-        await cargarEvento(currentEvent.id);
-    } catch (error) {
-        console.error('Error:', error);
-        showToast(error.message || 'Error al actualizar', 'error');
-    }
-}
-
-async function finalizarEvento() {
-    if (!currentEvent) return;
-    
-    try {
-        const token = obtenerToken();
-        const response = await fetch(API_BASE + '/eventos/' + currentEvent.id, {
-            method: 'DELETE',
-            headers: { 'Authorization': 'Bearer ' + token }
+            body: JSON.stringify({ nombre, fecha_evento: fecha })
         });
         
         if (!response.ok) throw new Error('Error');
         
-        showToast('✅ Evento eliminado', 'success');
-        currentEvent = null;
-        cargarEventos();
+        showToast('✅ Guardado', 'success');
+        await cargarEvento(currentEvent.id);
     } catch (error) {
-        showToast('Error al eliminar', 'error');
+        showToast('Error al guardar', 'error');
     }
-}
-
-function abrirModalNuevoEvento() {
-    const modal = document.getElementById('newEventModal');
-    if (modal) modal.classList.add('active');
 }
 
 function actualizarEstadisticas() {
     const totalMesas = mesas.length;
     const totalSillas = mesas.reduce((sum, m) => sum + (m.capacidad || 0), 0);
-    const ocupadas = invitados.filter(i => i.mesa_id && i.silla_numero).length;
+    const ocupadas = invitados.filter(i => i.mesa_id).length;
     const porcentaje = totalSillas > 0 ? Math.round((ocupadas / totalSillas) * 100) : 0;
     
     const statTotalMesas = document.getElementById('statTotalMesas');
@@ -769,14 +618,32 @@ function showToast(message, type = 'success') {
     
     toast.textContent = message;
     toast.style.display = 'block';
-    toast.style.background = type === 'error' ? '#f44336' : '#4CAF50';
+    toast.style.background = type === 'error' ? '#f44336' : (type === 'info' ? '#2196F3' : '#4CAF50');
     toast.style.color = 'white';
-    toast.style.padding = '15px 20px';
-    toast.style.borderRadius = '8px';
     
     setTimeout(() => {
         toast.style.display = 'none';
     }, 3000);
 }
 
-console.log('✅ cliente.js COMPLETO cargado');
+async function finalizarEvento() {
+    if (!currentEvent || !confirm('¿Eliminar evento?')) return;
+    
+    try {
+        const token = obtenerToken();
+        const response = await fetch(API_BASE + '/eventos/' + currentEvent.id, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (!response.ok) throw new Error('Error');
+        
+        showToast('✅ Eliminado', 'success');
+        currentEvent = null;
+        cargarEventos();
+    } catch (error) {
+        showToast('Error', 'error');
+    }
+}
+
+console.log('✅ cliente.js SIN ERRORES cargado');
