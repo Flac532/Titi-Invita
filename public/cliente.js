@@ -1,312 +1,364 @@
-// cliente.js - Sistema de mesas completo para cliente
+// cliente.js - VERSIÓN FINAL COMPLETA
+const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
 
-// ===== VARIABLES GLOBALES =====
-let eventosCliente = [];
-let eventoActual = null;
+let currentUser = null;
+let currentEvent = null;
 let mesas = [];
 let invitados = [];
-let sillaSeleccionada = null;
-let zoomLevel = 1;
-let usuario = null;
-
-// ===== ELEMENTOS DOM =====
-const eventSelector = document.getElementById('eventSelector');
-const currentEventName = document.getElementById('currentEventName');
-const eventNameInput = document.getElementById('eventName');
-const eventDateInput = document.getElementById('eventDate');
-const eventTimeInput = document.getElementById('eventTime');
-const eventDescriptionInput = document.getElementById('eventDescription');
-const numMesasInput = document.getElementById('numMesas');
-const sillasPorMesaInput = document.getElementById('sillasPorMesa');
-const formaMesaSelect = document.getElementById('formaMesa');
-const btnCrearMesas = document.getElementById('btnCrearMesas');
-const btnGuardarEvento = document.getElementById('btnGuardarEvento');
-const mesasContainer = document.getElementById('mesasContainer');
-const newEventBtn = document.getElementById('newEventBtn');
-const newEventModal = document.getElementById('newEventModal');
-const logoutBtn = document.getElementById('logoutBtn');
-const userAvatar = document.getElementById('userAvatar');
-const userName = document.getElementById('userName');
-const userRole = document.getElementById('userRole');
-const searchGuests = document.getElementById('searchGuests');
-const zoomInBtn = document.getElementById('zoomInBtn');
-const zoomOutBtn = document.getElementById('zoomOutBtn');
-const resetViewBtn = document.getElementById('resetViewBtn');
-const showNamesCheckbox = document.getElementById('showNames');
-const autoSaveCheckbox = document.getElementById('autoSave');
-
-// Estadísticas
-const statTotalMesas = document.getElementById('statTotalMesas');
-const statTotalSillas = document.getElementById('statTotalSillas');
-const statSillasOcupadas = document.getElementById('statSillasOcupadas');
-const statPorcentajeOcupacion = document.getElementById('statPorcentajeOcupacion');
-const ocupacionBar = document.getElementById('ocupacionBar');
-
-// Lista de invitados
-const guestsList = document.getElementById('guestsList');
-const guestSearch = document.getElementById('guestSearch');
-const guestFilter = document.getElementById('guestFilter');
-const addGuestBtn = document.getElementById('addGuestBtn');
-const guestDetails = document.getElementById('guestDetails');
 
 // ===== INICIALIZACIÓN =====
-document.addEventListener('DOMContentLoaded', function() {
-    // Cargar usuario actual
-    usuario = window.titiAuth?.obtenerUsuarioActual();
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Iniciando Titi Invita');
     
-    if (!usuario) {
+    const usuarioStr = localStorage.getItem('titi_usuario_actual');
+    if (!usuarioStr) {
         window.location.href = 'login.html';
         return;
     }
     
-    // Configurar UI con datos del usuario
-    userAvatar.textContent = usuario.avatar || usuario.nombre.substring(0, 2).toUpperCase();
-    userName.textContent = usuario.nombre;
-    userRole.textContent = usuario.rol === 'admin' ? 'Administrador' : 'Cliente';
+    try {
+        currentUser = JSON.parse(usuarioStr);
+        console.log('✅ Usuario:', currentUser.nombre);
+    } catch (error) {
+        window.location.href = 'login.html';
+        return;
+    }
     
-    // Cargar datos iniciales
-    cargarEventosUsuario();
-    cargarInvitadosDemo();
-    configurarFechaHora();
-    
-    // Configurar event listeners
-    configurarEventListeners();
-    
-    // Crear mesas por defecto
-    crearMesas();
+    inicializarUI();
+    setupEventListeners();
+    await cargarEventos();
 });
 
-// ===== FUNCIONES PRINCIPALES =====
-
-// 1. Cargar eventos del usuario
-function cargarEventosUsuario() {
-    // Datos de demo - en producción vendrían de la API
-    eventosCliente = [
-        {
-            id: 1,
-            nombre: 'Boda de Ana y Carlos',
-            descripcion: 'Celebración en jardín botánico',
-            fecha: '2024-06-15',
-            hora: '18:00',
-            ubicacion: 'Jardín Botánico',
-            estado: 'activo',
-            mesas: 8,
-            sillasPorMesa: 8,
-            formaMesa: 'rectangular',
-            configuracion: {}
-        },
-        {
-            id: 2,
-            nombre: 'Conferencia Tech 2024',
-            descripcion: 'Conferencia anual de tecnología',
-            fecha: '2024-07-20',
-            hora: '09:00',
-            ubicacion: 'Centro de Convenciones',
-            estado: 'activo',
-            mesas: 12,
-            sillasPorMesa: 6,
-            formaMesa: 'circular',
-            configuracion: {}
-        },
-        {
-            id: 3,
-            nombre: 'Fiesta de Graduación',
-            descripcion: 'Celebración de graduación universitaria',
-            fecha: '2024-08-10',
-            hora: '20:00',
-            ubicacion: 'Salón de Eventos',
-            estado: 'borrador',
-            mesas: 6,
-            sillasPorMesa: 10,
-            formaMesa: 'rectangular',
-            configuracion: {}
-        }
-    ];
+// ===== INICIALIZAR UI =====
+function inicializarUI() {
+    const userName = document.getElementById('userName');
+    const userRole = document.getElementById('userRole');
+    const roleBadge = document.getElementById('roleBadge');
+    const userAvatar = document.getElementById('userAvatar');
     
-    // Llenar selector de eventos
-    eventSelector.innerHTML = '<option value="">Seleccionar Evento...</option>';
-    eventosCliente.forEach(evento => {
-        const option = document.createElement('option');
-        option.value = evento.id;
-        option.textContent = evento.nombre;
-        if (evento.estado === 'borrador') {
-            option.textContent += ' (Borrador)';
-        }
-        eventSelector.appendChild(option);
+    if (userName) userName.textContent = currentUser.nombre;
+    if (userRole) userRole.textContent = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+    if (roleBadge) {
+        roleBadge.textContent = currentUser.rol.toUpperCase();
+        roleBadge.className = 'role-badge ' + currentUser.rol;
+    }
+    if (userAvatar) {
+        const iniciales = currentUser.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        userAvatar.textContent = iniciales;
+    }
+}
+
+// ===== EVENT LISTENERS =====
+function setupEventListeners() {
+    // Event selector
+    const eventSelector = document.getElementById('eventSelector');
+    if (eventSelector) {
+        eventSelector.addEventListener('change', async function(e) {
+            if (e.target.value) await cargarEvento(e.target.value);
+        });
+    }
+    
+    // Botón refresh
+    const btnRefresh = document.getElementById('refreshEventsBtn');
+    if (btnRefresh) btnRefresh.addEventListener('click', () => cargarEventos());
+    
+    // Botón cerrar sesión
+    const btnLogout = document.getElementById('logoutBtn');
+    if (btnLogout) btnLogout.addEventListener('click', cerrarSesion);
+    
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            const tabName = this.getAttribute('data-tab');
+            const content = document.getElementById(tabName + 'Tab');
+            if (content) content.classList.add('active');
+        });
     });
     
-    // Seleccionar primer evento por defecto
-    if (eventosCliente.length > 0) {
-        eventSelector.value = eventosCliente[0].id;
-        cargarEvento(eventosCliente[0].id);
+    // Botón agregar invitado
+    const btnAddGuest = document.getElementById('addGuestBtn');
+    if (btnAddGuest) btnAddGuest.addEventListener('click', mostrarModalAgregarInvitado);
+    
+    // Botón cambiar disposición
+    const btnLayout = document.getElementById('changeLayoutBtn');
+    if (btnLayout) btnLayout.addEventListener('click', mostrarModalDisposicion);
+    
+    // Botón crear mesas
+    const btnCrearMesas = document.getElementById('btnCrearMesas');
+    if (btnCrearMesas) btnCrearMesas.addEventListener('click', crearMesas);
+    
+    // Botón guardar evento
+    const btnGuardar = document.getElementById('btnGuardarEvento');
+    if (btnGuardar) btnGuardar.addEventListener('click', guardarEvento);
+    
+    // Botón eliminar evento
+    const btnEliminar = document.getElementById('btnFinalizarEvento');
+    if (btnEliminar) btnEliminar.addEventListener('click', eliminarEvento);
+    
+    // Cerrar modales con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') cerrarModales();
+    });
+}
+
+// ===== CERRAR SESIÓN =====
+function cerrarSesion() {
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        localStorage.removeItem('titi_usuario_actual');
+        localStorage.removeItem('titi_token');
+        sessionStorage.removeItem('titi_token');
+        window.location.href = 'login.html';
     }
 }
 
-// 2. Cargar un evento específico
-function cargarEvento(eventoId) {
-    const evento = eventosCliente.find(e => e.id == eventoId);
-    if (!evento) return;
-    
-    eventoActual = evento;
-    currentEventName.textContent = evento.nombre;
-    
-    // Llenar formulario con datos del evento
-    eventNameInput.value = evento.nombre;
-    eventDescriptionInput.value = evento.descripcion || '';
-    eventDateInput.value = evento.fecha;
-    eventTimeInput.value = evento.hora;
-    numMesasInput.value = evento.mesas;
-    sillasPorMesaInput.value = evento.sillasPorMesa;
-    formaMesaSelect.value = evento.formaMesa;
-    
-    // Cargar configuración si existe
-    if (evento.configuracion && evento.configuracion.mesas) {
-        mesas = evento.configuracion.mesas;
-        renderizarMesas();
-    } else {
-        crearMesas();
-    }
-    
-    // Actualizar estadísticas
-    actualizarEstadisticas();
-}
-
-// 3. Crear mesas (basado en final.html pero adaptado)
-function crearMesas() {
-    const numMesas = parseInt(numMesasInput.value);
-    const sillasPorMesa = parseInt(sillasPorMesaInput.value);
-    const formaMesa = formaMesaSelect.value;
-    
-    // Validaciones
-    if (numMesas < 1 || numMesas > 50) {
-        mostrarMensaje('El número de mesas debe estar entre 1 y 50', 'error');
-        return;
-    }
-    
-    if (sillasPorMesa < 1 || sillasPorMesa > 12) {
-        mostrarMensaje('Las sillas por mesa deben estar entre 1 y 12', 'error');
-        return;
-    }
-    
-    // Limpiar contenedor
-    mesasContainer.innerHTML = '';
-    mesas = [];
-    
-    // Crear cada mesa
-    for (let i = 0; i < numMesas; i++) {
-        const mesa = {
-            id: i + 1,
-            nombre: `Mesa ${i + 1}`,
-            forma: formaMesa,
-            sillas: []
-        };
+// ===== CARGAR EVENTOS =====
+async function cargarEventos() {
+    try {
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        const response = await fetch(`${API_BASE}/eventos`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         
-        // Crear sillas para esta mesa
-        for (let j = 0; j < sillasPorMesa; j++) {
-            mesa.sillas.push({
-                id: j + 1,
-                estado: 'sin-asignar',
-                nombre: '',
-                invitadoId: null
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        const eventos = Array.isArray(data) ? data : (data.eventos || []);
+        
+        console.log('✅ Eventos cargados:', eventos.length);
+        
+        const eventSelector = document.getElementById('eventSelector');
+        if (eventSelector) {
+            eventSelector.innerHTML = '<option value="">Seleccionar Evento...</option>';
+            
+            eventos.forEach(evento => {
+                const option = document.createElement('option');
+                option.value = evento.id;
+                option.textContent = evento.nombre;
+                eventSelector.appendChild(option);
+            });
+            
+            if (eventos.length > 0) {
+                eventSelector.value = eventos[0].id;
+                await cargarEvento(eventos[0].id);
+            }
+        }
+    } catch (error) {
+        console.error('Error cargando eventos:', error);
+    }
+}
+
+// ===== CARGAR EVENTO =====
+async function cargarEvento(eventoId) {
+    if (!eventoId) return;
+    
+    try {
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        
+        const response = await fetch(`${API_BASE}/eventos/${eventoId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            currentEvent = await response.json();
+            if (!currentEvent.id) currentEvent.id = eventoId;
+        } else {
+            currentEvent = { id: eventoId, nombre: 'Mi Evento' };
+        }
+        
+        console.log('✅ Evento cargado:', currentEvent.nombre);
+        
+        // Actualizar UI
+        const currentEventName = document.getElementById('currentEventName');
+        const currentEventDate = document.getElementById('currentEventDate');
+        const eventNameInput = document.getElementById('eventName');
+        
+        if (currentEventName) currentEventName.textContent = currentEvent.nombre;
+        if (eventNameInput) eventNameInput.value = currentEvent.nombre || '';
+        
+        if (currentEventDate && currentEvent.fecha_evento) {
+            const fecha = new Date(currentEvent.fecha_evento);
+            currentEventDate.textContent = fecha.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
         }
         
-        mesas.push(mesa);
-        crearMesaVisual(mesa);
+        await cargarMesas(eventoId);
+        await cargarInvitados(eventoId);
+        actualizarEstadisticas();
+        
+    } catch (error) {
+        console.error('Error cargando evento:', error);
     }
-    
-    // Actualizar estadísticas
-    actualizarEstadisticas();
-    
-    // Guardar en evento actual si existe
-    if (eventoActual) {
-        guardarConfiguracionEvento();
-    }
-    
-    mostrarMensaje(`${numMesas} mesas creadas con éxito`, 'success');
 }
 
-// 4. Renderizar mesa visual (adaptado de final.html)
-function crearMesaVisual(mesa) {
-    const mesaElement = document.createElement('div');
-    mesaElement.className = 'mesa';
-    mesaElement.dataset.id = mesa.id;
-    mesaElement.style.transform = `scale(${zoomLevel})`;
-    mesaElement.style.transition = 'transform 0.3s ease';
+// ===== CARGAR MESAS =====
+async function cargarMesas(eventoId) {
+    try {
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        const response = await fetch(`${API_BASE}/eventos/${eventoId}/mesas`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+            mesas = [];
+            renderizarMesas([]);
+            return;
+        }
+        
+        const data = await response.json();
+        mesas = Array.isArray(data) ? data : (data.mesas || []);
+        
+        // Convertir al formato con sillas
+        mesas = mesas.map(mesa => ({
+            ...mesa,
+            sillas: Array.from({ length: mesa.capacidad || 8 }, (_, i) => ({
+                id: i + 1,
+                estado: 'sin-asignar',
+                nombre: ''
+            }))
+        }));
+        
+        console.log('✅ Mesas cargadas:', mesas.length);
+        renderizarMesas(mesas);
+        
+    } catch (error) {
+        console.error('Error cargando mesas:', error);
+        mesas = [];
+        renderizarMesas([]);
+    }
+}
+
+// ===== CARGAR INVITADOS =====
+async function cargarInvitados(eventoId) {
+    try {
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        const response = await fetch(`${API_BASE}/invitados?evento_id=${eventoId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            invitados = Array.isArray(data) ? data : [];
+            
+            console.log('✅ Invitados cargados:', invitados.length);
+            
+            // Actualizar sillas con invitados
+            invitados.forEach(inv => {
+                if (inv.mesa_id && inv.silla_numero) {
+                    const mesa = mesas.find(m => m.id === inv.mesa_id);
+                    if (mesa && mesa.sillas[inv.silla_numero - 1]) {
+                        mesa.sillas[inv.silla_numero - 1].estado = inv.estado === 'confirmado' ? 'confirmado' : 
+                                                                    inv.estado === 'rechazado' ? 'asignado' : 
+                                                                    'sin-asignar';
+                        mesa.sillas[inv.silla_numero - 1].nombre = inv.nombre;
+                        mesa.sillas[inv.silla_numero - 1].invitadoId = inv.id;
+                    }
+                }
+            });
+            
+            renderizarMesas(mesas);
+            renderizarListaInvitados();
+        }
+    } catch (error) {
+        console.error('Error cargando invitados:', error);
+    }
+}
+
+// ===== RENDERIZAR MESAS =====
+function renderizarMesas(mesasArray) {
+    const container = document.getElementById('mesasContainer');
+    if (!container) return;
     
-    // Información de la mesa (editable)
+    container.innerHTML = '';
+    
+    if (!mesasArray || mesasArray.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-chair"></i>
+                <p>No hay mesas creadas</p>
+                <small>Crea mesas desde Configuración</small>
+            </div>
+        `;
+        return;
+    }
+    
+    mesasArray.forEach(mesa => {
+        if (!mesa) return;
+        const mesaElement = crearElementoMesa(mesa);
+        container.appendChild(mesaElement);
+    });
+}
+
+// ===== CREAR ELEMENTO MESA =====
+function crearElementoMesa(mesa) {
+    const mesaDiv = document.createElement('div');
+    mesaDiv.className = 'mesa';
+    
+    // Info
     const mesaInfo = document.createElement('div');
     mesaInfo.className = 'mesa-info';
-    mesaInfo.textContent = `${mesa.nombre} (${mesa.sillas.length} sillas)`;
-    mesaInfo.addEventListener('click', function() {
-        editarNombreMesa(mesa.id, mesaInfo);
-    });
-    mesaElement.appendChild(mesaInfo);
+    mesaInfo.textContent = `${mesa.nombre || 'Mesa ' + mesa.numero} (${mesa.sillas.length} sillas)`;
+    mesaDiv.appendChild(mesaInfo);
     
-    // Representación gráfica de la mesa
+    // Gráfica
     const mesaGrafica = document.createElement('div');
     mesaGrafica.className = `mesa-grafica mesa-${mesa.forma}`;
-    mesaGrafica.textContent = mesa.nombre;
-    mesaElement.appendChild(mesaGrafica);
+    mesaGrafica.textContent = mesa.nombre || `Mesa ${mesa.numero}`;
+    mesaGrafica.style.backgroundColor = mesa.color || '#8B4513';
+    mesaDiv.appendChild(mesaGrafica);
     
-    // Contenedor para las sillas
+    // Sillas
     const sillasContainer = document.createElement('div');
     sillasContainer.className = `sillas-container ${mesa.forma}-sillas`;
     
-    // Calcular posiciones de las sillas según la forma de la mesa
     const posiciones = calcularPosicionesSillas(mesa.sillas.length, mesa.forma);
     
-    // Crear cada silla
     mesa.sillas.forEach((silla, index) => {
         const sillaElement = document.createElement('div');
         sillaElement.className = `silla estado-${silla.estado}`;
-        sillaElement.dataset.mesaId = mesa.id;
-        sillaElement.dataset.sillaId = silla.id;
         sillaElement.textContent = silla.id;
+        sillaElement.title = silla.nombre || 'Disponible';
         
-        // Mostrar nombre si está asignado y la opción está activa
-        if (silla.nombre && showNamesCheckbox.checked) {
-            sillaElement.setAttribute('title', silla.nombre);
-        }
-        
-        // Posicionar la silla
         const pos = posiciones[index];
         sillaElement.style.left = `calc(${pos.x}% - 16px)`;
         sillaElement.style.top = `calc(${pos.y}% - 21px)`;
         
-        // Rotar silla para orientarla hacia la mesa
         const centroX = 50;
         const centroY = 50;
+        const angulo = Math.atan2(centroY - pos.y, centroX - pos.x) * (180 / Math.PI);
         
         if (mesa.forma === 'rectangular' || mesa.forma === 'cuadrada') {
-            if (pos.y < 25) {
-                sillaElement.style.transform = `rotate(180deg)`;
-            } else if (pos.y > 75) {
-                sillaElement.style.transform = `rotate(0deg)`;
-            } else if (pos.x < 25) {
-                sillaElement.style.transform = `rotate(90deg)`;
-            } else if (pos.x > 75) {
-                sillaElement.style.transform = `rotate(270deg)`;
-            }
+            if (pos.y < 25) sillaElement.style.transform = `rotate(180deg)`;
+            else if (pos.y > 75) sillaElement.style.transform = `rotate(0deg)`;
+            else if (pos.x < 25) sillaElement.style.transform = `rotate(90deg)`;
+            else if (pos.x > 75) sillaElement.style.transform = `rotate(270deg)`;
+            else sillaElement.style.transform = `rotate(${angulo}deg)`;
         } else {
-            const angulo = Math.atan2(centroY - pos.y, centroX - pos.x) * (180 / Math.PI);
             sillaElement.style.transform = `rotate(${angulo + 90}deg)`;
         }
         
-        // Event listener para cambiar estado
-        sillaElement.addEventListener('click', function(e) {
-            e.stopPropagation();
-            seleccionarSilla(mesa.id, silla.id);
+        // Click en silla
+        sillaElement.addEventListener('click', () => {
+            if (silla.invitadoId) {
+                mostrarOpcionesSilla(silla, mesa);
+            } else {
+                mostrarModalAsignarInvitado(mesa.id, silla.id);
+            }
         });
         
         sillasContainer.appendChild(sillaElement);
     });
     
-    mesaElement.appendChild(sillasContainer);
-    mesasContainer.appendChild(mesaElement);
+    mesaDiv.appendChild(sillasContainer);
+    return mesaDiv;
 }
 
-// 5. Calcular posiciones de sillas (de final.html)
+// ===== CALCULAR POSICIONES SILLAS =====
 function calcularPosicionesSillas(numSillas, forma) {
     const posiciones = [];
     
@@ -315,47 +367,31 @@ function calcularPosicionesSillas(numSillas, forma) {
         const sillasLadosCortos = 2;
         const sillasRestantes = Math.max(0, numSillas - sillasLadosCortos);
         const sillasPorLadoLargo = Math.floor(sillasRestantes / 2);
-        const sillasImpares = sillasRestantes % 2;
         const margenLateral = 20;
         const margenVertical = 15;
         
-        // Lados cortos
         posiciones.push({x: -5, y: 50});
-        if (numSillas >= 2) {
-            posiciones.push({x: anchoContenedor + 5, y: 50});
-        }
+        if (numSillas >= 2) posiciones.push({x: anchoContenedor + 5, y: 50});
         
-        // Lados largos
         if (sillasPorLadoLargo > 0) {
             const distancia = anchoContenedor - (margenLateral * 2);
             const divisor = Math.max(sillasPorLadoLargo - 1, 1);
             
-            // Lado superior
             for (let i = 0; i < sillasPorLadoLargo; i++) {
                 const posRelativa = (i * (distancia / divisor));
                 const x = margenLateral + posRelativa;
-                const y = margenVertical;
-                posiciones.push({x, y});
+                posiciones.push({x, y: margenVertical});
             }
             
-            // Lado inferior
             for (let i = 0; i < sillasPorLadoLargo; i++) {
                 const posRelativa = (i * (distancia / divisor));
                 const x = margenLateral + posRelativa;
-                const y = anchoContenedor - margenVertical;
-                posiciones.push({x, y});
+                posiciones.push({x, y: anchoContenedor - margenVertical});
             }
         }
         
-        // Silla impar
-        if (sillasImpares > 0) {
-            posiciones.push({x: 50, y: margenVertical});
-        }
+        while (posiciones.length > numSillas) posiciones.pop();
         
-        // Recortar si hay más sillas de las calculadas
-        while (posiciones.length > numSillas) {
-            posiciones.pop();
-        }
     } else if (forma === 'circular') {
         const centroX = 50;
         const centroY = 50;
@@ -372,764 +408,481 @@ function calcularPosicionesSillas(numSillas, forma) {
     return posiciones;
 }
 
-// 6. Renderizar todas las mesas
-function renderizarMesas() {
-    mesasContainer.innerHTML = '';
-    mesas.forEach(mesa => {
-        crearMesaVisual(mesa);
-    });
-}
-
-// 7. Editar nombre de mesa
-function editarNombreMesa(mesaId, elementoInfo) {
-    const mesa = mesas.find(m => m.id === mesaId);
-    if (!mesa) return;
+// ===== RENDERIZAR LISTA INVITADOS =====
+function renderizarListaInvitados() {
+    const guestsList = document.getElementById('guestsList');
+    if (!guestsList) return;
     
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.className = 'edit-mesa-input';
-    input.value = mesa.nombre;
-    input.style.cssText = `
-        width: 100%;
-        padding: 5px;
-        border: 1px solid #4CAF50;
-        border-radius: 4px;
-        text-align: center;
-        font-weight: bold;
-    `;
+    guestsList.innerHTML = '';
     
-    elementoInfo.innerHTML = '';
-    elementoInfo.appendChild(input);
-    input.focus();
-    
-    const guardar = () => {
-        guardarNombreMesa(mesaId, input.value, elementoInfo);
-    };
-    
-    input.addEventListener('blur', guardar);
-    input.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            guardar();
-        }
-    });
-}
-
-function guardarNombreMesa(mesaId, nuevoNombre, elementoInfo) {
-    const mesa = mesas.find(m => m.id === mesaId);
-    if (mesa) {
-        mesa.nombre = nuevoNombre || `Mesa ${mesaId}`;
-        elementoInfo.textContent = `${mesa.nombre} (${mesa.sillas.length} sillas)`;
-        
-        const mesaGrafica = elementoInfo.nextElementSibling;
-        if (mesaGrafica && mesaGrafica.classList.contains('mesa-grafica')) {
-            mesaGrafica.textContent = mesa.nombre;
-        }
-        
-        guardarConfiguracionEvento();
-        actualizarListaInvitados();
-    }
-}
-
-// 8. Seleccionar silla
-function seleccionarSilla(mesaId, sillaId) {
-    sillaSeleccionada = { mesaId, sillaId };
-    mostrarModalSilla(mesaId, sillaId);
-}
-
-// 9. Mostrar modal para silla
-function mostrarModalSilla(mesaId, sillaId) {
-    // Crear modal dinámico
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 400px;">
-            <div class="modal-header">
-                <h3>Asignar Invitado a Silla</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Mesa ${mesaId}, Silla ${sillaId}</p>
-                
-                <div class="form-group">
-                    <label>Seleccionar Invitado:</label>
-                    <select id="selectInvitadoSilla" style="width: 100%; padding: 10px; margin: 10px 0;">
-                        <option value="">-- Sin asignar --</option>
-                        ${invitados.map(invitado => `
-                            <option value="${invitado.id}">
-                                ${invitado.nombre} ${invitado.email ? `(${invitado.email})` : ''}
-                            </option>
-                        `).join('')}
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Estado:</label>
-                    <div style="display: flex; gap: 10px; margin: 10px 0;">
-                        <button class="estado-btn estado-sin-asignar" data-estado="sin-asignar">Sin Asignar</button>
-                        <button class="estado-btn estado-asignado" data-estado="asignado">Asignado</button>
-                        <button class="estado-btn estado-confirmado" data-estado="confirmado">Confirmado</button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" id="cancelarSilla">Cancelar</button>
-                <button class="btn-primary" id="guardarSilla">Guardar</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    modal.style.display = 'flex';
-    
-    // Obtener silla actual
-    const mesa = mesas.find(m => m.id === parseInt(mesaId));
-    const silla = mesa?.sillas.find(s => s.id === parseInt(sillaId));
-    
-    // Configurar valores actuales
-    if (silla) {
-        const select = modal.querySelector('#selectInvitadoSilla');
-        select.value = silla.invitadoId || '';
-        
-        // Marcar botón de estado actual
-        const estadoBtns = modal.querySelectorAll('.estado-btn');
-        estadoBtns.forEach(btn => {
-            if (btn.dataset.estado === silla.estado) {
-                btn.style.boxShadow = '0 0 0 2px #333';
-            }
-        });
-    }
-    
-    // Event listeners del modal
-    modal.querySelector('.modal-close').onclick = () => cerrarModal(modal);
-    modal.querySelector('#cancelarSilla').onclick = () => cerrarModal(modal);
-    
-    // Botones de estado
-    modal.querySelectorAll('.estado-btn').forEach(btn => {
-        btn.onclick = function() {
-            // Remover selección anterior
-            modal.querySelectorAll('.estado-btn').forEach(b => {
-                b.style.boxShadow = '';
-            });
-            // Seleccionar este
-            this.style.boxShadow = '0 0 0 2px #333';
-        };
-    });
-    
-    // Guardar cambios
-    modal.querySelector('#guardarSilla').onclick = () => {
-        const select = modal.querySelector('#selectInvitadoSilla');
-        const invitadoId = select.value ? parseInt(select.value) : null;
-        const estadoBtn = modal.querySelector('.estado-btn[style*="box-shadow"]');
-        const nuevoEstado = estadoBtn ? estadoBtn.dataset.estado : 'sin-asignar';
-        
-        actualizarSilla(mesaId, sillaId, invitadoId, nuevoEstado);
-        cerrarModal(modal);
-    };
-    
-    // Cerrar al hacer click fuera
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            cerrarModal(modal);
-        }
-    };
-}
-
-function cerrarModal(modal) {
-    modal.style.display = 'none';
-    setTimeout(() => {
-        if (modal.parentNode) {
-            modal.parentNode.removeChild(modal);
-        }
-    }, 300);
-}
-
-// 10. Actualizar silla
-function actualizarSilla(mesaId, sillaId, invitadoId, nuevoEstado) {
-    const mesa = mesas.find(m => m.id === parseInt(mesaId));
-    if (!mesa) return;
-    
-    const silla = mesa.sillas.find(s => s.id === parseInt(sillaId));
-    if (!silla) return;
-    
-    // Actualizar silla
-    silla.estado = nuevoEstado;
-    silla.invitadoId = invitadoId;
-    
-    // Buscar invitado si existe
-    let invitado = null;
-    if (invitadoId) {
-        invitado = invitados.find(i => i.id === invitadoId);
-        silla.nombre = invitado ? invitado.nombre : '';
-    } else {
-        silla.nombre = '';
-    }
-    
-    // Actualizar visual de la silla
-    const sillaElement = document.querySelector(`.silla[data-mesa-id="${mesaId}"][data-silla-id="${sillaId}"]`);
-    if (sillaElement) {
-        sillaElement.className = `silla estado-${nuevoEstado}`;
-        if (silla.nombre && showNamesCheckbox.checked) {
-            sillaElement.setAttribute('title', silla.nombre);
-        } else {
-            sillaElement.removeAttribute('title');
-        }
-    }
-    
-    // Actualizar invitado
-    if (invitado) {
-        invitado.idMesa = parseInt(mesaId);
-        invitado.idSilla = parseInt(sillaId);
-        invitado.estado = nuevoEstado;
-    }
-    
-    // Actualizar UI
-    actualizarEstadisticas();
-    actualizarListaInvitados();
-    guardarConfiguracionEvento();
-    
-    mostrarMensaje(`Silla ${sillaId} de ${mesa.nombre} actualizada`, 'success');
-}
-
-// 11. Actualizar estadísticas
-function actualizarEstadisticas() {
-    let totalSillas = 0;
-    let sillasOcupadas = 0;
-    
-    mesas.forEach(mesa => {
-        totalSillas += mesa.sillas.length;
-        mesa.sillas.forEach(silla => {
-            if (silla.estado !== 'sin-asignar') {
-                sillasOcupadas++;
-            }
-        });
-    });
-    
-    const porcentaje = totalSillas > 0 ? Math.round((sillasOcupadas / totalSillas) * 100) : 0;
-    
-    statTotalMesas.textContent = mesas.length;
-    statTotalSillas.textContent = totalSillas;
-    statSillasOcupadas.textContent = sillasOcupadas;
-    statPorcentajeOcupacion.textContent = `${porcentaje}%`;
-    ocupacionBar.style.width = `${porcentaje}%`;
-}
-
-// 12. Guardar configuración del evento
-function guardarConfiguracionEvento() {
-    if (!eventoActual) return;
-    
-    eventoActual.configuracion = {
-        mesas: JSON.parse(JSON.stringify(mesas)),
-        fechaActualizacion: new Date().toISOString()
-    };
-    
-    eventoActual.mesas = mesas.length;
-    eventoActual.sillasPorMesa = mesas.length > 0 ? mesas[0].sillas.length : 0;
-    eventoActual.formaMesa = mesas.length > 0 ? mesas[0].forma : 'rectangular';
-    
-    // En producción, aquí harías fetch a la API
-    console.log('Guardando evento:', eventoActual);
-    
-    // Simular guardado
-    if (autoSaveCheckbox.checked) {
-        localStorage.setItem(`titi_evento_${eventoActual.id}`, JSON.stringify(eventoActual));
-        mostrarMensaje('Cambios guardados automáticamente', 'info');
-    }
-}
-
-// 13. Cargar invitados de demo
-function cargarInvitadosDemo() {
-    invitados = [
-        { id: 1, nombre: 'Ana López', email: 'ana@email.com', telefono: '555-0101', estado: 'confirmado', idMesa: 1, idSilla: 1 },
-        { id: 2, nombre: 'Carlos Ruiz', email: 'carlos@email.com', telefono: '555-0102', estado: 'confirmado', idMesa: 1, idSilla: 2 },
-        { id: 3, nombre: 'María González', email: 'maria@email.com', telefono: '555-0103', estado: 'asignado', idMesa: 2, idSilla: 1 },
-        { id: 4, nombre: 'Pedro Hernández', email: 'pedro@email.com', telefono: '555-0104', estado: 'pendiente' },
-        { id: 5, nombre: 'Laura Martínez', email: 'laura@email.com', telefono: '555-0105', estado: 'pendiente' },
-        { id: 6, nombre: 'Roberto Sánchez', email: 'roberto@email.com', telefono: '555-0106', estado: 'asignado' },
-        { id: 7, nombre: 'Sofía Castro', email: 'sofia@email.com', telefono: '555-0107', estado: 'pendiente' },
-        { id: 8, nombre: 'David Ramírez', email: 'david@email.com', telefono: '555-0108', estado: 'pendiente' }
-    ];
-    
-    actualizarListaInvitados();
-}
-
-// 14. Actualizar lista de invitados
-function actualizarListaInvitados() {
-    const searchTerm = guestSearch.value.toLowerCase();
-    const filterValue = guestFilter.value;
-    
-    let invitadosFiltrados = invitados.filter(invitado => {
-        const matchesSearch = 
-            invitado.nombre.toLowerCase().includes(searchTerm) ||
-            (invitado.email && invitado.email.toLowerCase().includes(searchTerm));
-        
-        const matchesFilter = 
-            filterValue === 'all' ||
-            (filterValue === 'assigned' && invitado.idMesa) ||
-            (filterValue === 'unassigned' && !invitado.idMesa) ||
-            (filterValue === 'confirmed' && invitado.estado === 'confirmado');
-        
-        return matchesSearch && matchesFilter;
-    });
-    
-    guestsList.innerHTML = invitadosFiltrados.map(invitado => {
-        const mesaInfo = invitado.idMesa ? 
-            `Mesa ${invitado.idMesa}, Silla ${invitado.idSilla}` : 
-            'Sin asignar';
-        
-        return `
-            <div class="guest-item" data-id="${invitado.id}">
-                <div class="guest-item-header">
-                    <div class="guest-name">${invitado.nombre}</div>
-                    <div class="guest-status status-${invitado.estado}">${invitado.estado}</div>
-                </div>
-                <div class="guest-details">
-                    <span>${invitado.email || 'Sin email'}</span>
-                    <span>${mesaInfo}</span>
-                </div>
+    if (invitados.length === 0) {
+        guestsList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-users"></i>
+                <p>No hay invitados</p>
+                <small>Agrega invitados con el botón de arriba</small>
             </div>
         `;
-    }).join('');
+        return;
+    }
     
-    // Agregar event listeners a los items
-    document.querySelectorAll('.guest-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const invitadoId = parseInt(this.dataset.id);
-            mostrarDetallesInvitado(invitadoId);
-        });
+    invitados.forEach(invitado => {
+        const guestItem = document.createElement('div');
+        guestItem.className = 'guest-item';
+        guestItem.innerHTML = `
+            <strong>${invitado.nombre}</strong>
+            <small>${invitado.email || 'Sin email'}</small>
+            ${invitado.mesa_id ? `<small>Mesa ${invitado.mesa_id}, Silla ${invitado.silla_numero}</small>` : ''}
+            <div class="guest-actions">
+                <button class="btn-guest-action" onclick="editarInvitado(${invitado.id})" title="Editar">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-guest-action" onclick="asignarInvitado(${invitado.id})" title="Asignar a mesa">
+                    <i class="fas fa-chair"></i>
+                </button>
+            </div>
+            <span class="guest-status ${invitado.estado}">${invitado.estado}</span>
+        `;
+        guestsList.appendChild(guestItem);
     });
 }
 
-// 15. Mostrar detalles de invitado
-function mostrarDetallesInvitado(invitadoId) {
-    const invitado = invitados.find(i => i.id === invitadoId);
-    if (!invitado) return;
-    
-    guestDetails.innerHTML = `
-        <div class="guest-detail-view">
-            <div class="guest-detail-header">
-                <div class="guest-detail-avatar">
-                    ${invitado.nombre.substring(0, 1).toUpperCase()}
-                </div>
-                <div class="guest-detail-info">
-                    <h4>${invitado.nombre}</h4>
-                    <p>${invitado.email || 'Sin email'}</p>
-                </div>
-            </div>
-            <div class="guest-detail-content">
-                <div class="detail-row">
-                    <span class="detail-label">Teléfono:</span>
-                    <span class="detail-value">${invitado.telefono || 'No especificado'}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Estado:</span>
-                    <span class="detail-value">
-                        <span class="guest-status status-${invitado.estado}">${invitado.estado}</span>
-                    </span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Asignación:</span>
-                    <span class="detail-value">
-                        ${invitado.idMesa ? 
-                            `Mesa ${invitado.idMesa}, Silla ${invitado.idSilla}` : 
-                            'Sin asignar'}
-                    </span>
-                </div>
-                ${invitado.notas ? `
-                <div class="detail-row">
-                    <span class="detail-label">Notas:</span>
-                    <span class="detail-value">${invitado.notas}</span>
-                </div>
-                ` : ''}
-            </div>
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn-secondary btn-small" onclick="editarInvitado(${invitado.id})">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn-secondary btn-small" onclick="asignarInvitado(${invitado.id})">
-                    <i class="fas fa-chair"></i> Asignar
-                </button>
-            </div>
-        </div>
-    `;
-}
-
-// 16. Funciones auxiliares de invitados
-function editarInvitado(invitadoId) {
-    mostrarMensaje('Funcionalidad de editar invitado en desarrollo', 'info');
-}
-
-function asignarInvitado(invitadoId) {
-    const invitado = invitados.find(i => i.id === invitadoId);
-    if (!invitado) return;
-    
-    // Crear modal para asignar
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h3>Asignar ${invitado.nombre}</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Selecciona una silla para asignar a ${invitado.nombre}:</p>
-                <div style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
-                    ${mesas.map(mesa => `
-                        <div style="margin-bottom: 15px;">
-                            <strong>${mesa.nombre}</strong>
-                            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
-                                ${mesa.sillas.map(silla => `
-                                    <button class="silla-asignacion ${silla.estado !== 'sin-asignar' ? 'ocupada' : ''}" 
-                                            data-mesa="${mesa.id}" 
-                                            data-silla="${silla.id}"
-                                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: ${silla.estado === 'sin-asignar' ? '#f0f0f0' : '#ffebee'};">
-                                        Silla ${silla.id} ${silla.nombre ? `(${silla.nombre})` : ''}
-                                    </button>
-                                `).join('')}
-                            </div>
+// ===== MODAL AGREGAR INVITADO =====
+function mostrarModalAgregarInvitado() {
+    const modalHTML = `
+        <div class="modal active" id="modalAgregarInvitado">
+            <div class="modal-overlay" onclick="cerrarModales()"></div>
+            <div class="modal-content">
+                <button class="modal-close" onclick="cerrarModales()"><i class="fas fa-times"></i></button>
+                <h2><i class="fas fa-user-plus"></i> Agregar Invitado</h2>
+                
+                <form id="formAgregarInvitado" onsubmit="event.preventDefault(); guardarInvitado();">
+                    <div class="form-group">
+                        <label>Nombre Completo *</label>
+                        <input type="text" id="invitadoNombre" required placeholder="Juan Pérez" autofocus>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="invitadoEmail" placeholder="juan@ejemplo.com">
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" id="invitadoTelefono" placeholder="+52 55 1234 5678">
                         </div>
-                    `).join('')}
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModal(this.closest('.modal'))">Cancelar</button>
+                        
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select id="invitadoEstado">
+                                <option value="pendiente">Pendiente</option>
+                                <option value="confirmado">Confirmado</option>
+                                <option value="rechazado">Rechazado</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button type="button" class="btn-secondary" onclick="cerrarModales()">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Guardar
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     `;
     
-    document.body.appendChild(modal);
-    modal.style.display = 'flex';
-    
-    // Event listeners para sillas
-    modal.querySelectorAll('.silla-asignacion:not(.ocupada)').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const mesaId = parseInt(this.dataset.mesa);
-            const sillaId = parseInt(this.dataset.silla);
-            
-            actualizarSilla(mesaId, sillaId, invitadoId, 'asignado');
-            cerrarModal(modal);
-        });
-    });
-    
-    // Cerrar modal
-    modal.querySelector('.modal-close').onclick = () => cerrarModal(modal);
-    modal.onclick = (e) => {
-        if (e.target === modal) {
-            cerrarModal(modal);
-        }
-    };
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
-// 17. Configurar fecha y hora
-function configurarFechaHora() {
-    const ahora = new Date();
-    const manana = new Date();
-    manana.setDate(ahora.getDate() + 1);
+// ===== GUARDAR INVITADO =====
+async function guardarInvitado() {
+    const nombre = document.getElementById('invitadoNombre').value.trim();
+    const email = document.getElementById('invitadoEmail').value.trim();
+    const telefono = document.getElementById('invitadoTelefono').value.trim();
+    const estado = document.getElementById('invitadoEstado').value;
     
-    // Formato YYYY-MM-DD para input date
-    const formatoFecha = (fecha) => {
-        return fecha.toISOString().split('T')[0];
-    };
-    
-    // Formato HH:MM para input time
-    const formatoHora = (fecha) => {
-        return fecha.getHours().toString().padStart(2, '0') + ':' + 
-               fecha.getMinutes().toString().padStart(2, '0');
-    };
-    
-    // Valores por defecto si están vacíos
-    if (!eventDateInput.value) {
-        eventDateInput.value = formatoFecha(manana);
-    }
-    
-    if (!eventTimeInput.value) {
-        eventTimeInput.value = formatoHora(new Date(manana.setHours(18, 0, 0, 0)));
-    }
-}
-
-// 18. Configurar event listeners
-function configurarEventListeners() {
-    // Selector de evento
-    eventSelector.addEventListener('change', function() {
-        if (this.value) {
-            cargarEvento(parseInt(this.value));
-        }
-    });
-    
-    // Botón crear mesas
-    btnCrearMesas.addEventListener('click', crearMesas);
-    
-    // Botón guardar evento
-    btnGuardarEvento.addEventListener('click', function() {
-        guardarEvento();
-    });
-    
-    // Botón nuevo evento
-    newEventBtn.addEventListener('click', function() {
-        document.getElementById('newEventModal').style.display = 'flex';
-    });
-    
-    // Cerrar modal nuevo evento
-    document.querySelector('#newEventModal .modal-close').addEventListener('click', function() {
-        document.getElementById('newEventModal').style.display = 'none';
-    });
-    
-    document.querySelector('#newEventModal .modal-cancel').addEventListener('click', function() {
-        document.getElementById('newEventModal').style.display = 'none';
-    });
-    
-    // Crear evento
-    document.getElementById('createEventBtn').addEventListener('click', function() {
-        crearNuevoEvento();
-    });
-    
-    // Cerrar sesión
-    logoutBtn.addEventListener('click', function() {
-        window.titiAuth.logout();
-    });
-    
-    // Zoom
-    zoomInBtn.addEventListener('click', function() {
-        if (zoomLevel < 2) {
-            zoomLevel += 0.1;
-            aplicarZoom();
-        }
-    });
-    
-    zoomOutBtn.addEventListener('click', function() {
-        if (zoomLevel > 0.5) {
-            zoomLevel -= 0.1;
-            aplicarZoom();
-        }
-    });
-    
-    resetViewBtn.addEventListener('click', function() {
-        zoomLevel = 1;
-        aplicarZoom();
-    });
-    
-    // Mostrar nombres
-    showNamesCheckbox.addEventListener('change', function() {
-        renderizarMesas();
-    });
-    
-    // Búsqueda de invitados
-    guestSearch.addEventListener('input', actualizarListaInvitados);
-    guestFilter.addEventListener('change', actualizarListaInvitados);
-    
-    // Agregar invitado
-    addGuestBtn.addEventListener('click', function() {
-        agregarInvitado();
-    });
-    
-    // Búsqueda en visualización
-    searchGuests.addEventListener('input', function() {
-        buscarEnMesas(this.value);
-    });
-    
-    // Guardado automático
-    autoSaveCheckbox.addEventListener('change', function() {
-        mostrarMensaje(`Guardado automático ${this.checked ? 'activado' : 'desactivado'}`, 'info');
-    });
-    
-    // Shortcuts de teclado
-    document.addEventListener('keydown', function(e) {
-        // Ctrl+S para guardar
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            guardarEvento();
-        }
-        
-        // Ctrl+N para nuevo evento
-        if (e.ctrlKey && e.key === 'n') {
-            e.preventDefault();
-            document.getElementById('newEventModal').style.display = 'flex';
-        }
-        
-        // Ctrl+F para buscar
-        if (e.ctrlKey && e.key === 'f') {
-            e.preventDefault();
-            searchGuests.focus();
-        }
-        
-        // + para zoom in
-        if (e.key === '+' || e.key === '=') {
-            e.preventDefault();
-            if (zoomLevel < 2) {
-                zoomLevel += 0.1;
-                aplicarZoom();
-            }
-        }
-        
-        // - para zoom out
-        if (e.key === '-') {
-            e.preventDefault();
-            if (zoomLevel > 0.5) {
-                zoomLevel -= 0.1;
-                aplicarZoom();
-            }
-        }
-        
-        // 0 para reset zoom
-        if (e.key === '0') {
-            e.preventDefault();
-            zoomLevel = 1;
-            aplicarZoom();
-        }
-    });
-}
-
-// 19. Aplicar zoom
-function aplicarZoom() {
-    document.querySelectorAll('.mesa').forEach(mesa => {
-        mesa.style.transform = `scale(${zoomLevel})`;
-    });
-}
-
-// 20. Buscar en mesas
-function buscarEnMesas(termino) {
-    if (!termino) {
-        // Resetear colores
-        document.querySelectorAll('.silla').forEach(silla => {
-            silla.style.boxShadow = '';
-        });
+    if (!nombre) {
+        alert('❌ El nombre es obligatorio');
         return;
     }
     
-    const busqueda = termino.toLowerCase();
-    document.querySelectorAll('.silla').forEach(silla => {
-        const sillaNombre = silla.getAttribute('title') || '';
-        if (sillaNombre.toLowerCase().includes(busqueda)) {
-            silla.style.boxShadow = '0 0 0 3px yellow';
+    if (!currentEvent || !currentEvent.id) {
+        alert('❌ No hay evento seleccionado');
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        const response = await fetch(`${API_BASE}/invitados`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                evento_id: currentEvent.id,
+                nombre,
+                email,
+                telefono,
+                estado
+            })
+        });
+        
+        if (response.ok) {
+            mostrarToast('✅ Invitado agregado exitosamente', 'success');
+            cerrarModales();
+            await cargarInvitados(currentEvent.id);
         } else {
-            silla.style.boxShadow = '';
+            mostrarToast('❌ Error al agregar invitado', 'error');
         }
-    });
-}
-
-// 21. Guardar evento
-function guardarEvento() {
-    if (!eventoActual) {
-        mostrarMensaje('No hay evento seleccionado', 'error');
-        return;
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarToast('❌ Error al guardar', 'error');
     }
-    
-    // Actualizar datos del evento
-    eventoActual.nombre = eventNameInput.value || 'Evento sin nombre';
-    eventoActual.descripcion = eventDescriptionInput.value;
-    eventoActual.fecha = eventDateInput.value;
-    eventoActual.hora = eventTimeInput.value;
-    eventoActual.mesas = parseInt(numMesasInput.value);
-    eventoActual.sillasPorMesa = parseInt(sillasPorMesaInput.value);
-    eventoActual.formaMesa = formaMesaSelect.value;
-    
-    // Guardar configuración
-    guardarConfiguracionEvento();
-    
-    // Actualizar UI
-    currentEventName.textContent = eventoActual.nombre;
-    
-    // Actualizar selector de eventos
-    const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
-    if (option) {
-        option.textContent = eventoActual.nombre;
-        if (eventoActual.estado === 'borrador') {
-            option.textContent += ' (Borrador)';
-        }
-    }
-    
-    mostrarMensaje(`Evento "${eventoActual.nombre}" guardado correctamente`, 'success');
 }
 
-// 22. Crear nuevo evento
-function crearNuevoEvento() {
-    const nombre = document.getElementById('newEventName').value;
-    const fecha = document.getElementById('newEventDate').value;
-    const hora = document.getElementById('newEventTime').value;
-    const ubicacion = document.getElementById('newEventLocation').value;
-    const tipo = document.getElementById('newEventType').value;
-    const usarPlantilla = document.getElementById('useTemplate').checked;
+// ===== EDITAR INVITADO =====
+window.editarInvitado = function(invitadoId) {
+    const invitado = invitados.find(i => i.id === invitadoId);
+    if (!invitado) return;
     
-    if (!nombre || !fecha) {
-        mostrarMensaje('Nombre y fecha son obligatorios', 'error');
-        return;
-    }
-    
-    const nuevoEvento = {
-        id: eventosCliente.length + 1,
-        nombre: nombre,
-        descripcion: `Evento de tipo ${tipo}`,
-        fecha: fecha,
-        hora: hora || '18:00',
-        ubicacion: ubicacion,
-        tipo: tipo,
-        estado: 'borrador',
-        mesas: usarPlantilla ? 8 : 1,
-        sillasPorMesa: usarPlantilla ? 8 : 6,
-        formaMesa: 'rectangular',
-        configuracion: {}
-    };
-    
-    eventosCliente.push(nuevoEvento);
-    
-    // Agregar al selector
-    const option = document.createElement('option');
-    option.value = nuevoEvento.id;
-    option.textContent = nuevoEvento.nombre + ' (Borrador)';
-    eventSelector.appendChild(option);
-    
-    // Seleccionar el nuevo evento
-    eventSelector.value = nuevoEvento.id;
-    cargarEvento(nuevoEvento.id);
-    
-    // Cerrar modal
-    document.getElementById('newEventModal').style.display = 'none';
-    
-    // Resetear formulario
-    document.getElementById('newEventForm').reset();
-    
-    mostrarMensaje(`Nuevo evento "${nombre}" creado`, 'success');
-}
-
-// 23. Agregar invitado
-function agregarInvitado() {
-    const nombre = prompt('Nombre del invitado:');
-    if (!nombre) return;
-    
-    const email = prompt('Email (opcional):');
-    const telefono = prompt('Teléfono (opcional):');
-    
-    const nuevoInvitado = {
-        id: invitados.length + 1,
-        nombre: nombre,
-        email: email || null,
-        telefono: telefono || null,
-        estado: 'pendiente',
-        idMesa: null,
-        idSilla: null
-    };
-    
-    invitados.push(nuevoInvitado);
-    actualizarListaInvitados();
-    
-    mostrarMensaje(`Invitado "${nombre}" agregado`, 'success');
-}
-
-// 24. Mostrar mensaje
-function mostrarMensaje(mensaje, tipo = 'info') {
-    const toast = document.getElementById('messageToast');
-    if (!toast) return;
-    
-    toast.textContent = mensaje;
-    toast.className = `toast ${tipo} show`;
+    mostrarModalAgregarInvitado();
     
     setTimeout(() => {
-        toast.classList.remove('show');
+        document.getElementById('invitadoNombre').value = invitado.nombre;
+        document.getElementById('invitadoEmail').value = invitado.email || '';
+        document.getElementById('invitadoTelefono').value = invitado.telefono || '';
+        document.getElementById('invitadoEstado').value = invitado.estado;
+        
+        const form = document.getElementById('formAgregarInvitado');
+        form.onsubmit = async function(e) {
+            e.preventDefault();
+            await actualizarInvitado(invitadoId);
+        };
+        
+        document.querySelector('#modalAgregarInvitado h2').innerHTML = '<i class="fas fa-edit"></i> Editar Invitado';
+    }, 100);
+};
+
+// ===== ACTUALIZAR INVITADO =====
+async function actualizarInvitado(invitadoId) {
+    const nombre = document.getElementById('invitadoNombre').value.trim();
+    const email = document.getElementById('invitadoEmail').value.trim();
+    const telefono = document.getElementById('invitadoTelefono').value.trim();
+    const estado = document.getElementById('invitadoEstado').value;
+    
+    try {
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        const response = await fetch(`${API_BASE}/invitados/${invitadoId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nombre, email, telefono, estado })
+        });
+        
+        if (response.ok) {
+            mostrarToast('✅ Invitado actualizado', 'success');
+            cerrarModales();
+            await cargarInvitados(currentEvent.id);
+        } else {
+            mostrarToast('❌ Error al actualizar', 'error');
+        }
+    } catch (error) {
+        mostrarToast('❌ Error al guardar', 'error');
+    }
+}
+
+// ===== ASIGNAR INVITADO =====
+window.asignarInvitado = function(invitadoId) {
+    mostrarToast('💡 Haz click en una silla disponible para asignar', 'info');
+};
+
+// ===== MODAL ASIGNAR A SILLA =====
+function mostrarModalAsignarInvitado(mesaId, sillaId) {
+    const invitadosDisponibles = invitados.filter(i => !i.mesa_id);
+    
+    if (invitadosDisponibles.length === 0) {
+        mostrarToast('❌ No hay invitados disponibles', 'error');
+        return;
+    }
+    
+    const modalHTML = `
+        <div class="modal active" id="modalAsignarSilla">
+            <div class="modal-overlay" onclick="cerrarModales()"></div>
+            <div class="modal-content">
+                <button class="modal-close" onclick="cerrarModales()"><i class="fas fa-times"></i></button>
+                <h2><i class="fas fa-chair"></i> Asignar Invitado</h2>
+                
+                <form onsubmit="event.preventDefault(); asignarInvitadoASilla(${mesaId}, ${sillaId});">
+                    <div class="form-group">
+                        <label>Seleccionar Invitado</label>
+                        <select id="selectInvitado" required>
+                            <option value="">-- Seleccionar --</option>
+                            ${invitadosDisponibles.map(i => `
+                                <option value="${i.id}">${i.nombre}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="button-group">
+                        <button type="button" class="btn-secondary" onclick="cerrarModales()">Cancelar</button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-check"></i> Asignar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+// ===== ASIGNAR INVITADO A SILLA =====
+window.asignarInvitadoASilla = async function(mesaId, sillaId) {
+    const invitadoId = document.getElementById('selectInvitado').value;
+    
+    if (!invitadoId) {
+        mostrarToast('❌ Selecciona un invitado', 'error');
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        const response = await fetch(`${API_BASE}/invitados/${invitadoId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                mesa_id: mesaId,
+                silla_numero: sillaId
+            })
+        });
+        
+        if (response.ok) {
+            mostrarToast('✅ Invitado asignado', 'success');
+            cerrarModales();
+            await cargarInvitados(currentEvent.id);
+        } else {
+            mostrarToast('❌ Error al asignar', 'error');
+        }
+    } catch (error) {
+        mostrarToast('❌ Error', 'error');
+    }
+};
+
+// ===== MODAL DISPOSICIÓN =====
+function mostrarModalDisposicion() {
+    const modalHTML = `
+        <div class="modal active" id="modalDisposicion">
+            <div class="modal-overlay" onclick="cerrarModales()"></div>
+            <div class="modal-content layout-modal">
+                <button class="modal-close" onclick="cerrarModales()"><i class="fas fa-times"></i></button>
+                <h2><i class="fas fa-th"></i> Cambiar Disposición</h2>
+                
+                <div class="layout-options">
+                    <div class="layout-option selected" onclick="seleccionarLayout('grid')">
+                        <i class="fas fa-th"></i>
+                        <p>Cuadrícula</p>
+                        <small>Disposición en filas y columnas</small>
+                    </div>
+                    <div class="layout-option" onclick="seleccionarLayout('circle')">
+                        <i class="fas fa-circle"></i>
+                        <p>Circular</p>
+                        <small>Mesas en círculo</small>
+                    </div>
+                    <div class="layout-option" onclick="seleccionarLayout('custom')">
+                        <i class="fas fa-sliders-h"></i>
+                        <p>Personalizado</p>
+                        <small>Arrastra las mesas</small>
+                    </div>
+                </div>
+                
+                <div class="button-group" style="margin-top: 24px;">
+                    <button class="btn-secondary" onclick="cerrarModales()">Cancelar</button>
+                    <button class="btn-primary" onclick="aplicarDisposicion()">
+                        <i class="fas fa-check"></i> Aplicar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+window.seleccionarLayout = function(tipo) {
+    document.querySelectorAll('.layout-option').forEach(opt => opt.classList.remove('selected'));
+    event.target.closest('.layout-option').classList.add('selected');
+};
+
+window.aplicarDisposicion = function() {
+    mostrarToast('✅ Disposición aplicada', 'success');
+    cerrarModales();
+};
+
+// ===== CREAR MESAS =====
+async function crearMesas() {
+    const numMesas = parseInt(document.getElementById('numMesas').value);
+    const sillasPorMesa = parseInt(document.getElementById('sillasPorMesa').value);
+    const forma = document.getElementById('formaMesa').value;
+    
+    if (!currentEvent || !currentEvent.id) {
+        mostrarToast('❌ No hay evento seleccionado', 'error');
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        
+        // Borrar mesas existentes
+        for (const mesa of mesas) {
+            await fetch(`${API_BASE}/mesas/${mesa.id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+        }
+        
+        // Crear nuevas mesas
+        const promesas = [];
+        for (let i = 1; i <= numMesas; i++) {
+            promesas.push(
+                fetch(`${API_BASE}/mesas`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        evento_id: currentEvent.id,
+                        numero: i,
+                        nombre: `Mesa ${i}`,
+                        capacidad: sillasPorMesa,
+                        forma: forma,
+                        color: '#8B4513'
+                    })
+                })
+            );
+        }
+        
+        await Promise.all(promesas);
+        mostrarToast('✅ Mesas creadas exitosamente', 'success');
+        await cargarMesas(currentEvent.id);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarToast('❌ Error al crear mesas', 'error');
+    }
+}
+
+// ===== GUARDAR EVENTO =====
+async function guardarEvento() {
+    const nombre = document.getElementById('eventName').value.trim();
+    
+    if (!nombre) {
+        mostrarToast('❌ El nombre es obligatorio', 'error');
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        const response = await fetch(`${API_BASE}/eventos/${currentEvent.id}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nombre })
+        });
+        
+        if (response.ok) {
+            mostrarToast('✅ Evento guardado', 'success');
+            await cargarEvento(currentEvent.id);
+        } else {
+            mostrarToast('❌ Error al guardar', 'error');
+        }
+    } catch (error) {
+        mostrarToast('❌ Error', 'error');
+    }
+}
+
+// ===== ELIMINAR EVENTO =====
+async function eliminarEvento() {
+    if (!confirm('¿Estás seguro de eliminar este evento?')) return;
+    
+    try {
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        const response = await fetch(`${API_BASE}/eventos/${currentEvent.id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            mostrarToast('✅ Evento eliminado', 'success');
+            await cargarEventos();
+        } else {
+            mostrarToast('❌ Error al eliminar', 'error');
+        }
+    } catch (error) {
+        mostrarToast('❌ Error', 'error');
+    }
+}
+
+// ===== CERRAR MODALES =====
+function cerrarModales() {
+    document.querySelectorAll('.modal').forEach(modal => modal.remove());
+}
+
+// ===== TOAST NOTIFICATIONS =====
+function mostrarToast(mensaje, tipo = 'info') {
+    const iconos = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+    };
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+    toast.innerHTML = `
+        <i class="fas ${iconos[tipo]}"></i>
+        <span>${mensaje}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.4s ease-in';
+        setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
 
-// ===== FUNCIONES GLOBALES PARA HTML =====
-// Necesarias para que funcionen los onclick en el HTML
-window.editarInvitado = editarInvitado;
-window.asignarInvitado = asignarInvitado;
-window.cerrarModal = cerrarModal;
+// ===== ACTUALIZAR ESTADÍSTICAS =====
+function actualizarEstadisticas() {
+    const totalMesas = mesas.length;
+    const totalSillas = mesas.reduce((sum, m) => sum + (m.sillas ? m.sillas.length : 0), 0);
+    const ocupadas = invitados.filter(i => i.mesa_id).length;
+    const porcentaje = totalSillas > 0 ? Math.round((ocupadas / totalSillas) * 100) : 0;
+    
+    const elements = {
+        statTotalMesas: totalMesas,
+        statTotalSillas: totalSillas,
+        statSillasOcupadas: ocupadas,
+        statPorcentajeOcupacion: porcentaje + '%'
+    };
+    
+    Object.entries(elements).forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+    });
+}
+
+console.log('✅ Cliente.js cargado - Versión FINAL');
