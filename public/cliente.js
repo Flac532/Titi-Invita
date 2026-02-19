@@ -1,4 +1,6 @@
-// cliente.js - EXACTO COMO final.html
+// cliente.js - FINAL COMBINADO
+// Renderizado de final.html + Funcionalidad completa
+
 const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
 
 let currentUser = null;
@@ -7,26 +9,44 @@ let mesas = [];
 let invitados = [];
 
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Iniciando Titi Invita');
+    
     const usuarioStr = localStorage.getItem('titi_usuario_actual');
     if (!usuarioStr) {
         window.location.href = 'login.html';
         return;
     }
     
-    currentUser = JSON.parse(usuarioStr);
+    try {
+        currentUser = JSON.parse(usuarioStr);
+        console.log('✅ Usuario:', currentUser.nombre);
+    } catch (error) {
+        window.location.href = 'login.html';
+        return;
+    }
     
+    inicializarUI();
+    setupEventListeners();
+    await cargarEventos();
+});
+
+function inicializarUI() {
     const userName = document.getElementById('userName');
-    if (userName) userName.textContent = currentUser.nombre;
-    
+    const userRole = document.getElementById('userRole');
+    const roleBadge = document.getElementById('roleBadge');
     const userAvatar = document.getElementById('userAvatar');
+    
+    if (userName) userName.textContent = currentUser.nombre;
+    if (userRole) userRole.textContent = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
+    if (roleBadge) {
+        roleBadge.textContent = currentUser.rol.toUpperCase();
+        roleBadge.className = 'role-badge ' + currentUser.rol;
+    }
     if (userAvatar) {
         const iniciales = currentUser.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
         userAvatar.textContent = iniciales;
     }
-    
-    setupEventListeners();
-    await cargarEventos();
-});
+}
 
 function setupEventListeners() {
     const eventSelector = document.getElementById('eventSelector');
@@ -36,8 +56,20 @@ function setupEventListeners() {
         });
     }
     
-    const btnRefresh = document.getElementById('btnRefresh');
+    const btnRefresh = document.getElementById('refreshEventsBtn');
     if (btnRefresh) btnRefresh.addEventListener('click', () => cargarEventos());
+    
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            const tabName = this.getAttribute('data-tab');
+            const content = document.getElementById(tabName + 'Tab');
+            if (content) content.classList.add('active');
+        });
+    });
 }
 
 async function cargarEventos() {
@@ -52,9 +84,11 @@ async function cargarEventos() {
         const data = await response.json();
         const eventos = Array.isArray(data) ? data : (data.eventos || []);
         
+        console.log('✅ Eventos:', eventos.length);
+        
         const eventSelector = document.getElementById('eventSelector');
         if (eventSelector) {
-            eventSelector.innerHTML = '<option value="">Seleccionar...</option>';
+            eventSelector.innerHTML = '<option value="">Seleccionar Evento...</option>';
             
             eventos.forEach(evento => {
                 const option = document.createElement('option');
@@ -69,7 +103,7 @@ async function cargarEventos() {
             }
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error eventos:', error);
     }
 }
 
@@ -89,14 +123,23 @@ async function cargarEvento(eventoId) {
             currentEvent = { id: eventoId, nombre: 'Mi Evento' };
         }
         
+        console.log('✅ Evento:', currentEvent.nombre);
+        
         const currentEventName = document.getElementById('currentEventName');
+        const currentEventDate = document.getElementById('currentEventDate');
+        
         if (currentEventName) currentEventName.textContent = currentEvent.nombre;
+        if (currentEventDate && currentEvent.fecha_evento) {
+            const fecha = new Date(currentEvent.fecha_evento);
+            currentEventDate.textContent = fecha.toLocaleDateString('es-ES');
+        }
         
         await cargarMesas(eventoId);
         await cargarInvitados(eventoId);
+        actualizarEstadisticas();
         
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error evento:', error);
     }
 }
 
@@ -126,11 +169,11 @@ async function cargarMesas(eventoId) {
             }))
         }));
         
-        console.log('Mesas cargadas:', mesas.length);
+        console.log('✅ Mesas:', mesas.length);
         renderizarMesas(mesas);
         
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error mesas:', error);
         mesas = [];
         renderizarMesas([]);
     }
@@ -146,6 +189,8 @@ async function cargarInvitados(eventoId) {
         if (response.ok) {
             const data = await response.json();
             invitados = Array.isArray(data) ? data : [];
+            
+            console.log('✅ Invitados:', invitados.length);
             
             // Actualizar estado de sillas con invitados
             invitados.forEach(inv => {
@@ -168,7 +213,7 @@ async function cargarInvitados(eventoId) {
 }
 
 // ========================================
-// RENDERIZADO EXACTO COMO final.html
+// RENDERIZADO EXACTO DE final.html
 // ========================================
 function renderizarMesas(mesasArray) {
     const container = document.getElementById('mesasContainer');
@@ -178,13 +223,16 @@ function renderizarMesas(mesasArray) {
     
     if (!mesasArray || mesasArray.length === 0) {
         container.innerHTML = `
-            <div style="width:100%; text-align:center; padding:60px 20px">
-                <i class="fas fa-chair" style="font-size:4rem; color:#cbd5e0; margin-bottom:20px"></i>
-                <p style="color:#cbd5e0">No hay mesas creadas</p>
+            <div class="empty-state">
+                <i class="fas fa-chair"></i>
+                <p>No hay mesas creadas</p>
+                <small>Crea mesas desde Configuración</small>
             </div>
         `;
         return;
     }
+    
+    console.log('🎨 Renderizando', mesasArray.length, 'mesas');
     
     mesasArray.forEach(mesa => {
         if (!mesa) return;
@@ -225,12 +273,12 @@ function crearMesaVisual(mesa, container) {
         sillaElement.dataset.sillaId = silla.id;
         sillaElement.textContent = silla.id;
         
-        // Posicionar la silla
+        // Posicionar la silla (EXACTO de final.html)
         const pos = posiciones[index];
         sillaElement.style.left = `calc(${pos.x}% - 16px)`;
         sillaElement.style.top = `calc(${pos.y}% - 21px)`;
         
-        // Rotar silla para orientarla hacia la mesa
+        // Rotar silla para orientarla hacia la mesa (EXACTO de final.html)
         const centroX = 50;
         const centroY = 50;
         const angulo = Math.atan2(centroY - pos.y, centroX - pos.x) * (180 / Math.PI);
@@ -327,4 +375,33 @@ function calcularPosicionesSillas(numSillas, forma) {
     return posiciones;
 }
 
-console.log('✅ Cliente cargado - EXACTO final.html');
+function actualizarEstadisticas() {
+    const totalMesas = mesas.length;
+    const totalSillas = mesas.reduce((sum, m) => sum + (m.sillas ? m.sillas.length : 0), 0);
+    const ocupadas = invitados.filter(i => i.mesa_id).length;
+    const porcentaje = totalSillas > 0 ? Math.round((ocupadas / totalSillas) * 100) : 0;
+    
+    const statTotalMesas = document.getElementById('statTotalMesas');
+    const statTotalSillas = document.getElementById('statTotalSillas');
+    const statSillasOcupadas = document.getElementById('statSillasOcupadas');
+    const statPorcentajeOcupacion = document.getElementById('statPorcentajeOcupacion');
+    
+    if (statTotalMesas) statTotalMesas.textContent = totalMesas;
+    if (statTotalSillas) statTotalSillas.textContent = totalSillas;
+    if (statSillasOcupadas) statSillasOcupadas.textContent = ocupadas;
+    if (statPorcentajeOcupacion) statPorcentajeOcupacion.textContent = porcentaje + '%';
+    
+    const confirmados = invitados.filter(i => i.estado === 'confirmado').length;
+    const pendientes = invitados.filter(i => i.estado === 'pendiente').length;
+    const rechazados = invitados.filter(i => i.estado === 'rechazado').length;
+    
+    const elConfirmados = document.getElementById('confirmados');
+    const elPendientes = document.getElementById('pendientes');
+    const elRechazados = document.getElementById('rechazados');
+    
+    if (elConfirmados) elConfirmados.textContent = confirmados;
+    if (elPendientes) elPendientes.textContent = pendientes;
+    if (elRechazados) elRechazados.textContent = rechazados;
+}
+
+console.log('✅ Titi Invita cargado - Renderizado final.html');
