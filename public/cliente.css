@@ -1,4 +1,4 @@
-/* cliente.css - VERSIÓN PERFECTA FINAL */
+/* cliente.css - VERSIÓN FINAL DEFINITIVA */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
@@ -10,6 +10,8 @@
     --accent: #f59e0b;
     --danger: #ef4444;
     --danger-dark: #dc2626;
+    --purple: #9333ea;
+    --purple-dark: #7e22ce;
     
     --bg-app: #f8fafc;
     --bg-panel: #ffffff;
@@ -351,16 +353,11 @@ body {
     animation: pulse 2s infinite;
 }
 
+/* ===== OCULTAR BOTONES NO DESEADOS ===== */
+#shareBtn,
+#helpBtn,
 .header-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 16px;
-    flex-wrap: wrap;
-}
-
-.header-actions .btn-icon {
-    flex: 1;
-    min-width: 46px;
+    display: none !important;
 }
 
 .quick-stats h3 {
@@ -468,6 +465,13 @@ body {
 .mesas-controls {
     display: flex;
     gap: 8px;
+}
+
+/* Ocultar botones específicos en mesas-controls */
+#importCsvBtn,
+#exportListBtn,
+#sendInvitationsBtn {
+    display: none !important;
 }
 
 /* ===== MESAS (NO TOCAR) ===== */
@@ -595,7 +599,7 @@ body {
 .estado-confirmado { background: var(--silla-confirmado) !important; }
 .estado-asignado { background: var(--silla-rechazado) !important; }
 
-/* ===== OCULTAR LEYENDA Y GUARDADO AUTOMÁTICO ===== */
+/* ===== OCULTAR LEYENDA ===== */
 .mesas-footer,
 .legend,
 .legend-item,
@@ -608,7 +612,7 @@ label[for="autoSave"] {
     display: none !important;
 }
 
-/* ===== PANEL DERECHO ===== */
+/* ===== PANEL DERECHO CON TABS ===== */
 .right-panel {
     background: var(--bg-panel);
     border-left: 1px solid var(--border);
@@ -618,6 +622,7 @@ label[for="autoSave"] {
     height: 100vh;
 }
 
+/* TABS SISTEMA */
 .tabs {
     display: flex;
     background: var(--bg-panel);
@@ -669,6 +674,7 @@ label[for="autoSave"] {
     border-radius: 3px 3px 0 0;
 }
 
+/* TAB CONTENT */
 .tab-content {
     display: none;
     flex: 1;
@@ -696,7 +702,15 @@ label[for="autoSave"] {
     color: var(--primary-solid);
 }
 
-/* ===== FORMS COMPACTOS ===== */
+/* También soportar clases antiguas */
+.config-section,
+.guests-section {
+    padding: 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ===== FORMS ===== */
 .form-group {
     margin-bottom: 14px;
 }
@@ -762,7 +776,7 @@ label[for="autoSave"] {
     margin-bottom: 8px;
 }
 
-/* Botón primario - Azul */
+/* Azul */
 .btn-primary,
 #btnCrearMesas {
     background: var(--primary);
@@ -776,7 +790,7 @@ label[for="autoSave"] {
     box-shadow: var(--shadow-lg);
 }
 
-/* Botón guardar - Verde */
+/* Verde */
 #btnGuardarEvento {
     background: linear-gradient(135deg, #10b981, #059669);
     color: white;
@@ -788,7 +802,7 @@ label[for="autoSave"] {
     box-shadow: var(--shadow-lg);
 }
 
-/* Botón eliminar/finalizar - Rojo */
+/* Rojo - ELIMINAR */
 #btnFinalizarEvento,
 #btnEliminarEvento {
     background: linear-gradient(135deg, var(--danger), var(--danger-dark));
@@ -800,19 +814,26 @@ label[for="autoSave"] {
 #btnEliminarEvento:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
-    background: linear-gradient(135deg, var(--danger-dark), #b91c1c);
 }
 
-/* Cambiar texto del botón finalizar */
-#btnFinalizarEvento::before {
-    content: '🗑️ ';
+/* Cambiar texto visualmente */
+#btnFinalizarEvento {
+    position: relative;
+    overflow: hidden;
+    text-indent: -9999px;
 }
 
-.btn-primary i,
-#btnCrearMesas i,
-#btnGuardarEvento i,
-#btnFinalizarEvento i {
-    font-size: 1rem;
+#btnFinalizarEvento::after {
+    content: '🗑️ ELIMINAR EVENTO';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-indent: 0;
 }
 
 .button-group {
@@ -820,6 +841,41 @@ label[for="autoSave"] {
     flex-direction: column;
     gap: 8px;
     margin-top: 16px;
+}
+
+/* ===== BOTÓN AGREGAR INVITADO - MORADO GRANDE ===== */
+#addGuestBtn,
+.btn-add-guest {
+    width: 100%;
+    padding: 16px 20px !important;
+    background: linear-gradient(135deg, var(--purple), var(--purple-dark)) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: var(--radius) !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    cursor: pointer !important;
+    transition: var(--transition) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    margin-bottom: 20px !important;
+    box-shadow: var(--shadow-lg) !important;
+}
+
+#addGuestBtn:hover,
+.btn-add-guest:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: var(--shadow-xl) !important;
+    background: linear-gradient(135deg, var(--purple-dark), #6b21a8) !important;
+}
+
+#addGuestBtn i,
+.btn-add-guest i {
+    font-size: 1.2rem !important;
 }
 
 /* ===== LISTA DE INVITADOS ===== */
@@ -927,13 +983,6 @@ label[for="autoSave"] {
     color: #991b1b;
 }
 
-.config-section,
-.guests-section {
-    padding: 20px;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
 /* Scrollbar */
 ::-webkit-scrollbar {
     width: 10px;
@@ -975,6 +1024,7 @@ label[for="autoSave"] {
     font-weight: 600;
 }
 
+/* Ocultar modales */
 #modalNuevoEvento,
 #modalAsignarInvitado,
 modal {
