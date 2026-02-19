@@ -1,4 +1,4 @@
-// cliente.js - SOLO RENDERIZADO PERFECTO
+// cliente.js - EXACTO COMO final.html
 const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
 
 let currentUser = null;
@@ -54,7 +54,7 @@ async function cargarEventos() {
         
         const eventSelector = document.getElementById('eventSelector');
         if (eventSelector) {
-            eventSelector.innerHTML = '<option value="">Seleccionar evento...</option>';
+            eventSelector.innerHTML = '<option value="">Seleccionar...</option>';
             
             eventos.forEach(evento => {
                 const option = document.createElement('option');
@@ -69,7 +69,7 @@ async function cargarEventos() {
             }
         }
     } catch (error) {
-        console.error('Error eventos:', error);
+        console.error('Error:', error);
     }
 }
 
@@ -93,9 +93,10 @@ async function cargarEvento(eventoId) {
         if (currentEventName) currentEventName.textContent = currentEvent.nombre;
         
         await cargarMesas(eventoId);
+        await cargarInvitados(eventoId);
         
     } catch (error) {
-        console.error('Error evento:', error);
+        console.error('Error:', error);
     }
 }
 
@@ -115,18 +116,59 @@ async function cargarMesas(eventoId) {
         const data = await response.json();
         mesas = Array.isArray(data) ? data : (data.mesas || []);
         
-        console.log('✅ Mesas cargadas:', mesas.length);
+        // Convertir al formato esperado (con array de sillas)
+        mesas = mesas.map(mesa => ({
+            ...mesa,
+            sillas: Array.from({ length: mesa.capacidad || 8 }, (_, i) => ({
+                id: i + 1,
+                estado: 'sin-asignar',
+                nombre: ''
+            }))
+        }));
+        
+        console.log('Mesas cargadas:', mesas.length);
         renderizarMesas(mesas);
         
     } catch (error) {
-        console.error('Error mesas:', error);
+        console.error('Error:', error);
         mesas = [];
         renderizarMesas([]);
     }
 }
 
+async function cargarInvitados(eventoId) {
+    try {
+        const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+        const response = await fetch(`${API_BASE}/invitados?evento_id=${eventoId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            invitados = Array.isArray(data) ? data : [];
+            
+            // Actualizar estado de sillas con invitados
+            invitados.forEach(inv => {
+                if (inv.mesa_id && inv.silla_numero) {
+                    const mesa = mesas.find(m => m.id === inv.mesa_id);
+                    if (mesa && mesa.sillas[inv.silla_numero - 1]) {
+                        mesa.sillas[inv.silla_numero - 1].estado = inv.estado === 'confirmado' ? 'confirmado' : 
+                                                                    inv.estado === 'rechazado' ? 'asignado' : 
+                                                                    'sin-asignar';
+                        mesa.sillas[inv.silla_numero - 1].nombre = inv.nombre;
+                    }
+                }
+            });
+            
+            renderizarMesas(mesas);
+        }
+    } catch (error) {
+        console.error('Error invitados:', error);
+    }
+}
+
 // ========================================
-// RENDERIZADO DE MESAS - PERFECTO
+// RENDERIZADO EXACTO COMO final.html
 // ========================================
 function renderizarMesas(mesasArray) {
     const container = document.getElementById('mesasContainer');
@@ -138,229 +180,151 @@ function renderizarMesas(mesasArray) {
         container.innerHTML = `
             <div style="width:100%; text-align:center; padding:60px 20px">
                 <i class="fas fa-chair" style="font-size:4rem; color:#cbd5e0; margin-bottom:20px"></i>
-                <p style="color:#cbd5e0; font-size:1.2rem">No hay mesas creadas</p>
-                <small style="color:#cbd5e0">Crea mesas desde la configuración</small>
+                <p style="color:#cbd5e0">No hay mesas creadas</p>
             </div>
         `;
         return;
     }
     
-    console.log('🎨 Renderizando', mesasArray.length, 'mesas');
-    
     mesasArray.forEach(mesa => {
         if (!mesa) return;
-        
-        const mesaElement = crearElementoMesa(mesa);
-        container.appendChild(mesaElement);
+        crearMesaVisual(mesa, container);
     });
 }
 
-function crearElementoMesa(mesa) {
-    const mesaDiv = document.createElement('div');
-    mesaDiv.className = 'mesa';
-    mesaDiv.style.cssText = `
-        position: relative;
-        margin-bottom: 80px;
-        flex-shrink: 0;
-    `;
+function crearMesaVisual(mesa, container) {
+    const mesaElement = document.createElement('div');
+    mesaElement.className = 'mesa';
+    mesaElement.dataset.id = mesa.id;
     
-    // Título de la mesa
-    const titulo = document.createElement('div');
-    titulo.style.cssText = `
-        text-align: center;
-        margin-bottom: 15px;
-        padding: 10px;
-        background: #e8f5e9;
-        border-radius: 8px;
-        font-weight: bold;
-    `;
-    titulo.textContent = mesa.nombre || `Mesa ${mesa.numero}`;
-    mesaDiv.appendChild(titulo);
+    // Información de la mesa
+    const mesaInfo = document.createElement('div');
+    mesaInfo.className = 'mesa-info';
+    mesaInfo.textContent = `${mesa.nombre || 'Mesa ' + mesa.numero} (${mesa.sillas.length} sillas)`;
+    mesaElement.appendChild(mesaInfo);
     
-    // Forma y color
-    const forma = mesa.forma || 'rectangular';
-    const color = mesa.color || '#8B4513';
-    const capacidad = mesa.capacidad || 8;
-    
-    // Mesa gráfica
+    // Representación gráfica de la mesa
     const mesaGrafica = document.createElement('div');
-    mesaGrafica.style.cssText = `
-        position: relative;
-        margin: 0 auto;
-        margin-top: 100px;
-        background-color: ${color};
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 16px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        z-index: 1;
-    `;
-    
-    // Tamaño según forma
-    if (forma === 'circular') {
-        mesaGrafica.style.width = '140px';
-        mesaGrafica.style.height = '140px';
-        mesaGrafica.style.borderRadius = '50%';
-    } else if (forma === 'cuadrada') {
-        mesaGrafica.style.width = '160px';
-        mesaGrafica.style.height = '160px';
-        mesaGrafica.style.borderRadius = '10px';
-    } else { // rectangular
-        mesaGrafica.style.width = '210px';
-        mesaGrafica.style.height = '110px';
-        mesaGrafica.style.borderRadius = '10px';
-    }
-    
+    mesaGrafica.className = `mesa-grafica mesa-${mesa.forma}`;
     mesaGrafica.textContent = mesa.nombre || `Mesa ${mesa.numero}`;
-    mesaDiv.appendChild(mesaGrafica);
+    mesaGrafica.style.backgroundColor = mesa.color || '#8B4513';
+    mesaElement.appendChild(mesaGrafica);
     
-    // AGREGAR SILLAS
-    agregarSillas(mesaDiv, forma, capacidad);
+    // Contenedor para las sillas
+    const sillasContainer = document.createElement('div');
+    sillasContainer.className = `sillas-container ${mesa.forma}-sillas`;
     
-    return mesaDiv;
-}
-
-// ========================================
-// AGREGAR SILLAS - PERFECTO
-// ========================================
-function agregarSillas(mesaDiv, forma, cantidad) {
-    const posiciones = calcularPosicionesSillas(forma, cantidad);
+    // Calcular posiciones de las sillas según la forma de la mesa
+    const posiciones = calcularPosicionesSillas(mesa.sillas.length, mesa.forma);
     
-    posiciones.forEach((pos, index) => {
-        const silla = document.createElement('div');
-        silla.textContent = index + 1;
+    // Crear cada silla
+    mesa.sillas.forEach((silla, index) => {
+        const sillaElement = document.createElement('div');
+        sillaElement.className = `silla estado-${silla.estado}`;
+        sillaElement.dataset.mesaId = mesa.id;
+        sillaElement.dataset.sillaId = silla.id;
+        sillaElement.textContent = silla.id;
         
-        silla.style.cssText = `
-            position: absolute;
-            left: ${pos.x}px;
-            top: ${pos.y}px;
-            width: 32px;
-            height: 42px;
-            background-color: #9E9E9E;
-            border-radius: 5px 5px 2px 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
-            z-index: 2;
-        `;
+        // Posicionar la silla
+        const pos = posiciones[index];
+        sillaElement.style.left = `calc(${pos.x}% - 16px)`;
+        sillaElement.style.top = `calc(${pos.y}% - 21px)`;
         
-        // Respaldo de la silla
-        const respaldo = document.createElement('div');
-        respaldo.style.cssText = `
-            position: absolute;
-            top: -6px;
-            left: 6px;
-            width: 20px;
-            height: 8px;
-            background-color: #9E9E9E;
-            border-radius: 3px 3px 0 0;
-        `;
-        silla.appendChild(respaldo);
+        // Rotar silla para orientarla hacia la mesa
+        const centroX = 50;
+        const centroY = 50;
+        const angulo = Math.atan2(centroY - pos.y, centroX - pos.x) * (180 / Math.PI);
         
-        // Hover
-        silla.addEventListener('mouseenter', () => {
-            silla.style.transform = 'scale(1.15)';
-        });
+        if (mesa.forma === 'rectangular' || mesa.forma === 'cuadrada') {
+            if (pos.y < 25) {
+                sillaElement.style.transform = `rotate(180deg)`;
+            } else if (pos.y > 75) {
+                sillaElement.style.transform = `rotate(0deg)`;
+            } else if (pos.x < 25) {
+                sillaElement.style.transform = `rotate(90deg)`;
+            } else if (pos.x > 75) {
+                sillaElement.style.transform = `rotate(270deg)`;
+            } else {
+                sillaElement.style.transform = `rotate(${angulo}deg)`;
+            }
+        } else {
+            sillaElement.style.transform = `rotate(${angulo + 90}deg)`;
+        }
         
-        silla.addEventListener('mouseleave', () => {
-            silla.style.transform = 'scale(1)';
-        });
-        
-        mesaDiv.appendChild(silla);
+        sillasContainer.appendChild(sillaElement);
     });
+    
+    mesaElement.appendChild(sillasContainer);
+    container.appendChild(mesaElement);
 }
 
-// ========================================
-// CALCULAR POSICIONES - PERFECTO
-// ========================================
-function calcularPosicionesSillas(forma, cantidad) {
+// FUNCIÓN EXACTA DE final.html
+function calcularPosicionesSillas(numSillas, forma) {
     const posiciones = [];
     
-    if (forma === 'circular') {
-        // CIRCULAR: Distribuir en círculo
-        const radio = 90; // Radio del círculo
-        const centerX = 70; // Centro X de la mesa circular (140/2)
-        const centerY = 170; // Centro Y (100 margin-top + 70)
+    if (forma === 'rectangular' || forma === 'cuadrada') {
+        const anchoContenedor = 100;
+        const sillasLadosCortos = 2;
+        const sillasRestantes = Math.max(0, numSillas - sillasLadosCortos);
+        const sillasPorLadoLargo = Math.floor(sillasRestantes / 2);
+        const sillasImpares = sillasRestantes % 2;
+        const margenLateral = 20;
+        const margenVertical = 15;
         
-        for (let i = 0; i < cantidad; i++) {
-            const angulo = (360 / cantidad) * i; // Ángulo en grados
-            const radianes = (angulo - 90) * (Math.PI / 180); // Convertir a radianes, -90 para empezar arriba
-            
-            const x = centerX + radio * Math.cos(radianes);
-            const y = centerY + radio * Math.sin(radianes);
-            
-            posiciones.push({ x, y });
+        // Lado IZQUIERDO
+        posiciones.push({x: -5, y: 50});
+        
+        // Lado DERECHO
+        if (numSillas >= 2) {
+            posiciones.push({x: anchoContenedor + 5, y: 50});
         }
-    } 
-    else if (forma === 'cuadrada') {
-        // CUADRADA: Distribuir en 4 lados
-        const lado = 160; // Tamaño de la mesa
-        const sillasPorLado = Math.ceil(cantidad / 4);
-        const espaciado = lado / sillasPorLado;
         
-        for (let i = 0; i < cantidad; i++) {
-            const ladoActual = Math.floor(i / sillasPorLado);
-            const posEnLado = i % sillasPorLado;
+        // LADOS LARGOS
+        if (sillasPorLadoLargo > 0) {
+            const distancia = anchoContenedor - (margenLateral * 2);
+            const divisor = Math.max(sillasPorLadoLargo - 1, 1);
             
-            let x, y;
-            
-            if (ladoActual === 0) { // Arriba
-                x = 30 + posEnLado * espaciado;
-                y = 10;
-            } else if (ladoActual === 1) { // Derecha
-                x = 180;
-                y = 30 + posEnLado * espaciado;
-            } else if (ladoActual === 2) { // Abajo
-                x = 30 + posEnLado * espaciado;
-                y = 240;
-            } else { // Izquierda
-                x = -20;
-                y = 30 + posEnLado * espaciado;
+            // LADO SUPERIOR
+            for (let i = 0; i < sillasPorLadoLargo; i++) {
+                const posRelativa = (i * (distancia / divisor));
+                const x = margenLateral + posRelativa;
+                const y = margenVertical;
+                posiciones.push({x, y});
             }
             
-            posiciones.push({ x, y });
-        }
-    } 
-    else { // RECTANGULAR
-        // RECTANGULAR: 2 en los lados cortos, resto en lados largos
-        const ancho = 210;
-        const sillasLaterales = Math.floor((cantidad - 2) / 2);
-        const espaciado = ancho / (sillasLaterales + 1);
-        
-        // Lado izquierdo (corto)
-        posiciones.push({ x: -20, y: 150 });
-        
-        // Lado derecho (corto)
-        posiciones.push({ x: 220, y: 150 });
-        
-        // Lado superior (largo)
-        for (let i = 0; i < sillasLaterales; i++) {
-            posiciones.push({
-                x: 30 + i * espaciado,
-                y: 20
-            });
+            // LADO INFERIOR
+            for (let i = 0; i < sillasPorLadoLargo; i++) {
+                const posRelativa = (i * (distancia / divisor));
+                const x = margenLateral + posRelativa;
+                const y = anchoContenedor - margenVertical;
+                posiciones.push({x, y});
+            }
         }
         
-        // Lado inferior (largo)
-        const restantes = cantidad - 2 - sillasLaterales;
-        for (let i = 0; i < restantes; i++) {
-            posiciones.push({
-                x: 30 + i * espaciado,
-                y: 200
-            });
+        // Silla impar centrada
+        if (sillasImpares > 0) {
+            posiciones.push({x: 50, y: margenVertical});
+        }
+        
+        // Recortar si excede
+        while (posiciones.length > numSillas) {
+            posiciones.pop();
+        }
+        
+    } else if (forma === 'circular') {
+        const centroX = 50;
+        const centroY = 50;
+        const radio = 75;
+        
+        for (let i = 0; i < numSillas; i++) {
+            const angulo = (2 * Math.PI / numSillas) * i;
+            const x = centroX + radio * Math.cos(angulo);
+            const y = centroY + radio * Math.sin(angulo);
+            posiciones.push({x, y});
         }
     }
     
-    return posiciones.slice(0, cantidad);
+    return posiciones;
 }
 
-console.log('✅ Cliente cargado - SOLO RENDERIZADO');
+console.log('✅ Cliente cargado - EXACTO final.html');
