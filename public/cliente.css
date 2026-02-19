@@ -1,8 +1,7 @@
-/* cliente.css - SUPER PREMIUM - VERSIÓN FINAL */
+/* cliente.css - FINAL CON SCROLL ARREGLADO */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-/* ===== VARIABLES ===== */
 :root {
     --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --primary-solid: #667eea;
@@ -119,7 +118,6 @@ body {
     letter-spacing: -0.5px;
 }
 
-/* User info PREMIUM */
 .user-info {
     display: flex;
     align-items: center;
@@ -207,7 +205,6 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
-/* Event selector */
 .event-selector-container h3 {
     display: flex;
     align-items: center;
@@ -252,7 +249,6 @@ body {
     gap: 6px;
 }
 
-/* ===== BOTONES PREMIUM ===== */
 .btn-icon {
     width: 46px;
     height: 46px;
@@ -295,7 +291,6 @@ body {
     font-size: 1.1rem;
 }
 
-/* Current event */
 .current-event-info {
     padding: 20px;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -354,7 +349,6 @@ body {
     animation: pulse 2s infinite;
 }
 
-/* ===== HEADER ACTIONS MEJORADO ===== */
 .header-actions {
     display: flex;
     gap: 8px;
@@ -367,7 +361,6 @@ body {
     min-width: 46px;
 }
 
-/* Quick stats */
 .quick-stats h3 {
     display: flex;
     align-items: center;
@@ -601,22 +594,24 @@ body {
 .estado-confirmado { background: var(--silla-confirmado) !important; }
 .estado-asignado { background: var(--silla-rechazado) !important; }
 
-/* ===== PANEL DERECHO CON TABS ===== */
+/* ===== PANEL DERECHO CON SCROLL ARREGLADO ===== */
 .right-panel {
     background: var(--bg-panel);
     border-left: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    height: 100vh;
 }
 
-/* TABS PREMIUM */
+/* TABS */
 .tabs {
     display: flex;
     background: var(--bg-panel);
     border-bottom: 2px solid var(--border);
     padding: 0 16px;
     gap: 4px;
+    flex-shrink: 0;
 }
 
 .tab {
@@ -661,12 +656,14 @@ body {
     border-radius: 3px 3px 0 0;
 }
 
-/* TAB CONTENT */
+/* TAB CONTENT CON SCROLL HABILITADO */
 .tab-content {
     display: none;
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 24px;
+    height: 100%;
 }
 
 .tab-content.active {
@@ -687,7 +684,7 @@ body {
     color: var(--primary-solid);
 }
 
-/* ===== FORMS PREMIUM ===== */
+/* FORMS */
 .form-group {
     margin-bottom: 18px;
 }
@@ -729,7 +726,6 @@ body {
     gap: 12px;
 }
 
-/* ===== BOTONES PRINCIPALES PREMIUM ===== */
 .btn-primary,
 .btn-secondary {
     width: 100%;
@@ -786,7 +782,7 @@ body {
     flex: 1;
 }
 
-/* ===== LISTA DE INVITADOS PREMIUM ===== */
+/* LISTA DE INVITADOS */
 .guest-search {
     margin-bottom: 16px;
     position: relative;
@@ -891,7 +887,15 @@ body {
     color: #991b1b;
 }
 
-/* Scrollbar PREMIUM */
+/* Para que funcione con tabs existentes sin clase */
+.config-section,
+.guests-section {
+    padding: 24px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
     width: 12px;
     height: 12px;
@@ -913,7 +917,6 @@ body {
     background-clip: padding-box;
 }
 
-/* Empty state */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
@@ -934,10 +937,8 @@ body {
     font-weight: 600;
 }
 
-/* Ocultar modales duplicados */
 #modalNuevoEvento,
 #modalAsignarInvitado,
 modal {
     display: none !important;
 }
-
