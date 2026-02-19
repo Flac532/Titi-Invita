@@ -1,4 +1,4 @@
-/* cliente.css - FINAL CON SCROLL ARREGLADO */
+/* cliente.css - VERSIÓN PERFECTA FINAL */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
@@ -8,6 +8,8 @@
     --primary-dark: #5568d3;
     --primary-light: #a5b4fc;
     --accent: #f59e0b;
+    --danger: #ef4444;
+    --danger-dark: #dc2626;
     
     --bg-app: #f8fafc;
     --bg-panel: #ffffff;
@@ -525,7 +527,6 @@ body {
     box-shadow: var(--shadow-xl);
     z-index: 1;
     margin-top: 100px;
-    transition: var(--transition);
 }
 
 .mesa-rectangular { width: 210px; height: 110px; border-radius: 12px; }
@@ -594,7 +595,20 @@ body {
 .estado-confirmado { background: var(--silla-confirmado) !important; }
 .estado-asignado { background: var(--silla-rechazado) !important; }
 
-/* ===== PANEL DERECHO CON SCROLL ARREGLADO ===== */
+/* ===== OCULTAR LEYENDA Y GUARDADO AUTOMÁTICO ===== */
+.mesas-footer,
+.legend,
+.legend-item,
+.view-options,
+.checkbox,
+#showNames,
+#autoSave,
+label[for="showNames"],
+label[for="autoSave"] {
+    display: none !important;
+}
+
+/* ===== PANEL DERECHO ===== */
 .right-panel {
     background: var(--bg-panel);
     border-left: 1px solid var(--border);
@@ -604,7 +618,6 @@ body {
     height: 100vh;
 }
 
-/* TABS */
 .tabs {
     display: flex;
     background: var(--bg-panel);
@@ -656,13 +669,12 @@ body {
     border-radius: 3px 3px 0 0;
 }
 
-/* TAB CONTENT CON SCROLL HABILITADO */
 .tab-content {
     display: none;
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 24px;
+    padding: 20px;
     height: 100%;
 }
 
@@ -684,27 +696,27 @@ body {
     color: var(--primary-solid);
 }
 
-/* FORMS */
+/* ===== FORMS COMPACTOS ===== */
 .form-group {
-    margin-bottom: 18px;
+    margin-bottom: 14px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 600;
     color: var(--text-primary);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
     width: 100%;
-    padding: 12px 16px;
+    padding: 10px 12px;
     border: 2px solid var(--border);
     border-radius: var(--radius);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 500;
     background: var(--bg-input);
     color: var(--text-primary);
@@ -717,23 +729,28 @@ body {
     outline: none;
     border-color: var(--primary-solid);
     background: white;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 10px;
 }
 
+/* ===== BOTONES CON COLORES ===== */
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+#btnCrearMesas,
+#btnGuardarEvento,
+#btnFinalizarEvento,
+#btnEliminarEvento {
     width: 100%;
-    padding: 14px 20px;
+    padding: 11px 16px;
     border: none;
     border-radius: var(--radius);
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     cursor: pointer;
     transition: var(--transition);
     text-transform: uppercase;
@@ -741,59 +758,82 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
+    margin-bottom: 8px;
 }
 
-.btn-primary {
+/* Botón primario - Azul */
+.btn-primary,
+#btnCrearMesas {
     background: var(--primary);
     color: white;
     box-shadow: var(--shadow-md);
 }
 
-.btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-xl);
+.btn-primary:hover,
+#btnCrearMesas:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
-.btn-primary i {
-    font-size: 1.1rem;
+/* Botón guardar - Verde */
+#btnGuardarEvento {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    box-shadow: var(--shadow-md);
 }
 
-.btn-secondary {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-    border: 2px solid var(--border);
-    margin-top: 8px;
+#btnGuardarEvento:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
-.btn-secondary:hover {
-    background: var(--border);
-    border-color: var(--primary-light);
+/* Botón eliminar/finalizar - Rojo */
+#btnFinalizarEvento,
+#btnEliminarEvento {
+    background: linear-gradient(135deg, var(--danger), var(--danger-dark));
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+#btnFinalizarEvento:hover,
+#btnEliminarEvento:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, var(--danger-dark), #b91c1c);
+}
+
+/* Cambiar texto del botón finalizar */
+#btnFinalizarEvento::before {
+    content: '🗑️ ';
+}
+
+.btn-primary i,
+#btnCrearMesas i,
+#btnGuardarEvento i,
+#btnFinalizarEvento i {
+    font-size: 1rem;
 }
 
 .button-group {
     display: flex;
-    gap: 12px;
-    margin-top: 20px;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
 }
 
-.button-group .btn-primary,
-.button-group .btn-secondary {
-    flex: 1;
-}
-
-/* LISTA DE INVITADOS */
+/* ===== LISTA DE INVITADOS ===== */
 .guest-search {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     position: relative;
 }
 
 .guest-search input {
     width: 100%;
-    padding: 12px 16px 12px 44px;
+    padding: 11px 14px 11px 40px;
     border: 2px solid var(--border);
     border-radius: var(--radius);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 500;
     background: var(--bg-input);
     transition: var(--transition);
@@ -803,28 +843,28 @@ body {
     outline: none;
     border-color: var(--primary-solid);
     background: white;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .guest-search i {
     position: absolute;
-    left: 16px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
 }
 
 .guest-filters {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .guest-filters select {
     width: 100%;
-    padding: 10px 14px;
+    padding: 9px 12px;
     border: 2px solid var(--border);
     border-radius: var(--radius);
     background: var(--bg-panel);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     transition: var(--transition);
 }
@@ -832,11 +872,11 @@ body {
 .guests-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
 .guest-item {
-    padding: 14px 16px;
+    padding: 12px 14px;
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     border: 2px solid var(--border);
     border-radius: var(--radius);
@@ -852,24 +892,24 @@ body {
 
 .guest-item strong {
     display: block;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--text-primary);
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
 .guest-item small {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--text-secondary);
 }
 
 .guest-status {
     display: inline-block;
-    padding: 3px 10px;
+    padding: 2px 8px;
     border-radius: var(--radius-full);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
-    margin-top: 6px;
+    margin-top: 4px;
 }
 
 .guest-status.confirmado {
@@ -887,18 +927,16 @@ body {
     color: #991b1b;
 }
 
-/* Para que funcione con tabs existentes sin clase */
 .config-section,
 .guests-section {
-    padding: 24px;
+    padding: 20px;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
+    width: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -907,7 +945,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
     background: linear-gradient(135deg, var(--primary-solid), var(--primary-dark));
-    border-radius: 6px;
+    border-radius: 5px;
     border: 2px solid transparent;
     background-clip: padding-box;
 }
@@ -919,20 +957,20 @@ body {
 
 .empty-state {
     text-align: center;
-    padding: 60px 20px;
+    padding: 50px 20px;
 }
 
 .empty-state i {
-    font-size: 4rem;
+    font-size: 3.5rem;
     background: var(--primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     opacity: 0.3;
 }
 
 .empty-state p {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--text-secondary);
     font-weight: 600;
 }
