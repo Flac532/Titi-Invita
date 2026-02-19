@@ -1,4 +1,4 @@
-/* cliente.css - VERSIÓN FINAL DEFINITIVA */
+/* cliente.css - ULTRA PROFESIONAL CON MEJORAS DE DISEÑO */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
@@ -36,6 +36,7 @@
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-purple: 0 10px 40px -10px rgba(147, 51, 234, 0.5);
     
     --radius-sm: 8px;
     --radius: 12px;
@@ -45,6 +46,7 @@
     
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 * {
@@ -353,7 +355,6 @@ body {
     animation: pulse 2s infinite;
 }
 
-/* ===== OCULTAR BOTONES NO DESEADOS ===== */
 #shareBtn,
 #helpBtn,
 .header-actions {
@@ -467,7 +468,6 @@ body {
     gap: 8px;
 }
 
-/* Ocultar botones específicos en mesas-controls */
 #importCsvBtn,
 #exportListBtn,
 #sendInvitationsBtn {
@@ -599,7 +599,6 @@ body {
 .estado-confirmado { background: var(--silla-confirmado) !important; }
 .estado-asignado { background: var(--silla-rechazado) !important; }
 
-/* ===== OCULTAR LEYENDA ===== */
 .mesas-footer,
 .legend,
 .legend-item,
@@ -612,7 +611,7 @@ label[for="autoSave"] {
     display: none !important;
 }
 
-/* ===== PANEL DERECHO CON TABS ===== */
+/* ===== PANEL DERECHO ===== */
 .right-panel {
     background: var(--bg-panel);
     border-left: 1px solid var(--border);
@@ -622,7 +621,6 @@ label[for="autoSave"] {
     height: 100vh;
 }
 
-/* TABS SISTEMA */
 .tabs {
     display: flex;
     background: var(--bg-panel);
@@ -674,7 +672,6 @@ label[for="autoSave"] {
     border-radius: 3px 3px 0 0;
 }
 
-/* TAB CONTENT */
 .tab-content {
     display: none;
     flex: 1;
@@ -702,7 +699,6 @@ label[for="autoSave"] {
     color: var(--primary-solid);
 }
 
-/* También soportar clases antiguas */
 .config-section,
 .guests-section {
     padding: 20px;
@@ -710,7 +706,6 @@ label[for="autoSave"] {
     overflow-x: hidden;
 }
 
-/* ===== FORMS ===== */
 .form-group {
     margin-bottom: 14px;
 }
@@ -752,7 +747,6 @@ label[for="autoSave"] {
     gap: 10px;
 }
 
-/* ===== BOTONES CON COLORES ===== */
 .btn-primary,
 .btn-secondary,
 #btnCrearMesas,
@@ -776,7 +770,6 @@ label[for="autoSave"] {
     margin-bottom: 8px;
 }
 
-/* Azul */
 .btn-primary,
 #btnCrearMesas {
     background: var(--primary);
@@ -790,7 +783,6 @@ label[for="autoSave"] {
     box-shadow: var(--shadow-lg);
 }
 
-/* Verde */
 #btnGuardarEvento {
     background: linear-gradient(135deg, #10b981, #059669);
     color: white;
@@ -802,7 +794,6 @@ label[for="autoSave"] {
     box-shadow: var(--shadow-lg);
 }
 
-/* Rojo - ELIMINAR */
 #btnFinalizarEvento,
 #btnEliminarEvento {
     background: linear-gradient(135deg, var(--danger), var(--danger-dark));
@@ -816,7 +807,6 @@ label[for="autoSave"] {
     box-shadow: var(--shadow-lg);
 }
 
-/* Cambiar texto visualmente */
 #btnFinalizarEvento {
     position: relative;
     overflow: hidden;
@@ -843,39 +833,84 @@ label[for="autoSave"] {
     margin-top: 16px;
 }
 
-/* ===== BOTÓN AGREGAR INVITADO - MORADO GRANDE ===== */
+/* ===== BOTÓN AGREGAR INVITADO ULTRA BONITO ===== */
 #addGuestBtn,
 .btn-add-guest {
-    width: 100%;
-    padding: 16px 20px !important;
+    width: 100% !important;
+    padding: 18px 24px !important;
     background: linear-gradient(135deg, var(--purple), var(--purple-dark)) !important;
     color: white !important;
     border: none !important;
-    border-radius: var(--radius) !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
+    border-radius: var(--radius-lg) !important;
+    font-weight: 800 !important;
+    font-size: 1.05rem !important;
     cursor: pointer !important;
-    transition: var(--transition) !important;
+    transition: var(--transition-bounce) !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
+    letter-spacing: 1px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 10px !important;
-    margin-bottom: 20px !important;
-    box-shadow: var(--shadow-lg) !important;
+    gap: 12px !important;
+    margin-bottom: 24px !important;
+    box-shadow: var(--shadow-purple) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* Efecto shine animado */
+#addGuestBtn::before,
+.btn-add-guest::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+#addGuestBtn:hover::before,
+.btn-add-guest:hover::before {
+    left: 100%;
+}
+
+/* Partículas decorativas */
+#addGuestBtn::after,
+.btn-add-guest::after {
+    content: '✨';
+    position: absolute;
+    right: 20px;
+    font-size: 1.2rem;
+    animation: sparkle 2s infinite;
+}
+
+@keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
 }
 
 #addGuestBtn:hover,
 .btn-add-guest:hover {
-    transform: translateY(-3px) !important;
-    box-shadow: var(--shadow-xl) !important;
-    background: linear-gradient(135deg, var(--purple-dark), #6b21a8) !important;
+    transform: translateY(-4px) scale(1.02) !important;
+    box-shadow: 0 15px 50px -10px rgba(147, 51, 234, 0.7) !important;
+}
+
+#addGuestBtn:active,
+.btn-add-guest:active {
+    transform: translateY(-2px) scale(0.98) !important;
 }
 
 #addGuestBtn i,
 .btn-add-guest i {
-    font-size: 1.2rem !important;
+    font-size: 1.3rem !important;
+    animation: bounceIcon 2s infinite;
+}
+
+@keyframes bounceIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
 }
 
 /* ===== LISTA DE INVITADOS ===== */
@@ -983,7 +1018,6 @@ label[for="autoSave"] {
     color: #991b1b;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
     width: 10px;
 }
@@ -1024,7 +1058,6 @@ label[for="autoSave"] {
     font-weight: 600;
 }
 
-/* Ocultar modales */
 #modalNuevoEvento,
 #modalAsignarInvitado,
 modal {
