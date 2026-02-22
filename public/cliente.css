@@ -1806,3 +1806,76 @@ body {
     color: #64748b;
     margin: 15px 0;
 }
+
+
+/* ===== CORRECCIONES FINALES ===== */
+
+/* QUITAR TODAS LAS ANIMACIONES DE SILLAS */
+.silla,
+.silla::before,
+.silla::after,
+.silla:hover {
+    animation: none !important;
+    transition: transform 0.15s ease !important;
+}
+
+/* QUITAR SCROLL HORIZONTAL */
+body {
+    overflow-x: hidden !important;
+}
+
+.cliente-main {
+    overflow-x: hidden !important;
+}
+
+.mesas-container {
+    overflow-x: hidden !important;
+}
+
+/* ARREGLAR VISTA RÁPIDA */
+.quick-stats {
+    margin: 16px 0 !important;
+}
+
+.stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+}
+
+.stat-item {
+    min-height: 100px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.progress-container {
+    width: 100% !important;
+}
+
+.progress-bar {
+    width: 100% !important;
+}
+
+.progress-fill {
+    height: 100% !important;
+}
+
+/* ASEGURAR QUE LAS SILLAS NO TENGAN ANIMACIONES */
+@keyframes none {
+    from { transform: none; }
+    to { transform: none; }
+}
+
+.silla * {
+    animation: none !important;
+}
+
+/* MEJOR HOVER PARA SILLAS */
+.silla:hover {
+    transform: scale(1.1) !important;
+    filter: brightness(1.1) !important;
+    cursor: pointer !important;
+}
