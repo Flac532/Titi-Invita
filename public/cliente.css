@@ -1413,3 +1413,400 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
 }
+
+
+/* ===== FORMULARIO AGREGAR/EDITAR INVITADO BONITO ===== */
+
+.modal-invitado {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 10001;
+}
+
+.modal-invitado.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-invitado-box {
+    background: white;
+    border-radius: 24px;
+    max-width: 520px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-invitado-header {
+    background: linear-gradient(135deg, #10b981, #059669);
+    padding: 30px;
+    color: white;
+    border-radius: 24px 24px 0 0;
+    position: relative;
+}
+
+.modal-invitado-header h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-close-invitado {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-close-invitado:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-invitado-body {
+    padding: 30px;
+}
+
+.form-group-invitado {
+    margin-bottom: 20px;
+}
+
+.form-group-invitado label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #1e293b;
+    font-size: 0.9rem;
+}
+
+.form-group-invitado input,
+.form-group-invitado select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    background: #f8fafc;
+    transition: all 0.3s;
+    color: #1e293b;
+}
+
+.form-group-invitado input:focus,
+.form-group-invitado select:focus {
+    outline: none;
+    border-color: #10b981;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.form-row-invitado {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-buttons-invitado {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 2px solid #e2e8f0;
+}
+
+.form-buttons-invitado button {
+    flex: 1;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-cancel-invitado {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.btn-cancel-invitado:hover {
+    background: #e2e8f0;
+}
+
+.btn-save-invitado {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.btn-save-invitado:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* ===== MODAL ASIGNACIÓN BONITA ===== */
+
+.modal-asignar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 10002;
+}
+
+.modal-asignar.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-asignar-box {
+    background: white;
+    border-radius: 24px;
+    max-width: 480px;
+    width: 90%;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.4s ease-out;
+}
+
+.modal-asignar-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 28px;
+    color: white;
+    border-radius: 24px 24px 0 0;
+    position: relative;
+}
+
+.modal-asignar-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-close-asignar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-close-asignar:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-asignar-body {
+    padding: 28px;
+}
+
+.invitado-info-asignar {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border-left: 4px solid #10b981;
+}
+
+.invitado-info-asignar strong {
+    color: #1e293b;
+    font-size: 1.1rem;
+}
+
+.invitado-info-asignar small {
+    display: block;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.select-mesa-silla {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.select-mesa-silla select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    background: #f8fafc;
+    transition: all 0.3s;
+    color: #1e293b;
+}
+
+.select-mesa-silla select:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.form-buttons-asignar {
+    display: flex;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 2px solid #e2e8f0;
+}
+
+.form-buttons-asignar button {
+    flex: 1;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-cancel-asignar {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.btn-cancel-asignar:hover {
+    background: #e2e8f0;
+}
+
+.btn-confirm-asignar {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.btn-confirm-asignar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== BOTÓN EDITAR EN LISTA ===== */
+
+.btn-edit-guest {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.guest-item {
+    position: relative !important;
+}
+
+.guest-item:hover .btn-edit-guest {
+    opacity: 1;
+}
+
+.btn-edit-guest:hover {
+    transform: translateY(-2px) scale(1.1);
+    box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== TOAST MEJORADO ===== */
+
+.toast-custom {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: white;
+    padding: 18px 24px;
+    border-radius: 14px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    z-index: 10003;
+    animation: toastIn 0.4s ease-out;
+}
+
+@keyframes toastIn {
+    0% {
+        opacity: 0;
+        transform: translateX(400px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.toast-custom.success {
+    border-left: 5px solid #10b981;
+}
+
+.toast-custom.error {
+    border-left: 5px solid #ef4444;
+}
+
+.toast-custom i {
+    font-size: 1.4rem;
+}
+
+.toast-custom.success i {
+    color: #10b981;
+}
+
+.toast-custom.error i {
+    color: #ef4444;
+}
+
+.toast-custom span {
+    font-weight: 600;
+    color: #1e293b;
+}
