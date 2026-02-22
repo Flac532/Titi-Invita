@@ -1653,3 +1653,35 @@ if (document.readyState === 'loading') {
 window.addEventListener('load', cambiarBotonConfiguracion);
 
 console.log('✅ Botones de configuración mejorados');
+
+// ===== ARREGLAR ANIMACIONES Y CAMBIAR BOTÓN A ELIMINAR =====
+
+// Cambiar botón Finalizar a ELIMINAR
+const cambiarBotonEliminar = () => {
+    const btnFinalizar = document.getElementById('btnFinalizarEvento');
+    if (btnFinalizar) {
+        btnFinalizar.innerHTML = '<i class="fas fa-trash-alt"></i> ELIMINAR';
+        console.log('✅ Botón cambiado a ELIMINAR');
+        return true;
+    }
+    return false;
+};
+
+// Intentar múltiples veces para asegurar que funcione
+cambiarBotonEliminar();
+setTimeout(cambiarBotonEliminar, 100);
+setTimeout(cambiarBotonEliminar, 300);
+setTimeout(cambiarBotonEliminar, 500);
+setTimeout(cambiarBotonEliminar, 1000);
+
+// Cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', cambiarBotonEliminar);
+} else {
+    cambiarBotonEliminar();
+}
+
+// Cuando todo cargue
+window.addEventListener('load', cambiarBotonEliminar);
+
+console.log('✅ Botón ELIMINAR configurado correctamente');
