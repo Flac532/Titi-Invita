@@ -1654,34 +1654,40 @@ window.addEventListener('load', cambiarBotonConfiguracion);
 
 console.log('✅ Botones de configuración mejorados');
 
-// ===== CAMBIAR BOTÓN A ELIMINAR - SIMPLE Y LIMPIO =====
+// ===== CAMBIAR ICONOS A SÍMBOLOS SIMPLES QUE SÍ SE VEN =====
 
-function cambiarBotonEliminar() {
-    const btn = document.getElementById('btnFinalizarEvento');
-    if (btn) {
-        // Usar solo texto simple con el ícono FA que ya existe
-        const icono = btn.querySelector('i');
-        if (icono) {
-            icono.className = 'fas fa-trash-alt';
-        }
-        // Cambiar solo el texto
-        const textos = btn.childNodes;
-        for (let i = 0; i < textos.length; i++) {
-            if (textos[i].nodeType === 3) { // Nodo de texto
-                textos[i].textContent = ' ELIMINAR';
-            }
-        }
-        console.log('✅ Botón cambiado a ELIMINAR');
+function cambiarIconosSimples() {
+    // Botón Actualizar Mesas
+    const btnActualizar = document.getElementById('btnCrearMesas');
+    if (btnActualizar) {
+        btnActualizar.innerHTML = '↻ ACTUALIZAR MESAS';
+        console.log('✅ Botón actualizar cambiado');
+    }
+    
+    // Botón Guardar
+    const btnGuardar = document.getElementById('btnGuardarEvento');
+    if (btnGuardar) {
+        btnGuardar.innerHTML = '💾 GUARDAR CAMBIOS';
+        console.log('✅ Botón guardar cambiado');
+    }
+    
+    // Botón Eliminar (era Finalizar)
+    const btnEliminar = document.getElementById('btnFinalizarEvento');
+    if (btnEliminar) {
+        btnEliminar.innerHTML = '🗑 ELIMINAR';
+        console.log('✅ Botón eliminar cambiado');
     }
 }
 
-// Intentar varias veces
-cambiarBotonEliminar();
-setTimeout(cambiarBotonEliminar, 100);
-setTimeout(cambiarBotonEliminar, 500);
-setTimeout(cambiarBotonEliminar, 1000);
+// Ejecutar múltiples veces para asegurar
+cambiarIconosSimples();
+setTimeout(cambiarIconosSimples, 100);
+setTimeout(cambiarIconosSimples, 300);
+setTimeout(cambiarIconosSimples, 500);
+setTimeout(cambiarIconosSimples, 1000);
+setTimeout(cambiarIconosSimples, 2000);
 
-document.addEventListener('DOMContentLoaded', cambiarBotonEliminar);
-window.addEventListener('load', cambiarBotonEliminar);
+document.addEventListener('DOMContentLoaded', cambiarIconosSimples);
+window.addEventListener('load', cambiarIconosSimples);
 
-console.log('✅ Diseño simple cargado');
+console.log('✅ Iconos simples configurados');
