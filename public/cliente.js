@@ -1,782 +1,1389 @@
-// cliente.js - VERSIÓN COMPLETA CON TODAS LAS FUNCIONALIDADES
-const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
-let currentUser = null;
-let currentEvent = null;
+// cliente.js - Sistema de mesas completo para cliente con 3 roles
+
+// ===== VARIABLES GLOBALES =====
+let eventosCliente = [];
+let eventoActual = null;
 let mesas = [];
 let invitados = [];
-let mesasConInvitados = {};
+let sillaSeleccionada = null;
+let zoomLevel = 1;
+let usuario = null;
+let limiteEventos = null;
+let configuracionDisposicion = {
+    columnas: 4,
+    filas: 2,
+    espaciado: 70
+};
 
+// ===== ELEMENTOS DOM =====
+const eventSelector = document.getElementById('eventSelector');
+const currentEventName = document.getElementById('currentEventName');
+const eventNameInput = document.getElementById('eventName');
+const eventDateInput = document.getElementById('eventDate');
+const eventTimeInput = document.getElementById('eventTime');
+const eventDescriptionInput = document.getElementById('eventDescription');
+const numMesasInput = document.getElementById('numMesas');
+const sillasPorMesaInput = document.getElementById('sillasPorMesa');
+const formaMesaSelect = document.getElementById('formaMesa');
+const btnCrearMesas = document.getElementById('btnCrearMesas');
+const btnGuardarEvento = document.getElementById('btnGuardarEvento');
+const btnFinalizarEvento = document.getElementById('btnFinalizarEvento');
+const mesasContainer = document.getElementById('mesasContainer');
+const newEventBtn = document.getElementById('newEventBtn');
+const newEventModal = document.getElementById('newEventModal');
+const logoutBtn = document.getElementById('logoutBtn');
+const userAvatar = document.getElementById('userAvatar');
+const userName = document.getElementById('userName');
+const userRole = document.getElementById('userRole');
+const roleBadge = document.getElementById('roleBadge');
+const eventLimitInfo = document.getElementById('eventLimitInfo');
+const limitText = document.getElementById('limitText');
+const searchGuests = document.getElementById('searchGuests');
+const zoomInBtn = document.getElementById('zoomInBtn');
+const zoomOutBtn = document.getElementById('zoomOutBtn');
+const resetViewBtn = document.getElementById('resetViewBtn');
+const showNamesCheckbox = document.getElementById('showNames');
+const autoSaveCheckbox = document.getElementById('autoSave');
+
+// Elementos de disposición
+const numColumnasInput = document.getElementById('numColumnas');
+const numFilasInput = document.getElementById('numFilas');
+const espaciadoInput = document.getElementById('espaciado');
+
+// Estadísticas
+const statTotalMesas = document.getElementById('statTotalMesas');
+const statTotalSillas = document.getElementById('statTotalSillas');
+const statSillasOcupadas = document.getElementById('statSillasOcupadas');
+const statPorcentajeOcupacion = document.getElementById('statPorcentajeOcupacion');
+const ocupacionBar = document.getElementById('ocupacionBar');
+const totalEventsCount = document.getElementById('totalEventsCount');
+const activeEventsCount = document.getElementById('activeEventsCount');
+const draftEventsCount = document.getElementById('draftEventsCount');
+
+// Lista de invitados
+const guestsList = document.getElementById('guestsList');
+const guestSearch = document.getElementById('guestSearch');
+const guestFilter = document.getElementById('guestFilter');
+const addGuestBtn = document.getElementById('addGuestBtn');
+const guestDetails = document.getElementById('guestDetails');
+
+// ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Iniciando cliente.js COMPLETO');
+    // Cargar usuario actual
+    usuario = window.titiAuth?.obtenerUsuarioActual();
     
-    const usuarioStr = localStorage.getItem('titi_usuario_actual');
-    if (!usuarioStr) {
+    if (!usuario) {
         window.location.href = 'login.html';
         return;
     }
     
-    currentUser = JSON.parse(usuarioStr);
-    console.log('✅ Usuario:', currentUser.nombre, '- Rol:', currentUser.rol);
+    // Configurar UI con datos del usuario
+    inicializarInterfazUsuario();
     
-    inicializarInterfaz();
-    cargarEventos();
-    setupEventListeners();
+    // Configurar límite de eventos según rol
+    configurarLimiteEventos();
+    
+    // Cargar datos iniciales
+    cargarEventosUsuario();
+    cargarInvitadosDemo();
+    configurarFechaHora();
+    
+    // Configurar event listeners
+    configurarEventListeners();
+    
+    // Crear mesas por defecto
+    crearMesas();
+    
+    // Verificar límite al cargar
+    verificarLimiteEventos();
 });
 
-function inicializarInterfaz() {
-    const userName = document.getElementById('userName');
-    const userRole = document.getElementById('userRole');
-    const roleBadge = document.getElementById('roleBadge');
-    const userAvatar = document.getElementById('userAvatar');
+// ===== FUNCIONES PRINCIPALES =====
+
+function inicializarInterfazUsuario() {
+    // Configurar avatar
+    userAvatar.textContent = usuario.avatar || usuario.nombre.substring(0, 2).toUpperCase();
+    userName.textContent = usuario.nombre;
     
-    if (userName) userName.textContent = currentUser.nombre;
-    if (userRole) userRole.textContent = currentUser.rol.charAt(0).toUpperCase() + currentUser.rol.slice(1);
-    if (roleBadge) {
-        roleBadge.textContent = currentUser.rol.toUpperCase();
-        roleBadge.className = 'role-badge ' + currentUser.rol;
-    }
-    if (userAvatar) {
-        const iniciales = currentUser.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-        userAvatar.textContent = iniciales;
-    }
+    // Configurar rol y badge
+    const roleNames = {
+        'admin': 'Administrador',
+        'cliente': 'Cliente',
+        'organizador': 'Organizador'
+    };
+    const roleColors = {
+        'admin': 'admin',
+        'cliente': 'cliente',
+        'organizador': 'organizador'
+    };
+    
+    userRole.textContent = roleNames[usuario.rol] || usuario.rol;
+    roleBadge.textContent = usuario.rol.toUpperCase();
+    roleBadge.className = `role-badge ${roleColors[usuario.rol]}`;
+    
+    // Configurar límite de eventos
+    limiteEventos = usuario.limite_eventos;
 }
 
-function setupEventListeners() {
-    const newEventBtn = document.getElementById('newEventBtn');
-    const refreshEventsBtn = document.getElementById('refreshEventsBtn');
-    const eventSelector = document.getElementById('eventSelector');
-    const btnGuardarEvento = document.getElementById('btnGuardarEvento');
-    const btnCrearMesas = document.getElementById('btnCrearMesas');
-    const addGuestBtn = document.getElementById('addGuestBtn');
-    
-    if (newEventBtn) newEventBtn.addEventListener('click', () => abrirModalNuevoEvento());
-    if (refreshEventsBtn) refreshEventsBtn.addEventListener('click', () => cargarEventos());
-    if (eventSelector) {
-        eventSelector.addEventListener('change', (e) => {
-            if (e.target.value) cargarEvento(e.target.value);
-        });
-    }
-    if (btnGuardarEvento) btnGuardarEvento.addEventListener('click', () => guardarCambiosEvento());
-    if (btnCrearMesas) btnCrearMesas.addEventListener('click', () => crearActualizarMesas());
-    if (addGuestBtn) {
-        addGuestBtn.addEventListener('click', () => {
-            document.getElementById('addGuestModal').classList.add('active');
-            cargarMesasEnSelector();
-        });
-    }
-    
-    // Form de invitado
-    const formInvitado = document.getElementById('formAgregarInvitado');
-    if (formInvitado) {
-        formInvitado.addEventListener('submit', (e) => {
-            e.preventDefault();
-            guardarInvitado();
-        });
-    }
-    
-    // Select de mesa en modal invitado
-    const guestMesa = document.getElementById('guestMesa');
-    if (guestMesa) {
-        guestMesa.addEventListener('change', (e) => {
-            cargarSillasDisponibles(e.target.value);
-        });
-    }
-}
-
-async function cargarEventos() {
-    try {
-        const token = obtenerToken();
-        let endpoint = '/eventos-usuario';
+function configurarLimiteEventos() {
+    if (limiteEventos === 1) {
+        // Mostrar información de límite para clientes
+        eventLimitInfo.style.display = 'flex';
+        limitText.textContent = 'Límite: 1 evento activo';
         
-        if (currentUser.rol === 'admin') {
-            endpoint = '/eventos';
-        } else if (currentUser.rol === 'organizador') {
-            endpoint = '/mis-eventos';
-        } else if (currentUser.rol === 'colaborador') {
-            endpoint = '/mi-evento';
+        // Actualizar mensaje en modal de nuevo evento
+        const limitWarning = document.getElementById('eventLimitWarning');
+        if (limitWarning) {
+            limitWarning.style.display = 'block';
         }
-        
-        console.log('📥 Cargando desde:', endpoint);
-        
-        const response = await fetch(API_BASE + endpoint, {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        
-        if (!response.ok) throw new Error('Error al cargar eventos');
-        
-        const data = await response.json();
-        const eventos = Array.isArray(data) ? data : (data.eventos || [data]);
-        
-        console.log('✅ Eventos:', eventos.length);
-        
-        const eventSelector = document.getElementById('eventSelector');
-        if (eventSelector) {
-            eventSelector.innerHTML = '<option value="">Seleccionar Evento...</option>';
-            eventos.forEach(evento => {
-                const option = document.createElement('option');
-                option.value = evento.id;
-                option.textContent = evento.nombre;
-                eventSelector.appendChild(option);
-            });
-            
-            if (eventos.length > 0) {
-                eventSelector.value = eventos[0].id;
-                cargarEvento(eventos[0].id);
+    }
+}
+
+// 1. Cargar eventos del usuario según su rol
+function cargarEventosUsuario() {
+    // Datos de demo - en producción vendrían de la API
+    let eventosDemo = [];
+    
+    if (usuario.rol === 'cliente') {
+        // Cliente solo ve sus eventos (máximo 1 activo)
+        eventosDemo = [
+            {
+                id: 1,
+                nombre: 'Boda de Ana y Carlos',
+                descripcion: 'Celebración en jardín botánico',
+                fecha: '2024-06-15',
+                hora: '18:00',
+                ubicacion: 'Jardín Botánico',
+                estado: 'activo',
+                mesas: 8,
+                sillasPorMesa: 8,
+                formaMesa: 'rectangular',
+                configuracion: {}
             }
+        ];
+    } else if (usuario.rol === 'organizador') {
+        // Organizador ve múltiples eventos
+        eventosDemo = [
+            {
+                id: 1,
+                nombre: 'Boda de Ana y Carlos',
+                descripcion: 'Celebración en jardín botánico',
+                fecha: '2024-06-15',
+                hora: '18:00',
+                ubicacion: 'Jardín Botánico',
+                estado: 'activo',
+                mesas: 8,
+                sillasPorMesa: 8,
+                formaMesa: 'rectangular',
+                configuracion: {}
+            },
+            {
+                id: 2,
+                nombre: 'Conferencia Tech 2024',
+                descripcion: 'Conferencia anual de tecnología',
+                fecha: '2024-07-20',
+                hora: '09:00',
+                ubicacion: 'Centro de Convenciones',
+                estado: 'activo',
+                mesas: 12,
+                sillasPorMesa: 6,
+                formaMesa: 'circular',
+                configuracion: {}
+            },
+            {
+                id: 3,
+                nombre: 'Fiesta de Graduación',
+                descripcion: 'Celebración de graduación universitaria',
+                fecha: '2024-08-10',
+                hora: '20:00',
+                ubicacion: 'Salón de Eventos',
+                estado: 'borrador',
+                mesas: 6,
+                sillasPorMesa: 10,
+                formaMesa: 'rectangular',
+                configuracion: {}
+            }
+        ];
+    } else if (usuario.rol === 'admin') {
+        // Admin vería todos, pero admin va a admin.html
+        // Por si acaso, mostramos algunos eventos
+        eventosDemo = [
+            {
+                id: 1,
+                nombre: 'Evento de Administración',
+                descripcion: 'Evento de prueba para admin',
+                fecha: '2024-06-20',
+                hora: '10:00',
+                ubicacion: 'Oficina Principal',
+                estado: 'activo',
+                mesas: 10,
+                sillasPorMesa: 8,
+                formaMesa: 'rectangular',
+                configuracion: {}
+            }
+        ];
+    }
+    
+    eventosCliente = eventosDemo;
+    
+    // Actualizar estadísticas de eventos
+    actualizarEstadisticasEventos();
+    
+    // Llenar selector de eventos
+    eventSelector.innerHTML = '<option value="">Seleccionar Evento...</option>';
+    eventosCliente.forEach(evento => {
+        const option = document.createElement('option');
+        option.value = evento.id;
+        option.textContent = evento.nombre;
+        if (evento.estado === 'borrador') {
+            option.textContent += ' (Borrador)';
         }
-    } catch (error) {
-        console.error('❌ Error:', error);
-        showToast('Error al cargar eventos', 'error');
+        eventSelector.appendChild(option);
+    });
+    
+    // Seleccionar primer evento por defecto
+    if (eventosCliente.length > 0) {
+        eventSelector.value = eventosCliente[0].id;
+        cargarEvento(eventosCliente[0].id);
     }
 }
 
-async function cargarEvento(eventoId) {
-    try {
-        console.log('📥 Cargando evento:', eventoId);
-        
-        const token = obtenerToken();
-        const response = await fetch(API_BASE + '/eventos/' + eventoId, {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        
-        if (!response.ok) throw new Error('Error');
-        
-        currentEvent = await response.json();
-        console.log('✅ Evento cargado:', currentEvent);
-        
-        actualizarInfoEvento();
-        await cargarMesas(eventoId);
-        await cargarInvitados(eventoId);
-        actualizarEstadisticas();
-    } catch (error) {
-        console.error('❌ Error:', error);
-        showToast('Error al cargar evento', 'error');
-    }
+function actualizarEstadisticasEventos() {
+    const total = eventosCliente.length;
+    const activos = eventosCliente.filter(e => e.estado === 'activo').length;
+    const borradores = eventosCliente.filter(e => e.estado === 'borrador').length;
+    
+    totalEventsCount.textContent = total;
+    activeEventsCount.textContent = activos;
+    draftEventsCount.textContent = borradores;
 }
 
-function actualizarInfoEvento() {
-    if (!currentEvent) return;
+// 2. Cargar un evento específico
+function cargarEvento(eventoId) {
+    const evento = eventosCliente.find(e => e.id == eventoId);
+    if (!evento) return;
     
-    const currentEventName = document.getElementById('currentEventName');
-    const currentEventDate = document.getElementById('currentEventDate');
-    const eventName = document.getElementById('eventName');
-    const eventDate = document.getElementById('eventDate');
-    const eventTime = document.getElementById('eventTime');
-    const eventDescription = document.getElementById('eventDescription');
+    eventoActual = evento;
+    currentEventName.textContent = evento.nombre;
     
-    if (currentEventName) currentEventName.textContent = currentEvent.nombre;
-    if (currentEventDate && currentEvent.fecha_evento) {
-        const fecha = new Date(currentEvent.fecha_evento);
-        currentEventDate.textContent = fecha.toLocaleDateString();
+    // Llenar formulario con datos del evento
+    eventNameInput.value = evento.nombre;
+    eventDescriptionInput.value = evento.descripcion || '';
+    eventDateInput.value = evento.fecha;
+    eventTimeInput.value = evento.hora;
+    numMesasInput.value = evento.mesas;
+    sillasPorMesaInput.value = evento.sillasPorMesa;
+    formaMesaSelect.value = evento.formaMesa;
+    
+    // Cargar configuración si existe
+    if (evento.configuracion && evento.configuracion.mesas) {
+        mesas = evento.configuracion.mesas;
+        renderizarMesas();
+    } else {
+        crearMesas();
     }
-    if (eventName) eventName.value = currentEvent.nombre || '';
-    if (eventDate && currentEvent.fecha_evento) {
-        const fecha = new Date(currentEvent.fecha_evento);
-        eventDate.value = fecha.toISOString().split('T')[0];
-    }
-    if (eventTime && currentEvent.fecha_evento) {
-        const fecha = new Date(currentEvent.fecha_evento);
-        eventTime.value = fecha.toTimeString().substring(0, 5);
-    }
-    if (eventDescription) eventDescription.value = currentEvent.descripcion || '';
+    
+    // Actualizar estadísticas
+    actualizarEstadisticas();
 }
 
-async function cargarMesas(eventoId) {
-    try {
-        console.log('📥 Cargando mesas...');
-        
-        const token = obtenerToken();
-        const response = await fetch(API_BASE + '/eventos/' + eventoId + '/mesas', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        
-        if (!response.ok) {
-            console.log('⚠️ No hay mesas');
-            mesas = [];
-            renderizarMesas([]);
-            return;
-        }
-        
-        const data = await response.json();
-        
-        // Asegurar array
-        if (Array.isArray(data)) {
-            mesas = data;
-        } else if (data && typeof data === 'object') {
-            mesas = data.mesas || data.data || [];
-        } else {
-            mesas = [];
-        }
-        
-        console.log('✅ Mesas:', mesas.length);
-        renderizarMesas(mesas);
-        actualizarEstadisticas();
-    } catch (error) {
-        console.error('❌ Error mesas:', error);
-        mesas = [];
-        renderizarMesas([]);
-    }
-}
-
-function renderizarMesas(mesasArray) {
-    const container = document.getElementById('mesasContainer');
-    if (!container) return;
+// 3. Crear mesas (basado en final.html pero adaptado)
+function crearMesas() {
+    const numMesas = parseInt(numMesasInput.value);
+    const sillasPorMesa = parseInt(sillasPorMesaInput.value);
+    const formaMesa = formaMesaSelect.value;
     
-    container.innerHTML = '';
-    
-    if (!Array.isArray(mesasArray) || mesasArray.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-chair"></i>
-                <p>No hay mesas creadas</p>
-                <small>Usa "Crear/Actualizar Mesas"</small>
-            </div>
-        `;
+    // Validaciones
+    if (numMesas < 1 || numMesas > 50) {
+        mostrarMensaje('El número de mesas debe estar entre 1 y 50', 'error');
         return;
     }
     
-    // Calcular asignaciones de invitados por silla
-    calcularAsignaciones();
+    if (sillasPorMesa < 1 || sillasPorMesa > 12) {
+        mostrarMensaje('Las sillas por mesa deben estar entre 1 y 12', 'error');
+        return;
+    }
     
-    mesasArray.forEach(mesa => {
-        if (!mesa) return;
-        const mesaElement = crearMesa(mesa);
-        if (mesaElement) container.appendChild(mesaElement);
-    });
-}
-
-function calcularAsignaciones() {
-    mesasConInvitados = {};
+    // Limpiar contenedor
+    mesasContainer.innerHTML = '';
+    mesas = [];
     
-    invitados.forEach(inv => {
-        if (inv.mesa_id && inv.silla_numero) {
-            const key = `${inv.mesa_id}-${inv.silla_numero}`;
-            mesasConInvitados[key] = inv;
+    // Obtener configuración de disposición
+    const columnas = parseInt(numColumnasInput.value) || 4;
+    const filas = parseInt(numFilasInput.value) || 2;
+    const espaciado = parseInt(espaciadoInput.value) || 70;
+    
+    // Guardar configuración
+    configuracionDisposicion = { columnas, filas, espaciado };
+    
+    // Actualizar CSS del contenedor
+    mesasContainer.style.gap = `${espaciado}px`;
+    mesasContainer.style.gridTemplateColumns = `repeat(${columnas}, 1fr)`;
+    
+    // Calcular mesas por fila/columna
+    const mesasPorFila = Math.ceil(numMesas / filas);
+    
+    // Crear cada mesa
+    for (let i = 0; i < numMesas; i++) {
+        const mesa = {
+            id: i + 1,
+            nombre: `Mesa ${i + 1}`,
+            forma: formaMesa,
+            sillas: []
+        };
+        
+        // Crear sillas para esta mesa
+        for (let j = 0; j < sillasPorMesa; j++) {
+            mesa.sillas.push({
+                id: j + 1,
+                estado: 'sin-asignar',
+                nombre: '',
+                invitadoId: null
+            });
         }
-    });
+        
+        mesas.push(mesa);
+        crearMesaVisual(mesa);
+    }
+    
+    // Actualizar estadísticas
+    actualizarEstadisticas();
+    
+    // Guardar en evento actual si existe
+    if (eventoActual) {
+        guardarConfiguracionEvento();
+    }
+    
+    mostrarMensaje(`${numMesas} mesas creadas con éxito`, 'success');
 }
 
-function crearMesa(mesa) {
-    const forma = mesa.forma || 'rectangular';
-    const capacidad = mesa.capacidad || 8;
-    const colorMesa = mesa.color || '#8B4513';
+// 4. Renderizar mesa visual
+function crearMesaVisual(mesa) {
+    const mesaElement = document.createElement('div');
+    mesaElement.className = 'mesa';
+    mesaElement.dataset.id = mesa.id;
+    mesaElement.style.transform = `scale(${zoomLevel})`;
+    mesaElement.style.transition = 'transform 0.3s ease';
     
-    const mesaDiv = document.createElement('div');
-    mesaDiv.className = 'mesa';
-    mesaDiv.setAttribute('data-mesa-id', mesa.id);
-    
-    // Info de la mesa (nombre editable)
+    // Información de la mesa (editable)
     const mesaInfo = document.createElement('div');
     mesaInfo.className = 'mesa-info';
-    mesaInfo.innerHTML = `
-        <strong>${mesa.nombre || 'Mesa ' + mesa.numero}</strong>
-        <div style="margin-top:5px; font-size:0.85rem">
-            <button onclick="editarMesa(${mesa.id})" style="background:#2196F3; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; margin-right:5px">
-                <i class="fas fa-edit"></i> Editar
-            </button>
-            <button onclick="cambiarColorMesa(${mesa.id})" style="background:#FF9800; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer">
-                <i class="fas fa-palette"></i> Color
-            </button>
-        </div>
-    `;
-    mesaDiv.appendChild(mesaInfo);
+    mesaInfo.textContent = `${mesa.nombre} (${mesa.sillas.length} sillas)`;
+    mesaInfo.addEventListener('click', function() {
+        editarNombreMesa(mesa.id, mesaInfo);
+    });
+    mesaElement.appendChild(mesaInfo);
     
-    // Mesa gráfica
+    // Representación gráfica de la mesa
     const mesaGrafica = document.createElement('div');
-    mesaGrafica.className = 'mesa-grafica mesa-' + forma;
-    mesaGrafica.style.backgroundColor = colorMesa;
-    mesaGrafica.textContent = mesa.nombre || `Mesa ${mesa.numero}`;
-    mesaDiv.appendChild(mesaGrafica);
+    mesaGrafica.className = `mesa-grafica mesa-${mesa.forma}`;
+    mesaGrafica.textContent = mesa.nombre;
+    mesaElement.appendChild(mesaGrafica);
     
-    // Agregar sillas con colores
-    agregarSillasConEstado(mesaDiv, mesa, forma, capacidad);
+    // Contenedor para las sillas
+    const sillasContainer = document.createElement('div');
+    sillasContainer.className = `sillas-container ${mesa.forma}-sillas`;
     
-    return mesaDiv;
-}
-
-function agregarSillasConEstado(mesaDiv, mesa, forma, cantidad) {
-    const posiciones = calcularPosicionesSillas(forma, cantidad);
+    // Calcular posiciones de las sillas según la forma de la mesa
+    const posiciones = calcularPosicionesSillas(mesa.sillas.length, mesa.forma);
     
-    posiciones.forEach((pos, index) => {
-        const sillaNro = index + 1;
-        const key = `${mesa.id}-${sillaNro}`;
-        const invitado = mesasConInvitados[key];
+    // Crear cada silla
+    mesa.sillas.forEach((silla, index) => {
+        const sillaElement = document.createElement('div');
+        sillaElement.className = `silla estado-${silla.estado}`;
+        sillaElement.dataset.mesaId = mesa.id;
+        sillaElement.dataset.sillaId = silla.id;
+        sillaElement.textContent = silla.id;
         
-        const silla = document.createElement('div');
-        silla.className = 'silla';
-        silla.setAttribute('data-mesa-id', mesa.id);
-        silla.setAttribute('data-silla-numero', sillaNro);
-        silla.textContent = sillaNro;
-        silla.style.left = pos.x + 'px';
-        silla.style.top = pos.y + 'px';
-        silla.style.transform = `rotate(${pos.rotation}deg)`;
-        
-        // COLORES SEGÚN ESTADO
-        if (invitado) {
-            if (invitado.estado === 'confirmado') {
-                silla.style.backgroundColor = '#4CAF50'; // Verde
-                silla.title = `${invitado.nombre} - Confirmado`;
-            } else if (invitado.estado === 'rechazado') {
-                silla.style.backgroundColor = '#f44336'; // Rojo
-                silla.title = `${invitado.nombre} - Rechazado`;
-            } else {
-                silla.style.backgroundColor = '#FFA726'; // Naranja pendiente
-                silla.title = `${invitado.nombre} - Pendiente`;
-            }
-        } else {
-            silla.style.backgroundColor = '#9E9E9E'; // Gris disponible
-            silla.title = 'Disponible';
+        // Mostrar nombre si está asignado y la opción está activa
+        if (silla.nombre && showNamesCheckbox.checked) {
+            sillaElement.setAttribute('title', silla.nombre);
         }
         
-        // Click para asignar invitado
-        silla.addEventListener('click', () => {
-            if (invitado) {
-                mostrarInfoInvitado(invitado);
-            } else {
-                asignarInvitadoASilla(mesa.id, sillaNro);
+        // Posicionar la silla
+        const pos = posiciones[index];
+        sillaElement.style.left = `calc(${pos.x}% - 16px)`;
+        sillaElement.style.top = `calc(${pos.y}% - 21px)`;
+        
+        // Rotar silla para orientarla hacia la mesa
+        const centroX = 50;
+        const centroY = 50;
+        
+        if (mesa.forma === 'rectangular' || mesa.forma === 'cuadrada') {
+            if (pos.y < 25) {
+                sillaElement.style.transform = `rotate(180deg)`;
+            } else if (pos.y > 75) {
+                sillaElement.style.transform = `rotate(0deg)`;
+            } else if (pos.x < 25) {
+                sillaElement.style.transform = `rotate(90deg)`;
+            } else if (pos.x > 75) {
+                sillaElement.style.transform = `rotate(270deg)`;
             }
+        } else {
+            const angulo = Math.atan2(centroY - pos.y, centroX - pos.x) * (180 / Math.PI);
+            sillaElement.style.transform = `rotate(${angulo + 90}deg)`;
+        }
+        
+        // Event listener para cambiar estado
+        sillaElement.addEventListener('click', function(e) {
+            e.stopPropagation();
+            seleccionarSilla(mesa.id, silla.id);
         });
         
-        mesaDiv.appendChild(silla);
+        sillasContainer.appendChild(sillaElement);
+    });
+    
+    mesaElement.appendChild(sillasContainer);
+    mesasContainer.appendChild(mesaElement);
+}
+
+// 5. Calcular posiciones de sillas
+function calcularPosicionesSillas(numSillas, forma) {
+    const posiciones = [];
+    
+    if (forma === 'rectangular' || forma === 'cuadrada') {
+        const anchoContenedor = 100;
+        const sillasLadosCortos = 2;
+        const sillasRestantes = Math.max(0, numSillas - sillasLadosCortos);
+        const sillasPorLadoLargo = Math.floor(sillasRestantes / 2);
+        const sillasImpares = sillasRestantes % 2;
+        const margenLateral = 20;
+        const margenVertical = 15;
+        
+        // Lados cortos
+        posiciones.push({x: -5, y: 50});
+        if (numSillas >= 2) {
+            posiciones.push({x: anchoContenedor + 5, y: 50});
+        }
+        
+        // Lados largos
+        if (sillasPorLadoLargo > 0) {
+            const distancia = anchoContenedor - (margenLateral * 2);
+            const divisor = Math.max(sillasPorLadoLargo - 1, 1);
+            
+            // Lado superior
+            for (let i = 0; i < sillasPorLadoLargo; i++) {
+                const posRelativa = (i * (distancia / divisor));
+                const x = margenLateral + posRelativa;
+                const y = margenVertical;
+                posiciones.push({x, y});
+            }
+            
+            // Lado inferior
+            for (let i = 0; i < sillasPorLadoLargo; i++) {
+                const posRelativa = (i * (distancia / divisor));
+                const x = margenLateral + posRelativa;
+                const y = anchoContenedor - margenVertical;
+                posiciones.push({x, y});
+            }
+        }
+        
+        // Silla impar
+        if (sillasImpares > 0) {
+            posiciones.push({x: 50, y: margenVertical});
+        }
+        
+        // Recortar si hay más sillas de las calculadas
+        while (posiciones.length > numSillas) {
+            posiciones.pop();
+        }
+    } else if (forma === 'circular') {
+        const centroX = 50;
+        const centroY = 50;
+        const radio = 75;
+        
+        for (let i = 0; i < numSillas; i++) {
+            const angulo = (2 * Math.PI / numSillas) * i;
+            const x = centroX + radio * Math.cos(angulo);
+            const y = centroY + radio * Math.sin(angulo);
+            posiciones.push({x, y});
+        }
+    }
+    
+    return posiciones;
+}
+
+// 6. Renderizar todas las mesas
+function renderizarMesas() {
+    mesasContainer.innerHTML = '';
+    mesas.forEach(mesa => {
+        crearMesaVisual(mesa);
     });
 }
 
-function calcularPosicionesSillas(forma, cantidad) {
-    const posiciones = [];
-    
-    if (forma === 'circular') {
-        const radio = 90;
-        const centerX = 70;
-        const centerY = 170;
+// 7. Verificar límite de eventos
+function verificarLimiteEventos() {
+    if (limiteEventos === 1) {
+        // Contar eventos activos (no borradores)
+        const eventosActivos = eventosCliente.filter(e => e.estado === 'activo').length;
         
-        for (let i = 0; i < cantidad; i++) {
-            const angulo = (360 / cantidad) * i;
-            const radianes = (angulo - 90) * (Math.PI / 180);
-            const x = centerX + radio * Math.cos(radianes);
-            const y = centerY + radio * Math.sin(radianes);
-            posiciones.push({ x, y, rotation: angulo });
-        }
-    } else if (forma === 'cuadrada') {
-        const sillasPorLado = Math.ceil(cantidad / 4);
-        const espaciado = 50;
-        
-        for (let i = 0; i < cantidad; i++) {
-            const lado = Math.floor(i / sillasPorLado);
-            const posEnLado = i % sillasPorLado;
-            
-            let x, y, rotation;
-            if (lado === 0) {
-                x = 30 + posEnLado * espaciado;
-                y = 10;
-                rotation = 0;
-            } else if (lado === 1) {
-                x = 180;
-                y = 30 + posEnLado * espaciado;
-                rotation = 90;
-            } else if (lado === 2) {
-                x = 30 + posEnLado * espaciado;
-                y = 240;
-                rotation = 180;
-            } else {
-                x = -20;
-                y = 30 + posEnLado * espaciado;
-                rotation = 270;
+        if (eventosActivos >= limiteEventos) {
+            // Ocultar botón de nuevo evento si ya tiene el máximo
+            if (newEventBtn) {
+                newEventBtn.style.display = 'none';
             }
-            posiciones.push({ x, y, rotation });
+            
+            // Mostrar mensaje si intenta crear otro
+            const crearBtn = document.getElementById('createEventBtn');
+            if (crearBtn) {
+                crearBtn.onclick = function() {
+                    mostrarMensaje('Cliente solo puede tener 1 evento activo. Finaliza o elimina el actual.', 'error');
+                    cerrarModal(document.getElementById('newEventModal'));
+                    return false;
+                };
+            }
+        } else {
+            // Mostrar botón si aún no alcanzó el límite
+            if (newEventBtn) {
+                newEventBtn.style.display = 'block';
+            }
         }
-    } else { // rectangular
-        const sillasLaterales = Math.floor((cantidad - 2) / 2);
-        const espaciado = 50;
-        
-        posiciones.push({ x: -20, y: 150, rotation: 270 });
-        posiciones.push({ x: 220, y: 150, rotation: 90 });
-        
-        for (let i = 0; i < sillasLaterales; i++) {
-            posiciones.push({
-                x: 30 + i * espaciado,
-                y: 20,
-                rotation: 0
-            });
-        }
-        
-        for (let i = 0; i < Math.ceil((cantidad - 2) / 2) - sillasLaterales; i++) {
-            posiciones.push({
-                x: 30 + i * espaciado,
-                y: 200,
-                rotation: 180
-            });
-        }
-    }
-    
-    return posiciones.slice(0, cantidad);
-}
-
-async function crearActualizarMesas() {
-    if (!currentEvent) {
-        showToast('Selecciona un evento', 'error');
-        return;
-    }
-    
-    const numMesas = parseInt(document.getElementById('numMesas').value);
-    const sillasPorMesa = parseInt(document.getElementById('sillasPorMesa').value);
-    const formaMesa = document.getElementById('formaMesa').value;
-    
-    if (!numMesas || !sillasPorMesa) {
-        showToast('Completa los campos', 'error');
-        return;
-    }
-    
-    console.log('🔨 Creando mesas:', { numMesas, sillasPorMesa, formaMesa });
-    
-    try {
-        const token = obtenerToken();
-        const response = await fetch(API_BASE + '/eventos/' + currentEvent.id + '/mesas', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                cantidad: numMesas,
-                capacidad: sillasPorMesa,
-                forma: formaMesa
-            })
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Error al crear mesas');
-        }
-        
-        showToast('✅ Mesas creadas exitosamente', 'success');
-        await cargarMesas(currentEvent.id);
-    } catch (error) {
-        console.error('❌ Error:', error);
-        showToast(error.message || 'Error al crear mesas', 'error');
     }
 }
 
-async function cargarInvitados(eventoId) {
-    try {
-        const token = obtenerToken();
-        const response = await fetch(API_BASE + '/invitados?evento_id=' + eventoId, {
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
+// 8. Crear nuevo evento (con verificación de límite)
+function crearNuevoEvento() {
+    // VERIFICAR LÍMITE ANTES DE CREAR
+    if (limiteEventos === 1) {
+        const eventosActivos = eventosCliente.filter(e => e.estado === 'activo').length;
+        if (eventosActivos >= limiteEventos) {
+            mostrarMensaje('Cliente solo puede tener 1 evento activo. Finaliza o elimina el actual.', 'error');
+            document.getElementById('newEventModal').style.display = 'none';
+            return;
+        }
+    }
+    
+    const nombre = document.getElementById('newEventName').value;
+    const fecha = document.getElementById('newEventDate').value;
+    const hora = document.getElementById('newEventTime').value;
+    const ubicacion = document.getElementById('newEventLocation').value;
+    const tipo = document.getElementById('newEventType').value;
+    const usarPlantilla = document.getElementById('useTemplate').checked;
+    
+    if (!nombre || !fecha) {
+        mostrarMensaje('Nombre y fecha son obligatorios', 'error');
+        return;
+    }
+    
+    const nuevoEvento = {
+        id: eventosCliente.length + 1,
+        nombre: nombre,
+        descripcion: `Evento de tipo ${tipo}`,
+        fecha: fecha,
+        hora: hora || '18:00',
+        ubicacion: ubicacion,
+        tipo: tipo,
+        estado: 'borrador',
+        mesas: usarPlantilla ? 8 : 1,
+        sillasPorMesa: usarPlantilla ? 8 : 6,
+        formaMesa: 'rectangular',
+        configuracion: {}
+    };
+    
+    eventosCliente.push(nuevoEvento);
+    
+    // Agregar al selector
+    const option = document.createElement('option');
+    option.value = nuevoEvento.id;
+    option.textContent = nuevoEvento.nombre + ' (Borrador)';
+    eventSelector.appendChild(option);
+    
+    // Seleccionar el nuevo evento
+    eventSelector.value = nuevoEvento.id;
+    cargarEvento(nuevoEvento.id);
+    
+    // Cerrar modal
+    document.getElementById('newEventModal').style.display = 'none';
+    
+    // Resetear formulario
+    document.getElementById('newEventForm').reset();
+    
+    // Actualizar estadísticas
+    actualizarEstadisticasEventos();
+    
+    mostrarMensaje(`Nuevo evento "${nombre}" creado`, 'success');
+    
+    // Verificar límite después de crear
+    verificarLimiteEventos();
+}
+
+// 9. Finalizar evento
+function finalizarEvento() {
+    if (!eventoActual) {
+        mostrarMensaje('No hay evento seleccionado', 'error');
+        return;
+    }
+    
+    if (confirm(`¿Estás seguro de finalizar el evento "${eventoActual.nombre}"? Esto cambiará su estado a "completado".`)) {
+        eventoActual.estado = 'completado';
         
-        if (!response.ok) {
-            invitados = [];
-            renderizarInvitados([]);
+        // Actualizar selector
+        const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
+        if (option) {
+            option.textContent = eventoActual.nombre + ' (Completado)';
+        }
+        
+        // Actualizar estadísticas
+        actualizarEstadisticasEventos();
+        
+        // Si es cliente y finaliza su único evento, habilitar crear nuevo
+        if (limiteEventos === 1) {
+            verificarLimiteEventos();
+        }
+        
+        mostrarMensaje(`Evento "${eventoActual.nombre}" finalizado`, 'success');
+    }
+}
+
+// 10. Configurar event listeners
+function configurarEventListeners() {
+    // Selector de evento
+    eventSelector.addEventListener('change', function() {
+        if (this.value) {
+            cargarEvento(parseInt(this.value));
+        }
+    });
+    
+    // Botón crear mesas
+    btnCrearMesas.addEventListener('click', crearMesas);
+    
+    // Botón guardar evento
+    btnGuardarEvento.addEventListener('click', function() {
+        guardarEvento();
+    });
+    
+    // Botón finalizar evento
+    if (btnFinalizarEvento) {
+        btnFinalizarEvento.addEventListener('click', finalizarEvento);
+    }
+    
+    // Botón nuevo evento
+    newEventBtn.addEventListener('click', function() {
+        document.getElementById('newEventModal').style.display = 'flex';
+    });
+    
+    // Cerrar modal nuevo evento
+    document.querySelector('#newEventModal .modal-close').addEventListener('click', function() {
+        document.getElementById('newEventModal').style.display = 'none';
+    });
+    
+    document.querySelector('#newEventModal .modal-cancel').addEventListener('click', function() {
+        document.getElementById('newEventModal').style.display = 'none';
+    });
+    
+    // Crear evento
+    document.getElementById('createEventBtn').addEventListener('click', function() {
+        crearNuevoEvento();
+    });
+    
+    // Cerrar sesión
+    logoutBtn.addEventListener('click', function() {
+        window.titiAuth.logout();
+    });
+    
+    // Zoom
+    zoomInBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (zoomLevel < 2) {
+            zoomLevel += 0.1;
+            aplicarZoom();
+        }
+    });
+    
+    zoomOutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (zoomLevel > 0.5) {
+            zoomLevel -= 0.1;
+            aplicarZoom();
+        }
+    });
+    
+    resetViewBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        zoomLevel = 1;
+        aplicarZoom();
+    });
+    
+    // Mostrar nombres
+    showNamesCheckbox.addEventListener('change', function() {
+        renderizarMesas();
+    });
+    
+    // Búsqueda de invitados
+    guestSearch.addEventListener('input', actualizarListaInvitados);
+    guestFilter.addEventListener('change', actualizarListaInvitados);
+    
+    // Agregar invitado
+    addGuestBtn.addEventListener('click', function() {
+        agregarInvitado();
+    });
+    
+    // Búsqueda en visualización
+    searchGuests.addEventListener('input', function() {
+        buscarEnMesas(this.value);
+    });
+    
+    // Guardado automático
+    autoSaveCheckbox.addEventListener('change', function() {
+        mostrarMensaje(`Guardado automático ${this.checked ? 'activado' : 'desactivado'}`, 'info');
+    });
+    
+    // Configuración de disposición
+    numColumnasInput.addEventListener('change', actualizarDisposicion);
+    numFilasInput.addEventListener('change', actualizarDisposicion);
+    espaciadoInput.addEventListener('change', actualizarDisposicion);
+    
+    // ===== CORRECCIÓN: Permitir escritura en inputs =====
+    const inputs = [
+        eventNameInput, eventDateInput, eventTimeInput, eventDescriptionInput,
+        numMesasInput, sillasPorMesaInput, searchGuests, guestSearch,
+        numColumnasInput, numFilasInput, espaciadoInput
+    ];
+    
+    inputs.forEach(input => {
+        if (input) {
+            input.addEventListener('keydown', function(e) {
+                e.stopPropagation();
+            });
+        }
+    });
+    
+    // Shortcuts de teclado
+    document.addEventListener('keydown', function(e) {
+        const activeElement = document.activeElement;
+        const isInputFocused = activeElement.tagName === 'INPUT' || 
+                              activeElement.tagName === 'TEXTAREA' || 
+                              activeElement.tagName === 'SELECT';
+        
+        if (isInputFocused) {
             return;
         }
         
-        const data = await response.json();
-        invitados = Array.isArray(data) ? data : (data.invitados || []);
+        // Ctrl+S para guardar
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            guardarEvento();
+        }
         
-        console.log('✅ Invitados:', invitados.length);
-        renderizarInvitados(invitados);
-        actualizarEstadisticas();
-    } catch (error) {
-        console.error('Error invitados:', error);
-        invitados = [];
-        renderizarInvitados([]);
-    }
-}
-
-function renderizarInvitados(invitadosArray) {
-    const container = document.getElementById('invitadosList');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    
-    if (!invitadosArray || invitadosArray.length === 0) {
-        container.innerHTML = `
-            <div class="empty-invitados">
-                <i class="fas fa-user-friends"></i>
-                <p>No hay invitados</p>
-            </div>
-        `;
-        return;
-    }
-    
-    invitadosArray.forEach(inv => {
-        const div = document.createElement('div');
-        div.className = 'invitado-item';
-        div.innerHTML = `
-            <div>
-                <strong>${inv.nombre}</strong><br>
-                <small>${inv.email || 'Sin email'}</small>
-                ${inv.mesa_id ? `<br><small>Mesa ${inv.mesa_numero || inv.mesa_id}, Silla ${inv.silla_numero}</small>` : ''}
-            </div>
-            <div>
-                <span class="estado-badge ${inv.estado}">${inv.estado}</span>
-            </div>
-        `;
-        container.appendChild(div);
+        // Ctrl+N para nuevo evento
+        if (e.ctrlKey && e.key === 'n') {
+            e.preventDefault();
+            document.getElementById('newEventModal').style.display = 'flex';
+        }
+        
+        // Ctrl+F para buscar
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            searchGuests.focus();
+        }
+        
+        // Ctrl+E para finalizar evento
+        if (e.ctrlKey && e.key === 'e') {
+            e.preventDefault();
+            finalizarEvento();
+        }
+        
+        // + para zoom in
+        if (e.key === '+' || e.key === '=') {
+            e.preventDefault();
+            if (zoomLevel < 2) {
+                zoomLevel += 0.1;
+                aplicarZoom();
+            }
+        }
+        
+        // - para zoom out
+        if (e.key === '-') {
+            e.preventDefault();
+            if (zoomLevel > 0.5) {
+                zoomLevel -= 0.1;
+                aplicarZoom();
+            }
+        }
+        
+        // 0 para reset zoom
+        if (e.key === '0') {
+            e.preventDefault();
+            zoomLevel = 1;
+            aplicarZoom();
+        }
     });
 }
 
-function cargarMesasEnSelector() {
-    const guestMesa = document.getElementById('guestMesa');
-    if (!guestMesa) return;
-    
-    guestMesa.innerHTML = '<option value="">Sin asignar</option>';
-    mesas.forEach(mesa => {
-        const option = document.createElement('option');
-        option.value = mesa.id;
-        option.textContent = mesa.nombre || `Mesa ${mesa.numero}`;
-        guestMesa.appendChild(option);
+// 11. Aplicar zoom
+function aplicarZoom() {
+    document.querySelectorAll('.mesa').forEach(mesa => {
+        mesa.style.transform = `scale(${zoomLevel})`;
     });
 }
 
-function cargarSillasDisponibles(mesaId) {
-    const guestSilla = document.getElementById('guestSilla');
-    if (!guestSilla || !mesaId) {
-        if (guestSilla) guestSilla.innerHTML = '<option value="">Primero selecciona mesa</option>';
-        return;
+// 12. Actualizar disposición
+function actualizarDisposicion() {
+    const columnas = parseInt(numColumnasInput.value) || 4;
+    const filas = parseInt(numFilasInput.value) || 2;
+    const espaciado = parseInt(espaciadoInput.value) || 70;
+    
+    configuracionDisposicion = { columnas, filas, espaciado };
+    
+    // Actualizar contenedor
+    mesasContainer.style.gap = `${espaciado}px`;
+    mesasContainer.style.gridTemplateColumns = `repeat(${columnas}, 1fr)`;
+    
+    // Si hay mesas, re-renderizar
+    if (mesas.length > 0) {
+        renderizarMesas();
     }
     
-    const mesa = mesas.find(m => m.id == mesaId);
+    mostrarMensaje(`Disposición actualizada: ${columnas}×${filas}`, 'info');
+}
+
+// 13. Resto de funciones (se mantienen igual que antes)
+function editarNombreMesa(mesaId, elementoInfo) {
+    const mesa = mesas.find(m => m.id === mesaId);
     if (!mesa) return;
     
-    guestSilla.innerHTML = '<option value="">Seleccionar silla...</option>';
-    for (let i = 1; i <= mesa.capacidad; i++) {
-        const key = `${mesaId}-${i}`;
-        const ocupada = mesasConInvitados[key];
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'edit-mesa-input';
+    input.value = mesa.nombre;
+    input.style.cssText = `
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #4CAF50;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: bold;
+    `;
+    
+    elementoInfo.innerHTML = '';
+    elementoInfo.appendChild(input);
+    input.focus();
+    
+    const guardar = () => {
+        guardarNombreMesa(mesaId, input.value, elementoInfo);
+    };
+    
+    input.addEventListener('blur', guardar);
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            guardar();
+        }
+    });
+}
+
+function guardarNombreMesa(mesaId, nuevoNombre, elementoInfo) {
+    const mesa = mesas.find(m => m.id === mesaId);
+    if (mesa) {
+        mesa.nombre = nuevoNombre || `Mesa ${mesaId}`;
+        elementoInfo.textContent = `${mesa.nombre} (${mesa.sillas.length} sillas)`;
         
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = ocupada ? `Silla ${i} (Ocupada por ${ocupada.nombre})` : `Silla ${i}`;
-        option.disabled = !!ocupada;
-        guestSilla.appendChild(option);
+        const mesaGrafica = elementoInfo.nextElementSibling;
+        if (mesaGrafica && mesaGrafica.classList.contains('mesa-grafica')) {
+            mesaGrafica.textContent = mesa.nombre;
+        }
+        
+        guardarConfiguracionEvento();
+        actualizarListaInvitados();
     }
 }
 
-async function guardarInvitado() {
-    if (!currentEvent) return;
+function seleccionarSilla(mesaId, sillaId) {
+    sillaSeleccionada = { mesaId, sillaId };
+    mostrarModalSilla(mesaId, sillaId);
+}
+
+function mostrarModalSilla(mesaId, sillaId) {
+    // Crear modal dinámico
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Asignar Invitado a Silla</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Mesa ${mesaId}, Silla ${sillaId}</p>
+                
+                <div class="form-group">
+                    <label>Seleccionar Invitado:</label>
+                    <select id="selectInvitadoSilla" style="width: 100%; padding: 10px; margin: 10px 0;">
+                        <option value="">-- Sin asignar --</option>
+                        ${invitados.map(invitado => `
+                            <option value="${invitado.id}">
+                                ${invitado.nombre} ${invitado.email ? `(${invitado.email})` : ''}
+                            </option>
+                        `).join('')}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Estado:</label>
+                    <div style="display: flex; gap: 10px; margin: 10px 0;">
+                        <button class="estado-btn estado-sin-asignar" data-estado="sin-asignar">Sin Asignar</button>
+                        <button class="estado-btn estado-asignado" data-estado="asignado">Asignado</button>
+                        <button class="estado-btn estado-confirmado" data-estado="confirmado">Confirmado</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelarSilla">Cancelar</button>
+                <button class="btn-primary" id="guardarSilla">Guardar</button>
+            </div>
+        </div>
+    `;
     
-    const nombre = document.getElementById('guestName').value;
-    const email = document.getElementById('guestEmail').value;
-    const telefono = document.getElementById('guestPhone').value;
-    const mesaId = document.getElementById('guestMesa').value;
-    const sillaNro = document.getElementById('guestSilla').value;
-    const estado = document.getElementById('guestEstado').value;
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
     
-    if (!nombre) {
-        showToast('El nombre es obligatorio', 'error');
-        return;
-    }
+    // Obtener silla actual
+    const mesa = mesas.find(m => m.id === parseInt(mesaId));
+    const silla = mesa?.sillas.find(s => s.id === parseInt(sillaId));
     
-    try {
-        const token = obtenerToken();
-        const response = await fetch(API_BASE + '/invitados', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                evento_id: currentEvent.id,
-                nombre,
-                email,
-                telefono,
-                mesa_id: mesaId || null,
-                silla_numero: sillaNro || null,
-                estado: estado || 'pendiente'
-            })
+    // Configurar valores actuales
+    if (silla) {
+        const select = modal.querySelector('#selectInvitadoSilla');
+        select.value = silla.invitadoId || '';
+        
+        // Marcar botón de estado actual
+        const estadoBtns = modal.querySelectorAll('.estado-btn');
+        estadoBtns.forEach(btn => {
+            if (btn.dataset.estado === silla.estado) {
+                btn.style.boxShadow = '0 0 0 2px #333';
+            }
         });
-        
-        if (!response.ok) throw new Error('Error');
-        
-        showToast('✅ Invitado agregado', 'success');
-        document.getElementById('addGuestModal').classList.remove('active');
-        document.getElementById('formAgregarInvitado').reset();
-        await cargarInvitados(currentEvent.id);
-        renderizarMesas(mesas);
-    } catch (error) {
-        showToast('Error al guardar', 'error');
     }
+    
+    // Event listeners del modal
+    modal.querySelector('.modal-close').onclick = () => cerrarModal(modal);
+    modal.querySelector('#cancelarSilla').onclick = () => cerrarModal(modal);
+    
+    // Botones de estado
+    modal.querySelectorAll('.estado-btn').forEach(btn => {
+        btn.onclick = function() {
+            // Remover selección anterior
+            modal.querySelectorAll('.estado-btn').forEach(b => {
+                b.style.boxShadow = '';
+            });
+            // Seleccionar este
+            this.style.boxShadow = '0 0 0 2px #333';
+        };
+    });
+    
+    // Guardar cambios
+    modal.querySelector('#guardarSilla').onclick = () => {
+        const select = modal.querySelector('#selectInvitadoSilla');
+        const invitadoId = select.value ? parseInt(select.value) : null;
+        const estadoBtn = modal.querySelector('.estado-btn[style*="box-shadow"]');
+        const nuevoEstado = estadoBtn ? estadoBtn.dataset.estado : 'sin-asignar';
+        
+        actualizarSilla(mesaId, sillaId, invitadoId, nuevoEstado);
+        cerrarModal(modal);
+    };
+    
+    // Cerrar al hacer click fuera
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            cerrarModal(modal);
+        }
+    };
 }
 
-function asignarInvitadoASilla(mesaId, sillaNro) {
-    // Abrir modal con mesa y silla pre-seleccionadas
-    document.getElementById('addGuestModal').classList.add('active');
-    cargarMesasEnSelector();
-    
+function cerrarModal(modal) {
+    modal.style.display = 'none';
     setTimeout(() => {
-        const guestMesa = document.getElementById('guestMesa');
-        if (guestMesa) {
-            guestMesa.value = mesaId;
-            cargarSillasDisponibles(mesaId);
-            
-            setTimeout(() => {
-                const guestSilla = document.getElementById('guestSilla');
-                if (guestSilla) guestSilla.value = sillaNro;
-            }, 100);
+        if (modal.parentNode) {
+            modal.parentNode.removeChild(modal);
         }
-    }, 100);
+    }, 300);
 }
 
-function mostrarInfoInvitado(invitado) {
-    alert(`Invitado: ${invitado.nombre}\nEstado: ${invitado.estado}\nEmail: ${invitado.email || 'N/A'}`);
-}
-
-function editarMesa(mesaId) {
-    const mesa = mesas.find(m => m.id === mesaId);
+function actualizarSilla(mesaId, sillaId, invitadoId, nuevoEstado) {
+    const mesa = mesas.find(m => m.id === parseInt(mesaId));
     if (!mesa) return;
     
-    const nuevoNombre = prompt('Nombre de la mesa:', mesa.nombre || `Mesa ${mesa.numero}`);
-    if (nuevoNombre === null) return;
+    const silla = mesa.sillas.find(s => s.id === parseInt(sillaId));
+    if (!silla) return;
     
-    actualizarMesa(mesaId, { nombre: nuevoNombre });
-}
-
-function cambiarColorMesa(mesaId) {
-    const mesa = mesas.find(m => m.id === mesaId);
-    if (!mesa) return;
+    // Actualizar silla
+    silla.estado = nuevoEstado;
+    silla.invitadoId = invitadoId;
     
-    const nuevoColor = prompt('Color (ej: #8B4513, red, blue):', mesa.color || '#8B4513');
-    if (nuevoColor === null) return;
-    
-    actualizarMesa(mesaId, { color: nuevoColor });
-}
-
-async function actualizarMesa(mesaId, cambios) {
-    try {
-        const token = obtenerToken();
-        const response = await fetch(API_BASE + '/mesas/' + mesaId, {
-            method: 'PUT',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(cambios)
-        });
-        
-        if (!response.ok) throw new Error('Error');
-        
-        showToast('✅ Mesa actualizada', 'success');
-        await cargarMesas(currentEvent.id);
-    } catch (error) {
-        showToast('Error al actualizar mesa', 'error');
-    }
-}
-
-async function guardarCambiosEvento() {
-    if (!currentEvent) return;
-    
-    const nombre = document.getElementById('eventName').value;
-    const fecha = document.getElementById('eventDate').value;
-    const hora = document.getElementById('eventTime')?.value || '00:00';
-    const descripcion = document.getElementById('eventDescription')?.value || '';
-    
-    if (!nombre) {
-        showToast('El nombre es obligatorio', 'error');
-        return;
+    // Buscar invitado si existe
+    let invitado = null;
+    if (invitadoId) {
+        invitado = invitados.find(i => i.id === invitadoId);
+        silla.nombre = invitado ? invitado.nombre : '';
+    } else {
+        silla.nombre = '';
     }
     
-    try {
-        const token = obtenerToken();
-        const response = await fetch(API_BASE + '/eventos/' + currentEvent.id, {
-            method: 'PUT',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                nombre,
-                fecha_evento: fecha ? `${fecha} ${hora}` : null,
-                descripcion
-            })
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Error');
+    // Actualizar visual de la silla
+    const sillaElement = document.querySelector(`.silla[data-mesa-id="${mesaId}"][data-silla-id="${sillaId}"]`);
+    if (sillaElement) {
+        sillaElement.className = `silla estado-${nuevoEstado}`;
+        if (silla.nombre && showNamesCheckbox.checked) {
+            sillaElement.setAttribute('title', silla.nombre);
+        } else {
+            sillaElement.removeAttribute('title');
         }
-        
-        showToast('✅ Evento actualizado', 'success');
-        await cargarEvento(currentEvent.id);
-    } catch (error) {
-        console.error('Error:', error);
-        showToast(error.message || 'Error al actualizar', 'error');
     }
-}
-
-async function finalizarEvento() {
-    if (!currentEvent) return;
     
-    try {
-        const token = obtenerToken();
-        const response = await fetch(API_BASE + '/eventos/' + currentEvent.id, {
-            method: 'DELETE',
-            headers: { 'Authorization': 'Bearer ' + token }
-        });
-        
-        if (!response.ok) throw new Error('Error');
-        
-        showToast('✅ Evento eliminado', 'success');
-        currentEvent = null;
-        cargarEventos();
-    } catch (error) {
-        showToast('Error al eliminar', 'error');
+    // Actualizar invitado
+    if (invitado) {
+        invitado.idMesa = parseInt(mesaId);
+        invitado.idSilla = parseInt(sillaId);
+        invitado.estado = nuevoEstado;
     }
-}
-
-function abrirModalNuevoEvento() {
-    const modal = document.getElementById('newEventModal');
-    if (modal) modal.classList.add('active');
+    
+    // Actualizar UI
+    actualizarEstadisticas();
+    actualizarListaInvitados();
+    guardarConfiguracionEvento();
+    
+    mostrarMensaje(`Silla ${sillaId} de ${mesa.nombre} actualizada`, 'success');
 }
 
 function actualizarEstadisticas() {
-    const totalMesas = mesas.length;
-    const totalSillas = mesas.reduce((sum, m) => sum + (m.capacidad || 0), 0);
-    const ocupadas = invitados.filter(i => i.mesa_id && i.silla_numero).length;
-    const porcentaje = totalSillas > 0 ? Math.round((ocupadas / totalSillas) * 100) : 0;
+    let totalSillas = 0;
+    let sillasOcupadas = 0;
     
-    const statTotalMesas = document.getElementById('statTotalMesas');
-    const statTotalSillas = document.getElementById('statTotalSillas');
-    const statSillasOcupadas = document.getElementById('statSillasOcupadas');
-    const statPorcentajeOcupacion = document.getElementById('statPorcentajeOcupacion');
+    mesas.forEach(mesa => {
+        totalSillas += mesa.sillas.length;
+        mesa.sillas.forEach(silla => {
+            if (silla.estado !== 'sin-asignar') {
+                sillasOcupadas++;
+            }
+        });
+    });
     
-    if (statTotalMesas) statTotalMesas.textContent = totalMesas;
-    if (statTotalSillas) statTotalSillas.textContent = totalSillas;
-    if (statSillasOcupadas) statSillasOcupadas.textContent = ocupadas;
-    if (statPorcentajeOcupacion) statPorcentajeOcupacion.textContent = porcentaje + '%';
+    const porcentaje = totalSillas > 0 ? Math.round((sillasOcupadas / totalSillas) * 100) : 0;
     
-    const confirmados = invitados.filter(i => i.estado === 'confirmado').length;
-    const pendientes = invitados.filter(i => i.estado === 'pendiente').length;
-    const rechazados = invitados.filter(i => i.estado === 'rechazado').length;
-    
-    const elConfirmados = document.getElementById('confirmados');
-    const elPendientes = document.getElementById('pendientes');
-    const elRechazados = document.getElementById('rechazados');
-    
-    if (elConfirmados) elConfirmados.textContent = confirmados;
-    if (elPendientes) elPendientes.textContent = pendientes;
-    if (elRechazados) elRechazados.textContent = rechazados;
+    statTotalMesas.textContent = mesas.length;
+    statTotalSillas.textContent = totalSillas;
+    statSillasOcupadas.textContent = sillasOcupadas;
+    statPorcentajeOcupacion.textContent = `${porcentaje}%`;
+    ocupacionBar.style.width = `${porcentaje}%`;
 }
 
-function obtenerToken() {
-    return localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+function guardarConfiguracionEvento() {
+    if (!eventoActual) return;
+    
+    eventoActual.configuracion = {
+        mesas: JSON.parse(JSON.stringify(mesas)),
+        disposicion: configuracionDisposicion,
+        fechaActualizacion: new Date().toISOString()
+    };
+    
+    eventoActual.mesas = mesas.length;
+    eventoActual.sillasPorMesa = mesas.length > 0 ? mesas[0].sillas.length : 0;
+    eventoActual.formaMesa = mesas.length > 0 ? mesas[0].forma : 'rectangular';
+    
+    // En producción, aquí harías fetch a la API
+    console.log('Guardando evento:', eventoActual);
+    
+    // Simular guardado
+    if (autoSaveCheckbox.checked) {
+        localStorage.setItem(`titi_evento_${eventoActual.id}`, JSON.stringify(eventoActual));
+        mostrarMensaje('Cambios guardados automáticamente', 'info');
+    }
 }
 
-function showToast(message, type = 'success') {
-    const toast = document.getElementById('messageToast');
-    if (!toast) {
-        console.log(message);
+function cargarInvitadosDemo() {
+    invitados = [
+        { id: 1, nombre: 'Ana López', email: 'ana@email.com', telefono: '555-0101', estado: 'confirmado', idMesa: 1, idSilla: 1 },
+        { id: 2, nombre: 'Carlos Ruiz', email: 'carlos@email.com', telefono: '555-0102', estado: 'confirmado', idMesa: 1, idSilla: 2 },
+        { id: 3, nombre: 'María González', email: 'maria@email.com', telefono: '555-0103', estado: 'asignado', idMesa: 2, idSilla: 1 },
+        { id: 4, nombre: 'Pedro Hernández', email: 'pedro@email.com', telefono: '555-0104', estado: 'pendiente' },
+        { id: 5, nombre: 'Laura Martínez', email: 'laura@email.com', telefono: '555-0105', estado: 'pendiente' },
+        { id: 6, nombre: 'Roberto Sánchez', email: 'roberto@email.com', telefono: '555-0106', estado: 'asignado' },
+        { id: 7, nombre: 'Sofía Castro', email: 'sofia@email.com', telefono: '555-0107', estado: 'pendiente' },
+        { id: 8, nombre: 'David Ramírez', email: 'david@email.com', telefono: '555-0108', estado: 'pendiente' }
+    ];
+    
+    actualizarListaInvitados();
+}
+
+function actualizarListaInvitados() {
+    const searchTerm = guestSearch.value.toLowerCase();
+    const filterValue = guestFilter.value;
+    
+    let invitadosFiltrados = invitados.filter(invitado => {
+        const matchesSearch = 
+            invitado.nombre.toLowerCase().includes(searchTerm) ||
+            (invitado.email && invitado.email.toLowerCase().includes(searchTerm));
+        
+        const matchesFilter = 
+            filterValue === 'all' ||
+            (filterValue === 'assigned' && invitado.idMesa) ||
+            (filterValue === 'unassigned' && !invitado.idMesa) ||
+            (filterValue === 'confirmed' && invitado.estado === 'confirmado');
+        
+        return matchesSearch && matchesFilter;
+    });
+    
+    guestsList.innerHTML = invitadosFiltrados.map(invitado => {
+        const mesaInfo = invitado.idMesa ? 
+            `Mesa ${invitado.idMesa}, Silla ${invitado.idSilla}` : 
+            'Sin asignar';
+        
+        return `
+            <div class="guest-item" data-id="${invitado.id}">
+                <div class="guest-item-header">
+                    <div class="guest-name">${invitado.nombre}</div>
+                    <div class="guest-status status-${invitado.estado}">${invitado.estado}</div>
+                </div>
+                <div class="guest-details">
+                    <span>${invitado.email || 'Sin email'}</span>
+                    <span>${mesaInfo}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    // Agregar event listeners a los items
+    document.querySelectorAll('.guest-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const invitadoId = parseInt(this.dataset.id);
+            mostrarDetallesInvitado(invitadoId);
+        });
+    });
+}
+
+function mostrarDetallesInvitado(invitadoId) {
+    const invitado = invitados.find(i => i.id === invitadoId);
+    if (!invitado) return;
+    
+    guestDetails.innerHTML = `
+        <div class="guest-detail-view">
+            <div class="guest-detail-header">
+                <div class="guest-detail-avatar">
+                    ${invitado.nombre.substring(0, 1).toUpperCase()}
+                </div>
+                <div class="guest-detail-info">
+                    <h4>${invitado.nombre}</h4>
+                    <p>${invitado.email || 'Sin email'}</p>
+                </div>
+            </div>
+            <div class="guest-detail-content">
+                <div class="detail-row">
+                    <span class="detail-label">Teléfono:</span>
+                    <span class="detail-value">${invitado.telefono || 'No especificado'}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Estado:</span>
+                    <span class="detail-value">
+                        <span class="guest-status status-${invitado.estado}">${invitado.estado}</span>
+                    </span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Asignación:</span>
+                    <span class="detail-value">
+                        ${invitado.idMesa ? 
+                            `Mesa ${invitado.idMesa}, Silla ${invitado.idSilla}` : 
+                            'Sin asignar'}
+                    </span>
+                </div>
+                ${invitado.notas ? `
+                <div class="detail-row">
+                    <span class="detail-label">Notas:</span>
+                    <span class="detail-value">${invitado.notas}</span>
+                </div>
+                ` : ''}
+            </div>
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="btn-secondary btn-small" onclick="editarInvitado(${invitado.id})">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <button class="btn-secondary btn-small" onclick="asignarInvitado(${invitado.id})">
+                    <i class="fas fa-chair"></i> Asignar
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function configurarFechaHora() {
+    const ahora = new Date();
+    const manana = new Date();
+    manana.setDate(ahora.getDate() + 1);
+    
+    // Formato YYYY-MM-DD para input date
+    const formatoFecha = (fecha) => {
+        return fecha.toISOString().split('T')[0];
+    };
+    
+    // Formato HH:MM para input time
+    const formatoHora = (fecha) => {
+        return fecha.getHours().toString().padStart(2, '0') + ':' + 
+               fecha.getMinutes().toString().padStart(2, '0');
+    };
+    
+    // Valores por defecto si están vacíos
+    if (!eventDateInput.value) {
+        eventDateInput.value = formatoFecha(manana);
+    }
+    
+    if (!eventTimeInput.value) {
+        eventTimeInput.value = formatoHora(new Date(manana.setHours(18, 0, 0, 0)));
+    }
+}
+
+function buscarEnMesas(termino) {
+    if (!termino) {
+        // Resetear colores
+        document.querySelectorAll('.silla').forEach(silla => {
+            silla.style.boxShadow = '';
+        });
         return;
     }
     
-    toast.textContent = message;
-    toast.style.display = 'block';
-    toast.style.background = type === 'error' ? '#f44336' : '#4CAF50';
-    toast.style.color = 'white';
-    toast.style.padding = '15px 20px';
-    toast.style.borderRadius = '8px';
+    const busqueda = termino.toLowerCase();
+    document.querySelectorAll('.silla').forEach(silla => {
+        const sillaNombre = silla.getAttribute('title') || '';
+        if (sillaNombre.toLowerCase().includes(busqueda)) {
+            silla.style.boxShadow = '0 0 0 3px yellow';
+        } else {
+            silla.style.boxShadow = '';
+        }
+    });
+}
+
+function guardarEvento() {
+    if (!eventoActual) {
+        mostrarMensaje('No hay evento seleccionado', 'error');
+        return;
+    }
+    
+    // Actualizar datos del evento
+    eventoActual.nombre = eventNameInput.value || 'Evento sin nombre';
+    eventoActual.descripcion = eventDescriptionInput.value;
+    eventoActual.fecha = eventDateInput.value;
+    eventoActual.hora = eventTimeInput.value;
+    eventoActual.mesas = parseInt(numMesasInput.value);
+    eventoActual.sillasPorMesa = parseInt(sillasPorMesaInput.value);
+    eventoActual.formaMesa = formaMesaSelect.value;
+    
+    // Guardar configuración
+    guardarConfiguracionEvento();
+    
+    // Actualizar UI
+    currentEventName.textContent = eventoActual.nombre;
+    
+    // Actualizar selector de eventos
+    const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
+    if (option) {
+        option.textContent = eventoActual.nombre;
+        if (eventoActual.estado === 'borrador') {
+            option.textContent += ' (Borrador)';
+        } else if (eventoActual.estado === 'completado') {
+            option.textContent += ' (Completado)';
+        }
+    }
+    
+    mostrarMensaje(`Evento "${eventoActual.nombre}" guardado correctamente`, 'success');
+}
+
+function agregarInvitado() {
+    const nombre = prompt('Nombre del invitado:');
+    if (!nombre) return;
+    
+    const email = prompt('Email (opcional):');
+    const telefono = prompt('Teléfono (opcional):');
+    
+    const nuevoInvitado = {
+        id: invitados.length + 1,
+        nombre: nombre,
+        email: email || null,
+        telefono: telefono || null,
+        estado: 'pendiente',
+        idMesa: null,
+        idSilla: null
+    };
+    
+    invitados.push(nuevoInvitado);
+    actualizarListaInvitados();
+    
+    mostrarMensaje(`Invitado "${nombre}" agregado`, 'success');
+}
+
+function mostrarMensaje(mensaje, tipo = 'info') {
+    const toast = document.getElementById('messageToast');
+    if (!toast) return;
+    
+    toast.textContent = mensaje;
+    toast.className = `toast ${tipo} show`;
     
     setTimeout(() => {
-        toast.style.display = 'none';
+        toast.classList.remove('show');
     }, 3000);
 }
 
-console.log('✅ cliente.js COMPLETO cargado');
+// ===== FUNCIONES GLOBALES PARA HTML =====
+window.editarInvitado = function(invitadoId) {
+    mostrarMensaje('Funcionalidad de editar invitado en desarrollo', 'info');
+};
+
+window.asignarInvitado = function(invitadoId) {
+    const invitado = invitados.find(i => i.id === invitadoId);
+    if (!invitado) return;
+    
+    // Crear modal para asignar
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Asignar ${invitado.nombre}</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Selecciona una silla para asignar a ${invitado.nombre}:</p>
+                <div style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
+                    ${mesas.map(mesa => `
+                        <div style="margin-bottom: 15px;">
+                            <strong>${mesa.nombre}</strong>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
+                                ${mesa.sillas.map(silla => `
+                                    <button class="silla-asignacion ${silla.estado !== 'sin-asignar' ? 'ocupada' : ''}" 
+                                            data-mesa="${mesa.id}" 
+                                            data-silla="${silla.id}"
+                                            style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: ${silla.estado === 'sin-asignar' ? '#f0f0f0' : '#ffebee'};">
+                                        Silla ${silla.id} ${silla.nombre ? `(${silla.nombre})` : ''}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="cerrarModal(this.closest('.modal'))">Cancelar</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.style.display = 'flex';
+    
+    // Event listeners para sillas
+    modal.querySelectorAll('.silla-asignacion:not(.ocupada)').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const mesaId = parseInt(this.dataset.mesa);
+            const sillaId = parseInt(this.dataset.silla);
+            
+            actualizarSilla(mesaId, sillaId, invitadoId, 'asignado');
+            cerrarModal(modal);
+        });
+    });
+    
+    // Cerrar modal
+    modal.querySelector('.modal-close').onclick = () => cerrarModal(modal);
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            cerrarModal(modal);
+        }
+    };
+};
+
+window.cerrarModal = cerrarModal;
