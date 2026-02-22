@@ -1654,34 +1654,34 @@ window.addEventListener('load', cambiarBotonConfiguracion);
 
 console.log('✅ Botones de configuración mejorados');
 
-// ===== ARREGLAR ANIMACIONES Y CAMBIAR BOTÓN A ELIMINAR =====
+// ===== CAMBIAR BOTÓN A ELIMINAR - SIMPLE Y LIMPIO =====
 
-// Cambiar botón Finalizar a ELIMINAR
-const cambiarBotonEliminar = () => {
-    const btnFinalizar = document.getElementById('btnFinalizarEvento');
-    if (btnFinalizar) {
-        btnFinalizar.innerHTML = '<i class="fas fa-trash-alt"></i> ELIMINAR';
+function cambiarBotonEliminar() {
+    const btn = document.getElementById('btnFinalizarEvento');
+    if (btn) {
+        // Usar solo texto simple con el ícono FA que ya existe
+        const icono = btn.querySelector('i');
+        if (icono) {
+            icono.className = 'fas fa-trash-alt';
+        }
+        // Cambiar solo el texto
+        const textos = btn.childNodes;
+        for (let i = 0; i < textos.length; i++) {
+            if (textos[i].nodeType === 3) { // Nodo de texto
+                textos[i].textContent = ' ELIMINAR';
+            }
+        }
         console.log('✅ Botón cambiado a ELIMINAR');
-        return true;
     }
-    return false;
-};
+}
 
-// Intentar múltiples veces para asegurar que funcione
+// Intentar varias veces
 cambiarBotonEliminar();
 setTimeout(cambiarBotonEliminar, 100);
-setTimeout(cambiarBotonEliminar, 300);
 setTimeout(cambiarBotonEliminar, 500);
 setTimeout(cambiarBotonEliminar, 1000);
 
-// Cuando el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', cambiarBotonEliminar);
-} else {
-    cambiarBotonEliminar();
-}
-
-// Cuando todo cargue
+document.addEventListener('DOMContentLoaded', cambiarBotonEliminar);
 window.addEventListener('load', cambiarBotonEliminar);
 
-console.log('✅ Botón ELIMINAR configurado correctamente');
+console.log('✅ Diseño simple cargado');
