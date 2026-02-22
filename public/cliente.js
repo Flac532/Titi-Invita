@@ -1387,3 +1387,103 @@ window.asignarInvitado = function(invitadoId) {
 };
 
 window.cerrarModal = cerrarModal;
+// ===== FUNCIONALIDAD CERRAR SESIÓN - AGREGAR AL FINAL =====
+
+// Agregar event listener al botón de logout
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        mostrarModalLogout();
+    });
+}
+
+function mostrarModalLogout() {
+    const modalHTML = `
+        <div class="modal-logout active" id="modalLogout">
+            <div class="modal-logout-content">
+                <div class="modal-logout-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                
+                <h3>¿Cerrar Sesión?</h3>
+                <p>Estás a punto de cerrar tu sesión. Todos tus cambios se han guardado automáticamente.</p>
+                
+                <div class="modal-logout-buttons">
+                    <button class="btn-cancelar-logout" onclick="cerrarModalLogout()">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                    <button class="btn-confirmar-logout" onclick="confirmarLogout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Cerrar con click fuera del modal
+    const modal = document.getElementById('modalLogout');
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            cerrarModalLogout();
+        }
+    });
+}
+
+window.cerrarModalLogout = function() {
+    const modal = document.getElementById('modalLogout');
+    if (modal) {
+        modal.remove();
+    }
+};
+
+window.confirmarLogout = function() {
+    // Cerrar el modal
+    cerrarModalLogout();
+    
+    // Mostrar toast de confirmación
+    mostrarToastLogout('👋 Cerrando sesión...');
+    
+    // Esperar un momento y luego cerrar sesión
+    setTimeout(() => {
+        // Limpiar datos de sesión
+        localStorage.removeItem('titi_usuario_actual');
+        localStorage.removeItem('titi_token');
+        sessionStorage.removeItem('titi_token');
+        
+        // Redirigir a login
+        window.location.href = 'login.html';
+    }, 1500);
+};
+
+function mostrarToastLogout(mensaje) {
+    const toast = document.createElement('div');
+    toast.className = 'toast-logout';
+    toast.innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>${mensaje}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(400px)';
+    }, 1200);
+}
+
+// Cerrar modal con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('modalLogout');
+        if (modal) {
+            cerrarModalLogout();
+        }
+    }
+});
+
+console.log('✅ Funcionalidad de cerrar sesión cargada');
