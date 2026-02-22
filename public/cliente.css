@@ -2973,3 +2973,59 @@ strong {
     display: inline-block !important;
     margin-right: 8px !important;
 }
+
+
+/* ===== ELIMINACIÓN COMPLETA DE CONTENIDO PROBLEMÁTICO ===== */
+
+/* IMPORTANTE: Agregar esto AL FINAL del CSS para sobrescribir todo */
+
+/* Eliminar TODOS los ::before y ::after con emojis o símbolos */
+.form-group-invitado label::before,
+.form-invitado label::before,
+.color-opcion::before,
+.color-opcion::after,
+#btnActualizarMesas::after,
+#btnGuardarCambios::after,
+#btnFinalizarEvento::after,
+.btn-save-invitado::after,
+.form-group-invitado label::after,
+.form-invitado label::after,
+.form-group-invitado::after,
+.form-invitado::after,
+.form-buttons-invitado::before {
+    content: none !important;
+    display: none !important;
+}
+
+/* Mantener SOLO los ::before que son para efectos de brillo (sin texto) */
+#btnActualizarMesas::before,
+#btnGuardarCambios::before,
+#btnFinalizarEvento::before,
+.btn-primary::before,
+.btn-secondary::before,
+.btn-save-invitado::before,
+.btn-cancel-invitado::before {
+    content: '' !important;
+}
+
+/* Asegurar que body::before sea solo para efecto visual */
+body::before {
+    content: '' !important;
+}
+
+/* Limpiar cualquier otro content problemático */
+*::before,
+*::after {
+    content: none;
+}
+
+/* Ahora permitir SOLO los que son necesarios para efectos */
+#btnActualizarMesas::before,
+#btnGuardarCambios::before,
+#btnFinalizarEvento::before,
+.btn-primary::before,
+.btn-secondary::before,
+body::before {
+    content: '' !important;
+    display: block !important;
+}
