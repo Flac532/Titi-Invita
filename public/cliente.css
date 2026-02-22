@@ -2034,3 +2034,293 @@ body {
     background: linear-gradient(90deg, transparent, #a855f7, transparent);
     border-radius: 2px;
 }
+
+
+/* ===== BOTONES ACTUALIZAR MESAS, GUARDAR Y ELIMINAR MEJORADOS ===== */
+
+/* Contenedor de botones principales */
+.mesas-footer {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9) !important;
+    padding: 25px !important;
+    border-top: 3px solid #e2e8f0 !important;
+    display: flex !important;
+    gap: 12px !important;
+}
+
+/* Botón ACTUALIZAR MESAS - Azul brillante */
+#btnActualizarMesas {
+    flex: 1 !important;
+    padding: 18px 28px !important;
+    background: linear-gradient(135deg, #3b82f6, #2563eb, #1d4ed8) !important;
+    background-size: 200% 200% !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 16px !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    cursor: pointer !important;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    animation: gradientWaveBlue 3s ease infinite !important;
+}
+
+@keyframes gradientWaveBlue {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#btnActualizarMesas::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+}
+
+#btnActualizarMesas:hover::before {
+    left: 100%;
+}
+
+#btnActualizarMesas::after {
+    content: '🔄';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.3rem;
+    animation: spinIcon 2s linear infinite;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+@keyframes spinIcon {
+    from { transform: translateY(-50%) rotate(0deg); }
+    to { transform: translateY(-50%) rotate(360deg); }
+}
+
+#btnActualizarMesas:hover::after {
+    opacity: 1;
+    right: 20px;
+}
+
+#btnActualizarMesas:hover {
+    transform: translateY(-4px) scale(1.03) !important;
+    box-shadow: 0 15px 40px rgba(59, 130, 246, 0.6) !important;
+}
+
+#btnActualizarMesas i {
+    margin-right: 10px;
+    animation: iconBounceBlue 2s ease-in-out infinite;
+}
+
+@keyframes iconBounceBlue {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* Botón GUARDAR CAMBIOS - Verde brillante */
+#btnGuardarCambios {
+    flex: 1 !important;
+    padding: 18px 28px !important;
+    background: linear-gradient(135deg, #10b981, #059669, #047857) !important;
+    background-size: 200% 200% !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 16px !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    cursor: pointer !important;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    animation: gradientWaveGreen 3s ease infinite !important;
+}
+
+@keyframes gradientWaveGreen {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#btnGuardarCambios::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+}
+
+#btnGuardarCambios:hover::before {
+    left: 100%;
+}
+
+#btnGuardarCambios::after {
+    content: '✓';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    font-size: 1.5rem;
+    font-weight: 900;
+    transition: all 0.3s;
+}
+
+#btnGuardarCambios:hover::after {
+    transform: translateY(-50%) scale(1);
+    right: 20px;
+}
+
+#btnGuardarCambios:hover {
+    transform: translateY(-4px) scale(1.03) !important;
+    box-shadow: 0 15px 40px rgba(16, 185, 129, 0.6) !important;
+}
+
+#btnGuardarCambios i {
+    margin-right: 10px;
+    animation: iconPulseGreen 2s ease-in-out infinite;
+}
+
+@keyframes iconPulseGreen {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+/* Botón ELIMINAR - Rojo brillante */
+#btnFinalizarEvento {
+    flex: 1 !important;
+    padding: 18px 28px !important;
+    background: linear-gradient(135deg, #ef4444, #dc2626, #b91c1c) !important;
+    background-size: 200% 200% !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 16px !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    cursor: pointer !important;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    animation: gradientWaveRed 3s ease infinite !important;
+}
+
+@keyframes gradientWaveRed {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#btnFinalizarEvento::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+}
+
+#btnFinalizarEvento:hover::before {
+    left: 100%;
+}
+
+#btnFinalizarEvento::after {
+    content: '⚠️';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.3rem;
+    animation: warningShake 0.8s ease-in-out infinite;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+@keyframes warningShake {
+    0%, 100% { transform: translateY(-50%) translateX(0); }
+    25% { transform: translateY(-50%) translateX(-3px); }
+    75% { transform: translateY(-50%) translateX(3px); }
+}
+
+#btnFinalizarEvento:hover::after {
+    opacity: 1;
+    right: 20px;
+}
+
+#btnFinalizarEvento:hover {
+    transform: translateY(-4px) scale(1.03) !important;
+    box-shadow: 0 15px 40px rgba(239, 68, 68, 0.6) !important;
+}
+
+#btnFinalizarEvento i {
+    margin-right: 10px;
+    animation: iconShake 2s ease-in-out infinite;
+}
+
+@keyframes iconShake {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30%, 50%, 70%, 90% { transform: rotate(-5deg); }
+    20%, 40%, 60%, 80% { transform: rotate(5deg); }
+}
+
+/* Efecto ripple al hacer click */
+.mesas-footer button:active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+    to {
+        width: 300px;
+        height: 300px;
+        opacity: 0;
+    }
+}
+
+/* Estado deshabilitado */
+.mesas-footer button:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+.mesas-footer button:disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Responsive para botones */
+@media (max-width: 768px) {
+    .mesas-footer {
+        flex-direction: column !important;
+    }
+    
+    .mesas-footer button {
+        width: 100% !important;
+    }
+}
