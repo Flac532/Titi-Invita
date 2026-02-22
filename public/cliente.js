@@ -1387,71 +1387,194 @@ window.asignarInvitado = function(invitadoId) {
 };
 
 window.cerrarModal = cerrarModal;
+// ===== FUNCIONALIDADES FINALES =====
 
-// ===== FUNCIONALIDADES NUEVAS AGREGADAS =====
-
-// ===== CERRAR SESIÓN =====
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', function() {
-        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-            localStorage.removeItem('titi_usuario_actual');
-            localStorage.removeItem('titi_token');
-            sessionStorage.removeItem('titi_token');
-            
-            mostrarToastNuevo('✅ Sesión cerrada exitosamente', 'success');
-            
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 1000);
+// CAMBIAR TEXTO BOTÓN FINALIZAR A ELIMINAR
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        const btnFinalizar = document.getElementById('btnFinalizarEvento');
+        if (btnFinalizar) {
+            btnFinalizar.innerHTML = '<i class="fas fa-trash"></i> ELIMINAR';
         }
+    }, 100);
+});
+
+// ===== SISTEMA DE CLICK EN SILLAS MEJORADO =====
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('silla') || e.target.closest('.silla')) {
+        const sillaEl = e.target.classList.contains('silla') ? e.target : e.target.closest('.silla');
+        mostrarModalColorSilla(sillaEl);
+    }
+});
+
+function mostrarModalColorSilla(sillaElement) {
+    // Obtener estado actual
+    let estadoActual = 'sin-asignar';
+    if (sillaElement.classList.contains('estado-confirmado')) {
+        estadoActual = 'confirmado';
+    } else if (sillaElement.classList.contains('estado-asignado')) {
+        estadoActual = 'asignado';
+    }
+    
+    // Obtener info de mesa y silla
+    const mesaElement = sillaElement.closest('.mesa');
+    const mesaInfo = mesaElement ? mesaElement.querySelector('.mesa-info').textContent : '';
+    const sillaNumero = sillaElement.textContent.trim();
+    
+    const modalHTML = `
+        <div class="modal-color-silla active" id="modalColorSilla">
+            <div class="modal-color-content">
+                <div class="modal-color-header">
+                    <h3><i class="fas fa-chair"></i> Cambiar Estado - Silla ${sillaNumero}</h3>
+                </div>
+                <div class="modal-color-body">
+                    <div class="colores-silla">
+                        <div class="color-opcion gris ${estadoActual === 'sin-asignar' ? 'selected' : ''}" data-estado="sin-asignar">
+                            <div class="color-icono">⚪</div>
+                            <div class="color-nombre">Disponible</div>
+                        </div>
+                        <div class="color-opcion rojo ${estadoActual === 'asignado' ? 'selected' : ''}" data-estado="asignado">
+                            <div class="color-icono">🔴</div>
+                            <div class="color-nombre">Ocupado</div>
+                        </div>
+                        <div class="color-opcion verde ${estadoActual === 'confirmado' ? 'selected' : ''}" data-estado="confirmado">
+                            <div class="color-icono">🟢</div>
+                            <div class="color-nombre">Confirmado</div>
+                        </div>
+                    </div>
+                    <div class="modal-color-buttons">
+                        <button class="btn-cancelar-modal" onclick="cerrarModalColor()">Cancelar</button>
+                        <button class="btn-aplicar-modal" onclick="aplicarColorSilla()">Aplicar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Guardar referencia a la silla
+    window.sillaActual = sillaElement;
+    
+    // Event listeners para selección
+    document.querySelectorAll('.color-opcion').forEach(opcion => {
+        opcion.addEventListener('click', function() {
+            document.querySelectorAll('.color-opcion').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+        });
     });
 }
 
-// ===== MODAL AGREGAR INVITADO =====
-if (addGuestBtn) {
-    addGuestBtn.addEventListener('click', mostrarModalAgregarInvitadoNuevo);
+window.cerrarModalColor = function() {
+    const modal = document.getElementById('modalColorSilla');
+    if (modal) modal.remove();
+    window.sillaActual = null;
+};
+
+window.aplicarColorSilla = function() {
+    if (!window.sillaActual) return;
+    
+    const estadoSeleccionado = document.querySelector('.color-opcion.selected');
+    if (!estadoSeleccionado) return;
+    
+    const nuevoEstado = estadoSeleccionado.dataset.estado;
+    
+    // Remover clases anteriores
+    window.sillaActual.classList.remove('estado-sin-asignar', 'estado-asignado', 'estado-confirmado');
+    
+    // Agregar nueva clase
+    window.sillaActual.classList.add('estado-' + nuevoEstado);
+    
+    // Actualizar en datos
+    try {
+        const mesaEl = window.sillaActual.closest('.mesa');
+        const mesaInfo = mesaEl.querySelector('.mesa-info').textContent;
+        const mesaMatch = mesaInfo.match(/Mesa (\d+)/);
+        const mesaId = mesaMatch ? parseInt(mesaMatch[1]) : null;
+        const sillaId = parseInt(window.sillaActual.textContent.trim());
+        
+        if (mesaId && sillaId && typeof mesas !== 'undefined') {
+            const mesa = mesas.find(m => m.id === mesaId);
+            if (mesa && mesa.sillas) {
+                const silla = mesa.sillas.find(s => s.id === sillaId);
+                if (silla) {
+                    silla.estado = nuevoEstado;
+                }
+            }
+        }
+    } catch (e) {
+        console.log('Actualización de datos:', e);
+    }
+    
+    if (typeof actualizarEstadisticas === 'function') {
+        actualizarEstadisticas();
+    }
+    
+    mostrarToast('Estado actualizado correctamente', 'success');
+    cerrarModalColor();
+};
+
+// ===== AGREGAR INVITADO =====
+if (document.getElementById('addGuestBtn')) {
+    document.getElementById('addGuestBtn').addEventListener('click', function() {
+        mostrarModalInvitado();
+    });
 }
 
-function mostrarModalAgregarInvitadoNuevo() {
+function mostrarModalInvitado(invitadoId = null) {
+    let invitado = null;
+    let titulo = 'Agregar Invitado';
+    
+    if (invitadoId && typeof invitados !== 'undefined') {
+        invitado = invitados.find(i => i.id === invitadoId);
+        titulo = 'Editar Invitado';
+    }
+    
     const modalHTML = `
-        <div class="modal-nuevo active">
-            <div class="modal-overlay-nuevo" onclick="cerrarModalesNuevos()"></div>
-            <div class="modal-content-nuevo">
-                <button class="modal-close-nuevo" onclick="cerrarModalesNuevos()">×</button>
-                <h2><i class="fas fa-user-plus"></i> Agregar Invitado</h2>
-                
-                <form id="formAgregarInvitadoNuevo" onsubmit="event.preventDefault(); guardarNuevoInvitadoNuevo();">
-                    <div class="form-group">
+        <div class="modal-invitado active" id="modalInvitado">
+            <div class="modal-invitado-content">
+                <div class="modal-invitado-header">
+                    <h2><i class="fas fa-user-${invitado ? 'edit' : 'plus'}"></i> ${titulo}</h2>
+                    <button class="modal-close-invitado" onclick="cerrarModalInvitado()">&times;</button>
+                </div>
+                <form class="form-invitado-body" onsubmit="event.preventDefault(); guardarInvitado(${invitadoId});">
+                    <div class="form-invitado-group">
                         <label>Nombre Completo *</label>
-                        <input type="text" id="nuevoInvitadoNombre" required placeholder="Juan Pérez" autofocus>
+                        <input type="text" id="inputNombre" required 
+                               value="${invitado ? invitado.nombre : ''}" 
+                               placeholder="Ej: Ana María García">
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-invitado-group">
                         <label>Email</label>
-                        <input type="email" id="nuevoInvitadoEmail" placeholder="juan@ejemplo.com">
+                        <input type="email" id="inputEmail" 
+                               value="${invitado ? (invitado.email || '') : ''}" 
+                               placeholder="ejemplo@correo.com">
                     </div>
                     
-                    <div class="form-row">
-                        <div class="form-group">
+                    <div class="form-invitado-row">
+                        <div class="form-invitado-group">
                             <label>Teléfono</label>
-                            <input type="tel" id="nuevoInvitadoTelefono" placeholder="+52 55 1234 5678">
+                            <input type="tel" id="inputTelefono" 
+                                   value="${invitado ? (invitado.telefono || '') : ''}" 
+                                   placeholder="+52 55 1234 5678">
                         </div>
                         
-                        <div class="form-group">
+                        <div class="form-invitado-group">
                             <label>Estado</label>
-                            <select id="nuevoInvitadoEstado">
-                                <option value="pendiente">Pendiente</option>
-                                <option value="confirmado">Confirmado</option>
-                                <option value="rechazado">Rechazado</option>
+                            <select id="inputEstado">
+                                <option value="pendiente" ${invitado && invitado.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                                <option value="confirmado" ${invitado && invitado.estado === 'confirmado' ? 'selected' : ''}>Confirmado</option>
+                                <option value="rechazado" ${invitado && invitado.estado === 'rechazado' ? 'selected' : ''}>Rechazado</option>
                             </select>
                         </div>
                     </div>
                     
-                    <div class="button-group">
-                        <button type="button" class="btn-secondary" onclick="cerrarModalesNuevos()">
-                            <i class="fas fa-times"></i> Cancelar
+                    <div class="form-invitado-buttons">
+                        <button type="button" class="btn-cancelar-invitado" onclick="cerrarModalInvitado()">
+                            Cancelar
                         </button>
-                        <button type="submit" class="btn-primary">
+                        <button type="submit" class="btn-guardar-invitado">
                             <i class="fas fa-save"></i> Guardar
                         </button>
                     </div>
@@ -1461,170 +1584,123 @@ function mostrarModalAgregarInvitadoNuevo() {
     `;
     
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    setTimeout(() => {
+        document.getElementById('inputNombre').focus();
+    }, 100);
 }
 
-function guardarNuevoInvitadoNuevo() {
-    const nombre = document.getElementById('nuevoInvitadoNombre').value.trim();
-    const email = document.getElementById('nuevoInvitadoEmail').value.trim();
-    const telefono = document.getElementById('nuevoInvitadoTelefono').value.trim();
-    const estado = document.getElementById('nuevoInvitadoEstado').value;
+window.cerrarModalInvitado = function() {
+    const modal = document.getElementById('modalInvitado');
+    if (modal) modal.remove();
+};
+
+window.guardarInvitado = function(invitadoId) {
+    const nombre = document.getElementById('inputNombre').value.trim();
+    const email = document.getElementById('inputEmail').value.trim();
+    const telefono = document.getElementById('inputTelefono').value.trim();
+    const estado = document.getElementById('inputEstado').value;
     
     if (!nombre) {
-        mostrarToastNuevo('❌ El nombre es obligatorio', 'error');
+        mostrarToast('El nombre es obligatorio', 'error');
         return;
     }
     
-    const nuevoInvitado = {
-        id: invitados.length + 1,
-        nombre: nombre,
-        email: email || '',
-        telefono: telefono || '',
-        estado: estado,
-        mesa: null,
-        silla: null
-    };
+    if (typeof invitados === 'undefined') {
+        window.invitados = [];
+    }
     
-    invitados.push(nuevoInvitado);
-    
-    mostrarToastNuevo('✅ Invitado agregado exitosamente', 'success');
-    cerrarModalesNuevos();
-    actualizarListaInvitados();
-}
-
-// ===== EDITAR INVITADO =====
-window.editarInvitadoNuevo = function(invitadoId) {
-    const invitado = invitados.find(i => i.id === invitadoId);
-    if (!invitado) return;
-    
-    const modalHTML = `
-        <div class="modal-nuevo active">
-            <div class="modal-overlay-nuevo" onclick="cerrarModalesNuevos()"></div>
-            <div class="modal-content-nuevo">
-                <button class="modal-close-nuevo" onclick="cerrarModalesNuevos()">×</button>
-                <h2><i class="fas fa-edit"></i> Editar Invitado</h2>
-                
-                <form id="formEditarInvitado" onsubmit="event.preventDefault(); actualizarInvitadoNuevo(${invitadoId});">
-                    <div class="form-group">
-                        <label>Nombre Completo *</label>
-                        <input type="text" id="editInvitadoNombre" required value="${invitado.nombre}" autofocus>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="editInvitadoEmail" value="${invitado.email || ''}">
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Teléfono</label>
-                            <input type="tel" id="editInvitadoTelefono" value="${invitado.telefono || ''}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Estado</label>
-                            <select id="editInvitadoEstado">
-                                <option value="pendiente" ${invitado.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-                                <option value="confirmado" ${invitado.estado === 'confirmado' ? 'selected' : ''}>Confirmado</option>
-                                <option value="rechazado" ${invitado.estado === 'rechazado' ? 'selected' : ''}>Rechazado</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="button-group">
-                        <button type="button" class="btn-secondary" onclick="cerrarModalesNuevos()">
-                            <i class="fas fa-times"></i> Cancelar
-                        </button>
-                        <button type="submit" class="btn-primary">
-                            <i class="fas fa-save"></i> Actualizar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-};
-
-function actualizarInvitadoNuevo(invitadoId) {
-    const invitado = invitados.find(i => i.id === invitadoId);
-    if (!invitado) return;
-    
-    invitado.nombre = document.getElementById('editInvitadoNombre').value.trim();
-    invitado.email = document.getElementById('editInvitadoEmail').value.trim();
-    invitado.telefono = document.getElementById('editInvitadoTelefono').value.trim();
-    const nuevoEstado = document.getElementById('editInvitadoEstado').value;
-    
-    // Actualizar estado del invitado
-    invitado.estado = nuevoEstado;
-    
-    // Si está asignado a una silla, actualizar el color de la silla
-    if (invitado.mesa !== null && invitado.silla !== null) {
-        const mesa = mesas.find(m => m.id === invitado.mesa);
-        if (mesa) {
-            const silla = mesa.sillas.find(s => s.id === invitado.silla);
-            if (silla) {
-                // Mapear estado de invitado a estado de silla
-                if (nuevoEstado === 'confirmado') {
-                    silla.estado = 'confirmado';
-                } else if (nuevoEstado === 'rechazado') {
-                    silla.estado = 'asignado'; // rojo
-                } else {
-                    silla.estado = 'asignado'; // rojo por defecto si está asignado
-                }
-            }
+    if (invitadoId) {
+        // Editar
+        const invitado = invitados.find(i => i.id === invitadoId);
+        if (invitado) {
+            invitado.nombre = nombre;
+            invitado.email = email;
+            invitado.telefono = telefono;
+            invitado.estado = estado;
+            mostrarToast('Invitado actualizado', 'success');
         }
+    } else {
+        // Agregar
+        const nuevoId = invitados.length > 0 ? Math.max(...invitados.map(i => i.id)) + 1 : 1;
+        invitados.push({
+            id: nuevoId,
+            nombre: nombre,
+            email: email,
+            telefono: telefono,
+            estado: estado,
+            mesa: null,
+            silla: null
+        });
+        mostrarToast('Invitado agregado', 'success');
     }
     
-    mostrarToastNuevo('✅ Invitado actualizado', 'success');
-    cerrarModalesNuevos();
-    actualizarListaInvitados();
-    renderizarMesas();
-}
-
-// ===== ASIGNAR INVITADO =====
-window.asignarInvitadoNuevo = function(invitadoId) {
-    mostrarToastNuevo('💡 Haz click en una silla disponible para asignar este invitado', 'info');
-    window.invitadoPendienteAsignacion = invitadoId;
+    cerrarModalInvitado();
+    
+    if (typeof actualizarListaInvitados === 'function') {
+        actualizarListaInvitados();
+    }
 };
 
-// ===== MODAL CAMBIAR DISPOSICIÓN =====
-if (document.getElementById('changeLayoutBtn')) {
-    document.getElementById('changeLayoutBtn').addEventListener('click', mostrarModalDisposicionNuevo);
+// ===== EDITAR INVITADOS DESDE LISTA =====
+window.editarInvitadoDesdeLista = function(invitadoId) {
+    mostrarModalInvitado(invitadoId);
+};
+
+// Agregar botones de editar a la lista
+if (typeof actualizarListaInvitados !== 'undefined') {
+    const original = actualizarListaInvitados;
+    actualizarListaInvitados = function() {
+        original();
+        
+        setTimeout(() => {
+            document.querySelectorAll('.guest-item').forEach(item => {
+                if (!item.querySelector('.btn-editar-guest')) {
+                    const nombreEl = item.querySelector('strong');
+                    if (nombreEl && typeof invitados !== 'undefined') {
+                        const nombre = nombreEl.textContent.trim();
+                        const inv = invitados.find(i => i.nombre === nombre);
+                        if (inv) {
+                            const btnHTML = `
+                                <button class="btn-editar-guest" onclick="editarInvitadoDesdeLista(${inv.id})" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            `;
+                            item.insertAdjacentHTML('beforeend', btnHTML);
+                        }
+                    }
+                }
+            });
+        }, 100);
+    };
 }
 
-function mostrarModalDisposicionNuevo() {
+// ===== CERRAR SESIÓN =====
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        mostrarModalLogout();
+    });
+}
+
+function mostrarModalLogout() {
     const modalHTML = `
-        <div class="modal-nuevo active">
-            <div class="modal-overlay-nuevo" onclick="cerrarModalesNuevos()"></div>
-            <div class="modal-content-nuevo">
-                <button class="modal-close-nuevo" onclick="cerrarModalesNuevos()">×</button>
-                <h2><i class="fas fa-th"></i> Cambiar Disposición</h2>
-                
-                <div class="layout-options">
-                    <div class="layout-option selected" data-layout="grid">
-                        <i class="fas fa-th"></i>
-                        <p>Cuadrícula</p>
-                        <small>Disposición en filas y columnas</small>
-                    </div>
-                    <div class="layout-option" data-layout="circle">
-                        <i class="fas fa-circle"></i>
-                        <p>Circular</p>
-                        <small>Mesas en círculo</small>
-                    </div>
-                    <div class="layout-option" data-layout="custom">
-                        <i class="fas fa-sliders-h"></i>
-                        <p>Personalizado</p>
-                        <small>Arrastra las mesas</small>
-                    </div>
+        <div class="modal-logout active" id="modalLogout">
+            <div class="modal-logout-content">
+                <div class="modal-logout-icon">
+                    <i class="fas fa-sign-out-alt"></i>
                 </div>
                 
-                <div class="button-group" style="margin-top: 24px;">
-                    <button class="btn-secondary" onclick="cerrarModalesNuevos()">
-                        <i class="fas fa-times"></i> Cancelar
+                <h3>¿Cerrar Sesión?</h3>
+                <p>Estás a punto de cerrar tu sesión. Todos tus cambios se han guardado automáticamente.</p>
+                
+                <div class="modal-logout-buttons">
+                    <button class="btn-cancelar-logout" onclick="cerrarModalLogout()">
+                        Cancelar
                     </button>
-                    <button class="btn-primary" onclick="aplicarDisposicionNuevo()">
-                        <i class="fas fa-check"></i> Aplicar
+                    <button class="btn-confirmar-logout" onclick="confirmarLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                     </button>
                 </div>
             </div>
@@ -1632,50 +1708,33 @@ function mostrarModalDisposicionNuevo() {
     `;
     
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+window.cerrarModalLogout = function() {
+    const modal = document.getElementById('modalLogout');
+    if (modal) modal.remove();
+};
+
+window.confirmarLogout = function() {
+    mostrarToast('Cerrando sesión...', 'success');
     
-    document.querySelectorAll('.layout-option').forEach(option => {
-        option.addEventListener('click', function() {
-            document.querySelectorAll('.layout-option').forEach(opt => opt.classList.remove('selected'));
-            this.classList.add('selected');
-        });
-    });
-}
+    setTimeout(() => {
+        localStorage.removeItem('titi_usuario_actual');
+        localStorage.removeItem('titi_token');
+        sessionStorage.removeItem('titi_token');
+        window.location.href = 'login.html';
+    }, 1200);
+};
 
-function aplicarDisposicionNuevo() {
-    const selectedLayout = document.querySelector('.layout-option.selected');
-    const layoutType = selectedLayout ? selectedLayout.getAttribute('data-layout') : 'grid';
-    
-    mostrarToastNuevo('✅ Disposición ' + layoutType + ' aplicada', 'success');
-    cerrarModalesNuevos();
-}
-
-// ===== CERRAR MODALES =====
-function cerrarModalesNuevos() {
-    const modales = document.querySelectorAll('.modal-nuevo');
-    modales.forEach(modal => {
-        modal.style.opacity = '0';
-        setTimeout(() => {
-            modal.remove();
-        }, 300);
-    });
-}
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        cerrarModalesNuevos();
-    }
-});
-
-// ===== TOAST NOTIFICATIONS =====
-function mostrarToastNuevo(mensaje, tipo = 'info') {
+// ===== TOAST MEJORADO =====
+function mostrarToast(mensaje, tipo = 'success') {
     const iconos = {
         success: 'fa-check-circle',
-        error: 'fa-exclamation-circle',
-        info: 'fa-info-circle'
+        error: 'fa-exclamation-circle'
     };
     
     const toast = document.createElement('div');
-    toast.className = `toast-nuevo ${tipo}`;
+    toast.className = `toast ${tipo}`;
     toast.innerHTML = `
         <i class="fas ${iconos[tipo]}"></i>
         <span>${mensaje}</span>
@@ -1685,630 +1744,9 @@ function mostrarToastNuevo(mensaje, tipo = 'info') {
     
     setTimeout(() => {
         toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100px)';
+        toast.style.transform = 'translateX(400px)';
         setTimeout(() => toast.remove(), 400);
     }, 3000);
 }
 
-// ===== MEJORAR LISTA DE INVITADOS =====
-const actualizarListaInvitadosOriginal = actualizarListaInvitados;
-
-actualizarListaInvitados = function() {
-    if (!guestsList) return;
-    
-    const filtro = guestFilter ? guestFilter.value : 'all';
-    const busqueda = guestSearch ? guestSearch.value.toLowerCase() : '';
-    
-    let invitadosFiltrados = invitados.filter(inv => {
-        const matchBusqueda = inv.nombre.toLowerCase().includes(busqueda) || 
-                             (inv.email && inv.email.toLowerCase().includes(busqueda));
-        
-        if (filtro === 'all') return matchBusqueda;
-        if (filtro === 'assigned') return matchBusqueda && inv.mesa;
-        if (filtro === 'unassigned') return matchBusqueda && !inv.mesa;
-        if (filtro === 'confirmed') return matchBusqueda && inv.estado === 'confirmado';
-        
-        return matchBusqueda;
-    });
-    
-    guestsList.innerHTML = '';
-    
-    if (invitadosFiltrados.length === 0) {
-        guestsList.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-users"></i>
-                <p>No hay invitados</p>
-                <small>Agrega invitados con el botón de arriba</small>
-            </div>
-        `;
-        return;
-    }
-    
-    invitadosFiltrados.forEach(invitado => {
-        const guestItem = document.createElement('div');
-        guestItem.className = 'guest-item';
-        guestItem.style.cursor = 'pointer';
-        
-        let estadoClass = 'confirmado';
-        let estadoTexto = 'Confirmado';
-        let estadoColor = '#d1fae5';
-        let estadoTextColor = '#065f46';
-        
-        if (invitado.estado === 'pendiente') {
-            estadoClass = 'pendiente';
-            estadoTexto = 'Pendiente';
-            estadoColor = '#fef3c7';
-            estadoTextColor = '#92400e';
-        } else if (invitado.estado === 'rechazado') {
-            estadoClass = 'rechazado';
-            estadoTexto = 'Rechazado';
-            estadoColor = '#fee2e2';
-            estadoTextColor = '#991b1b';
-        }
-        
-        const mesaInfo = invitado.mesa ? `Mesa ${invitado.mesa}, Silla ${invitado.silla}` : 'Sin asignar';
-        
-        guestItem.innerHTML = `
-            <strong style="font-size: 0.95rem; color: #0f172a;">${invitado.nombre}</strong>
-            <small style="display: block; color: #64748b; font-size: 0.85rem;">${invitado.email || 'Sin email'}</small>
-            <small style="display: block; margin-top: 4px; color: #94a3b8; font-size: 0.8rem;">${mesaInfo}</small>
-            <div class="guest-actions">
-                <button class="btn-guest-action" onclick="editarInvitadoNuevo(${invitado.id})" title="Editar">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-guest-action" onclick="asignarInvitadoNuevo(${invitado.id})" title="Asignar a mesa">
-                    <i class="fas fa-chair"></i>
-                </button>
-            </div>
-            <span style="display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-top: 6px; background: ${estadoColor}; color: ${estadoTextColor};">${estadoTexto}</span>
-        `;
-        
-        guestsList.appendChild(guestItem);
-    });
-};
-
-console.log('✅ Funcionalidades nuevas cargadas: Modales, Colores, Cerrar Sesión, Botones');
-
-// ===== FUNCIONALIDADES AGREGADAS - NO TOCAR CÓDIGO EXISTENTE =====
-
-// CLICK EN SILLAS PARA CAMBIAR COLOR
-document.addEventListener('click', function(e) {
-    if (e.target.classList.contains('silla')) {
-        const sillaElement = e.target;
-        const mesaElement = sillaElement.closest('.mesa');
-        
-        if (!mesaElement) return;
-        
-        // Obtener mesa y silla IDs
-        const mesaInfo = mesaElement.querySelector('.mesa-info').textContent;
-        const mesaMatch = mesaInfo.match(/Mesa (\d+)/);
-        const mesaId = mesaMatch ? parseInt(mesaMatch[1]) : null;
-        const sillaId = parseInt(sillaElement.textContent.trim());
-        
-        if (!mesaId || !sillaId) return;
-        
-        const mesa = mesas.find(m => m.id === mesaId);
-        if (!mesa) return;
-        
-        const silla = mesa.sillas.find(s => s.id === sillaId);
-        if (!silla) return;
-        
-        // Si tiene invitado, mostrar info
-        if (silla.invitadoId) {
-            const invitado = invitados.find(i => i.id === silla.invitadoId);
-            if (invitado) {
-                mostrarInfoInvitadoCompleta(invitado, mesaId, sillaId, silla);
-            }
-        } else {
-            // Mostrar selector de estado
-            mostrarSelectorEstadoSilla(mesaId, sillaId, silla);
-        }
-    }
-});
-
-// SELECTOR DE ESTADO DE SILLA
-function mostrarSelectorEstadoSilla(mesaId, sillaId, silla) {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'flex';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 450px;">
-            <div class="modal-header">
-                <h3>Silla ${sillaId} - Mesa ${mesaId}</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p style="text-align: center; margin-bottom: 15px;">
-                    Selecciona el estado de la silla:
-                </p>
-                
-                <div class="estado-selector">
-                    <button class="estado-btn gris ${silla.estado === 'sin-asignar' ? 'selected' : ''}" 
-                            data-estado="sin-asignar">
-                        Disponible<br>
-                        <small>🔘 Gris</small>
-                    </button>
-                    <button class="estado-btn rojo ${silla.estado === 'asignado' ? 'selected' : ''}" 
-                            data-estado="asignado">
-                        Ocupado<br>
-                        <small>🔴 Rojo</small>
-                    </button>
-                    <button class="estado-btn verde ${silla.estado === 'confirmado' ? 'selected' : ''}" 
-                            data-estado="confirmado">
-                        Confirmado<br>
-                        <small>🟢 Verde</small>
-                    </button>
-                </div>
-                
-                <hr style="margin: 20px 0; border: none; border-top: 1px solid #e2e8f0;">
-                
-                <p style="text-align: center; margin-bottom: 10px; color: #64748b; font-size: 0.9rem;">
-                    O asignar un invitado:
-                </p>
-                
-                <select id="selectInvitadoModal" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;">
-                    <option value="">-- Seleccionar invitado --</option>
-                    ${invitados.filter(i => !i.mesa).map(inv => `
-                        <option value="${inv.id}">${inv.nombre}</option>
-                    `).join('')}
-                </select>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModalCustom(this)">Cancelar</button>
-                <button class="btn-primary" onclick="aplicarCambiosSilla(${mesaId}, ${sillaId})">Aplicar</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    // Event listeners
-    modal.querySelector('.modal-close').onclick = () => cerrarModalCustom(modal.querySelector('.modal-close'));
-    modal.onclick = (e) => {
-        if (e.target === modal) cerrarModalCustom(modal.querySelector('.modal-close'));
-    };
-    
-    // Selección de estado
-    modal.querySelectorAll('.estado-btn').forEach(btn => {
-        btn.onclick = function() {
-            modal.querySelectorAll('.estado-btn').forEach(b => b.classList.remove('selected'));
-            this.classList.add('selected');
-        };
-    });
-}
-
-window.aplicarCambiosSilla = function(mesaId, sillaId) {
-    const modal = document.querySelector('.modal');
-    const estadoBtn = modal.querySelector('.estado-btn.selected');
-    const selectInvitado = modal.querySelector('#selectInvitadoModal');
-    
-    const mesa = mesas.find(m => m.id === mesaId);
-    const silla = mesa.sillas.find(s => s.id === sillaId);
-    
-    // Si se seleccionó un invitado
-    if (selectInvitado.value) {
-        const invitadoId = parseInt(selectInvitado.value);
-        const invitado = invitados.find(i => i.id === invitadoId);
-        
-        silla.invitadoId = invitadoId;
-        silla.nombre = invitado.nombre;
-        silla.estado = invitado.estado === 'confirmado' ? 'confirmado' : 'asignado';
-        
-        invitado.mesa = mesaId;
-        invitado.silla = sillaId;
-        
-        mostrarToast(`✅ ${invitado.nombre} asignado a Mesa ${mesaId}, Silla ${sillaId}`, 'success');
-    } 
-    // Si solo cambió estado
-    else if (estadoBtn) {
-        silla.estado = estadoBtn.dataset.estado;
-        mostrarToast(`✅ Silla actualizada`, 'success');
-    }
-    
-    cerrarModalCustom(modal.querySelector('.modal-close'));
-    renderizarMesas();
-    actualizarListaInvitados();
-    actualizarEstadisticas();
-};
-
-window.cerrarModalCustom = function(btn) {
-    const modal = btn.closest('.modal');
-    if (modal) {
-        modal.style.display = 'none';
-        setTimeout(() => modal.remove(), 300);
-    }
-};
-
-// INFO COMPLETA DE INVITADO
-function mostrarInfoInvitadoCompleta(invitado, mesaId, sillaId, silla) {
-    let estadoIcon = 'fa-check-circle';
-    let estadoText = 'Confirmado';
-    
-    if (invitado.estado === 'pendiente') {
-        estadoIcon = 'fa-clock';
-        estadoText = 'Pendiente';
-    } else if (invitado.estado === 'rechazado') {
-        estadoIcon = 'fa-times-circle';
-        estadoText = 'Rechazado';
-    }
-    
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'flex';
-    modal.innerHTML = `
-        <div class="modal-content modal-info">
-            <button class="modal-close">&times;</button>
-            
-            <div class="info-header">
-                <h3><i class="fas fa-user"></i> ${invitado.nombre}</h3>
-                <span class="info-badge">
-                    <i class="fas ${estadoIcon}"></i> ${estadoText}
-                </span>
-            </div>
-            
-            <div class="modal-body">
-                <div class="info-detalle">
-                    <i class="fas fa-envelope"></i>
-                    <div style="flex: 1;">
-                        <strong>Email</strong>
-                        <span>${invitado.email || 'No especificado'}</span>
-                    </div>
-                </div>
-                
-                <div class="info-detalle">
-                    <i class="fas fa-phone"></i>
-                    <div style="flex: 1;">
-                        <strong>Teléfono</strong>
-                        <span>${invitado.telefono || 'No especificado'}</span>
-                    </div>
-                </div>
-                
-                <div class="info-detalle">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <div style="flex: 1;">
-                        <strong>Ubicación</strong>
-                        <span>Mesa ${mesaId}, Silla ${sillaId}</span>
-                    </div>
-                </div>
-                
-                <p style="text-align: center; margin: 20px 0 10px; color: #64748b; font-size: 0.9rem;">
-                    Cambiar estado:
-                </p>
-                
-                <div class="estado-selector">
-                    <button class="estado-btn gris ${invitado.estado === 'pendiente' ? 'selected' : ''}" 
-                            data-estado="pendiente">
-                        Pendiente
-                    </button>
-                    <button class="estado-btn rojo ${invitado.estado === 'rechazado' ? 'selected' : ''}" 
-                            data-estado="rechazado">
-                        Rechazado
-                    </button>
-                    <button class="estado-btn verde ${invitado.estado === 'confirmado' ? 'selected' : ''}" 
-                            data-estado="confirmado">
-                        Confirmado
-                    </button>
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="desasignarInvitadoSilla(${invitado.id}, ${mesaId}, ${sillaId})">
-                    <i class="fas fa-user-minus"></i> Desasignar
-                </button>
-                <button class="btn-primary" onclick="actualizarEstadoInvitado(${invitado.id}, ${mesaId}, ${sillaId})">
-                    <i class="fas fa-save"></i> Guardar
-                </button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    modal.querySelector('.modal-close').onclick = () => cerrarModalCustom(modal.querySelector('.modal-close'));
-    modal.onclick = (e) => {
-        if (e.target === modal) cerrarModalCustom(modal.querySelector('.modal-close'));
-    };
-    
-    modal.querySelectorAll('.estado-btn').forEach(btn => {
-        btn.onclick = function() {
-            modal.querySelectorAll('.estado-btn').forEach(b => b.classList.remove('selected'));
-            this.classList.add('selected');
-        };
-    });
-}
-
-window.actualizarEstadoInvitado = function(invitadoId, mesaId, sillaId) {
-    const modal = document.querySelector('.modal');
-    const estadoBtn = modal.querySelector('.estado-btn.selected');
-    
-    const invitado = invitados.find(i => i.id === invitadoId);
-    const mesa = mesas.find(m => m.id === mesaId);
-    const silla = mesa.sillas.find(s => s.id === sillaId);
-    
-    if (estadoBtn && invitado && silla) {
-        invitado.estado = estadoBtn.dataset.estado;
-        
-        // Actualizar color de silla
-        if (invitado.estado === 'confirmado') {
-            silla.estado = 'confirmado';
-        } else {
-            silla.estado = 'asignado';
-        }
-        
-        mostrarToast(`✅ Estado actualizado`, 'success');
-        cerrarModalCustom(modal.querySelector('.modal-close'));
-        renderizarMesas();
-        actualizarListaInvitados();
-    }
-};
-
-window.desasignarInvitadoSilla = function(invitadoId, mesaId, sillaId) {
-    const invitado = invitados.find(i => i.id === invitadoId);
-    const mesa = mesas.find(m => m.id === mesaId);
-    const silla = mesa.sillas.find(s => s.id === sillaId);
-    
-    silla.invitadoId = null;
-    silla.nombre = '';
-    silla.estado = 'sin-asignar';
-    
-    invitado.mesa = null;
-    invitado.silla = null;
-    
-    const modal = document.querySelector('.modal');
-    cerrarModalCustom(modal.querySelector('.modal-close'));
-    
-    mostrarToast(`✅ Invitado desasignado`, 'success');
-    renderizarMesas();
-    actualizarListaInvitados();
-    actualizarEstadisticas();
-};
-
-// CLICK EN INVITADO DE LA LISTA
-document.addEventListener('click', function(e) {
-    const guestItem = e.target.closest('.guest-item');
-    if (guestItem && !e.target.closest('.guest-actions')) {
-        const nombreElement = guestItem.querySelector('strong');
-        if (nombreElement) {
-            const nombre = nombreElement.textContent.trim();
-            const invitado = invitados.find(i => i.nombre === nombre);
-            
-            if (invitado) {
-                if (invitado.mesa && invitado.silla) {
-                    const mesa = mesas.find(m => m.id === invitado.mesa);
-                    const silla = mesa ? mesa.sillas.find(s => s.id === invitado.silla) : null;
-                    if (silla) {
-                        mostrarInfoInvitadoCompleta(invitado, invitado.mesa, invitado.silla, silla);
-                    }
-                } else {
-                    mostrarInfoInvitadoSinAsignar(invitado);
-                }
-            }
-        }
-    }
-});
-
-function mostrarInfoInvitadoSinAsignar(invitado) {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'flex';
-    modal.innerHTML = `
-        <div class="modal-content modal-info">
-            <button class="modal-close">&times;</button>
-            
-            <div class="info-header">
-                <h3><i class="fas fa-user"></i> ${invitado.nombre}</h3>
-                <span class="info-badge">Sin asignar</span>
-            </div>
-            
-            <div class="modal-body">
-                <div class="info-detalle">
-                    <i class="fas fa-envelope"></i>
-                    <div style="flex: 1;">
-                        <strong>Email</strong>
-                        <span>${invitado.email || 'No especificado'}</span>
-                    </div>
-                </div>
-                
-                <div class="info-detalle">
-                    <i class="fas fa-phone"></i>
-                    <div style="flex: 1;">
-                        <strong>Teléfono</strong>
-                        <span>${invitado.telefono || 'No especificado'}</span>
-                    </div>
-                </div>
-                
-                <div class="info-detalle" style="background: #fef3c7;">
-                    <i class="fas fa-exclamation-triangle" style="background: #f59e0b;"></i>
-                    <div style="flex: 1;">
-                        <strong>Estado</strong>
-                        <span style="color: #92400e;">Sin asignar a mesa</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModalCustom(this)">Cerrar</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    modal.querySelector('.modal-close').onclick = () => cerrarModalCustom(modal.querySelector('.modal-close'));
-    modal.onclick = (e) => {
-        if (e.target === modal) cerrarModalCustom(modal.querySelector('.modal-close'));
-    };
-}
-
-// CERRAR SESIÓN CON CONFIRMACIÓN
-if (logoutBtn) {
-    const logoutOriginal = logoutBtn.onclick;
-    logoutBtn.onclick = function(e) {
-        e.preventDefault();
-        mostrarConfirmacionCerrarSesion();
-    };
-}
-
-function mostrarConfirmacionCerrarSesion() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'flex';
-    modal.innerHTML = `
-        <div class="modal-content" style="max-width: 400px;">
-            <button class="modal-close">&times;</button>
-            
-            <div class="modal-body" style="padding: 30px 20px;">
-                <div class="modal-confirm-icon">
-                    <i class="fas fa-sign-out-alt"></i>
-                </div>
-                
-                <h3 style="text-align: center; margin: 0 0 15px 0;">¿Cerrar Sesión?</h3>
-                
-                <p class="modal-confirm p">
-                    Estás a punto de cerrar tu sesión. Todos tus cambios han sido guardados.
-                </p>
-            </div>
-            
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="cerrarModalCustom(this)">
-                    <i class="fas fa-times"></i> Cancelar
-                </button>
-                <button class="btn-primary" onclick="confirmarCerrarSesion()" 
-                        style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-                    <i class="fas fa-sign-out-alt"></i> Sí, Cerrar Sesión
-                </button>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(modal);
-    
-    modal.querySelector('.modal-close').onclick = () => cerrarModalCustom(modal.querySelector('.modal-close'));
-    modal.onclick = (e) => {
-        if (e.target === modal) cerrarModalCustom(modal.querySelector('.modal-close'));
-    };
-}
-
-function confirmarCerrarSesion() {
-    localStorage.removeItem('titi_usuario_actual');
-    localStorage.removeItem('titi_token');
-    sessionStorage.removeItem('titi_token');
-    
-    mostrarToast('👋 Cerrando sesión...', 'info');
-    
-    setTimeout(() => {
-        window.location.href = 'login.html';
-    }, 1000);
-}
-
-// TOAST MEJORADO
-function mostrarToast(mensaje, tipo) {
-    const iconos = {
-        success: 'fa-check-circle',
-        error: 'fa-exclamation-circle',
-        info: 'fa-info-circle'
-    };
-    
-    const colores = {
-        success: '#4CAF50',
-        error: '#f44336',
-        info: '#667eea'
-    };
-    
-    const toast = document.createElement('div');
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        background: white;
-        padding: 16px 24px;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        z-index: 10000;
-        border-left: 4px solid ${colores[tipo]};
-        animation: slideIn 0.3s ease-out;
-    `;
-    
-    toast.innerHTML = `
-        <i class="fas ${iconos[tipo]}" style="color: ${colores[tipo]}; font-size: 1.2rem;"></i>
-        <span style="color: #0f172a; font-weight: 500;">${mensaje}</span>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease-in';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// CSS para animaciones de toast
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { transform: translateX(400px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(400px); opacity: 0; }
-    }
-`;
-document.head.appendChild(style);
-
-console.log('✅ Funcionalidades agregadas: Click sillas, Info invitados, Cerrar sesión');
-
-
-// ===== FORZAR ACTUALIZACIÓN DE COLORES DE SILLAS =====
-function forzarColoresSillas() {
-    document.querySelectorAll('.silla').forEach(silla => {
-        // Remover clases de estado antiguas
-        silla.classList.remove('estado-sin-asignar', 'estado-asignado', 'estado-confirmado');
-        
-        // Determinar estado actual
-        const mesaElement = silla.closest('.mesa');
-        if (!mesaElement) return;
-        
-        const mesaInfo = mesaElement.querySelector('.mesa-info').textContent;
-        const mesaMatch = mesaInfo.match(/Mesa (\d+)/);
-        const mesaId = mesaMatch ? parseInt(mesaMatch[1]) : null;
-        const sillaId = parseInt(silla.textContent.trim());
-        
-        if (!mesaId || !sillaId) return;
-        
-        const mesa = mesas.find(m => m.id === mesaId);
-        if (!mesa) return;
-        
-        const sillaData = mesa.sillas.find(s => s.id === sillaId);
-        if (!sillaData) return;
-        
-        // Aplicar clase correcta
-        silla.classList.add('estado-' + sillaData.estado);
-        
-        // Forzar color directamente
-        if (sillaData.estado === 'sin-asignar') {
-            silla.style.backgroundColor = '#9E9E9E';
-        } else if (sillaData.estado === 'asignado') {
-            silla.style.backgroundColor = '#f44336';
-        } else if (sillaData.estado === 'confirmado') {
-            silla.style.backgroundColor = '#4CAF50';
-        }
-    });
-}
-
-// Sobrescribir renderizarMesas para forzar colores
-const renderizarMesasOriginal = renderizarMesas;
-renderizarMesas = function() {
-    renderizarMesasOriginal();
-    setTimeout(forzarColoresSillas, 100);
-};
-
-// Forzar colores al cargar
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(forzarColoresSillas, 500);
-});
-
-console.log('✅ Sistema de colores forzados activado');
+console.log('✅ Sistema completo cargado: Sillas, Invitados, Cerrar Sesión');
