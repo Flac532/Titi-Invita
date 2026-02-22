@@ -2260,3 +2260,55 @@ style.textContent = `
 document.head.appendChild(style);
 
 console.log('✅ Funcionalidades agregadas: Click sillas, Info invitados, Cerrar sesión');
+
+
+// ===== FORZAR ACTUALIZACIÓN DE COLORES DE SILLAS =====
+function forzarColoresSillas() {
+    document.querySelectorAll('.silla').forEach(silla => {
+        // Remover clases de estado antiguas
+        silla.classList.remove('estado-sin-asignar', 'estado-asignado', 'estado-confirmado');
+        
+        // Determinar estado actual
+        const mesaElement = silla.closest('.mesa');
+        if (!mesaElement) return;
+        
+        const mesaInfo = mesaElement.querySelector('.mesa-info').textContent;
+        const mesaMatch = mesaInfo.match(/Mesa (\d+)/);
+        const mesaId = mesaMatch ? parseInt(mesaMatch[1]) : null;
+        const sillaId = parseInt(silla.textContent.trim());
+        
+        if (!mesaId || !sillaId) return;
+        
+        const mesa = mesas.find(m => m.id === mesaId);
+        if (!mesa) return;
+        
+        const sillaData = mesa.sillas.find(s => s.id === sillaId);
+        if (!sillaData) return;
+        
+        // Aplicar clase correcta
+        silla.classList.add('estado-' + sillaData.estado);
+        
+        // Forzar color directamente
+        if (sillaData.estado === 'sin-asignar') {
+            silla.style.backgroundColor = '#9E9E9E';
+        } else if (sillaData.estado === 'asignado') {
+            silla.style.backgroundColor = '#f44336';
+        } else if (sillaData.estado === 'confirmado') {
+            silla.style.backgroundColor = '#4CAF50';
+        }
+    });
+}
+
+// Sobrescribir renderizarMesas para forzar colores
+const renderizarMesasOriginal = renderizarMesas;
+renderizarMesas = function() {
+    renderizarMesasOriginal();
+    setTimeout(forzarColoresSillas, 100);
+};
+
+// Forzar colores al cargar
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(forzarColoresSillas, 500);
+});
+
+console.log('✅ Sistema de colores forzados activado');
