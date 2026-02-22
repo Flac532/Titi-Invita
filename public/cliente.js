@@ -1622,3 +1622,33 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('✅ Botones principales mejorados');
+
+
+// ===== CAMBIAR BOTÓN FINALIZAR A ELIMINAR CON VERIFICACIÓN =====
+
+// Intentar cambiar inmediatamente
+const cambiarBotonEliminar = () => {
+    const btnFinalizar = document.getElementById('btnFinalizarEvento');
+    if (btnFinalizar) {
+        btnFinalizar.innerHTML = '<i class="fas fa-trash-alt"></i> <span>ELIMINAR</span>';
+        console.log('✅ Botón cambiado a ELIMINAR');
+        return true;
+    }
+    return false;
+};
+
+// Intentar múltiples veces para asegurar que funcione
+if (!cambiarBotonEliminar()) {
+    setTimeout(cambiarBotonEliminar, 100);
+    setTimeout(cambiarBotonEliminar, 300);
+    setTimeout(cambiarBotonEliminar, 500);
+    setTimeout(cambiarBotonEliminar, 1000);
+}
+
+// También cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', cambiarBotonEliminar);
+
+// Y cuando la ventana cargue
+window.addEventListener('load', cambiarBotonEliminar);
+
+console.log('✅ Botones verticales mejorados activados');
