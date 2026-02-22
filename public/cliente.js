@@ -1437,3 +1437,336 @@ window.confirmarCerrarSesion = function() {
 };
 
 console.log('✅ Cerrar sesión listo');
+
+
+// ===== FORMULARIO AGREGAR/EDITAR INVITADO =====
+
+// Agregar event listener al botón
+const addGuestBtn = document.getElementById('addGuestBtn');
+if (addGuestBtn) {
+    addGuestBtn.addEventListener('click', function() {
+        mostrarFormularioInvitado();
+    });
+}
+
+function mostrarFormularioInvitado(invitadoId = null) {
+    let invitado = null;
+    let titulo = 'Agregar Invitado';
+    
+    if (invitadoId && typeof invitados !== 'undefined') {
+        invitado = invitados.find(i => i.id === invitadoId);
+        titulo = 'Editar Invitado';
+    }
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-invitado show';
+    modal.id = 'modalInvitado';
+    modal.innerHTML = `
+        <div class="modal-invitado-box">
+            <div class="modal-invitado-header">
+                <h2>
+                    <i class="fas fa-user-${invitado ? 'edit' : 'plus'}"></i>
+                    ${titulo}
+                </h2>
+                <button class="btn-close-invitado" onclick="cerrarModalInvitado()">&times;</button>
+            </div>
+            <form class="modal-invitado-body" onsubmit="event.preventDefault(); guardarInvitado(${invitadoId});">
+                <div class="form-group-invitado">
+                    <label>Nombre Completo *</label>
+                    <input type="text" id="inputNombre" required 
+                           value="${invitado ? invitado.nombre : ''}" 
+                           placeholder="Ej: Ana María García">
+                </div>
+                
+                <div class="form-group-invitado">
+                    <label>Email</label>
+                    <input type="email" id="inputEmail" 
+                           value="${invitado ? (invitado.email || '') : ''}" 
+                           placeholder="ejemplo@correo.com">
+                </div>
+                
+                <div class="form-row-invitado">
+                    <div class="form-group-invitado">
+                        <label>Teléfono</label>
+                        <input type="tel" id="inputTelefono" 
+                               value="${invitado ? (invitado.telefono || '') : ''}" 
+                               placeholder="+52 55 1234 5678">
+                    </div>
+                    
+                    <div class="form-group-invitado">
+                        <label>Estado</label>
+                        <select id="inputEstado">
+                            <option value="pendiente" ${invitado && invitado.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                            <option value="confirmado" ${invitado && invitado.estado === 'confirmado' ? 'selected' : ''}>Confirmado</option>
+                            <option value="rechazado" ${invitado && invitado.estado === 'rechazado' ? 'selected' : ''}>Rechazado</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-buttons-invitado">
+                    <button type="button" class="btn-cancel-invitado" onclick="cerrarModalInvitado()">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-save-invitado">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    setTimeout(() => {
+        document.getElementById('inputNombre').focus();
+    }, 100);
+}
+
+window.cerrarModalInvitado = function() {
+    const modal = document.getElementById('modalInvitado');
+    if (modal) modal.remove();
+};
+
+window.guardarInvitado = function(invitadoId) {
+    const nombre = document.getElementById('inputNombre').value.trim();
+    const email = document.getElementById('inputEmail').value.trim();
+    const telefono = document.getElementById('inputTelefono').value.trim();
+    const estado = document.getElementById('inputEstado').value;
+    
+    if (!nombre) {
+        mostrarToastCustom('El nombre es obligatorio', 'error');
+        return;
+    }
+    
+    if (typeof invitados === 'undefined') {
+        window.invitados = [];
+    }
+    
+    if (invitadoId) {
+        // Editar
+        const invitado = invitados.find(i => i.id === invitadoId);
+        if (invitado) {
+            invitado.nombre = nombre;
+            invitado.email = email;
+            invitado.telefono = telefono;
+            invitado.estado = estado;
+            mostrarToastCustom('Invitado actualizado correctamente', 'success');
+        }
+    } else {
+        // Agregar
+        const nuevoId = invitados.length > 0 ? Math.max(...invitados.map(i => i.id)) + 1 : 1;
+        invitados.push({
+            id: nuevoId,
+            nombre: nombre,
+            email: email,
+            telefono: telefono,
+            estado: estado,
+            mesa: null,
+            silla: null
+        });
+        mostrarToastCustom('Invitado agregado correctamente', 'success');
+    }
+    
+    cerrarModalInvitado();
+    
+    if (typeof actualizarListaInvitados === 'function') {
+        actualizarListaInvitados();
+    }
+};
+
+// ===== EDITAR INVITADO =====
+
+window.editarInvitadoClick = function(invitadoId) {
+    mostrarFormularioInvitado(invitadoId);
+};
+
+// Agregar botones de editar a la lista
+if (typeof actualizarListaInvitados !== 'undefined') {
+    const originalActualizar = actualizarListaInvitados;
+    
+    actualizarListaInvitados = function() {
+        originalActualizar();
+        
+        setTimeout(() => {
+            document.querySelectorAll('.guest-item').forEach(item => {
+                if (!item.querySelector('.btn-edit-guest')) {
+                    const nombreEl = item.querySelector('strong');
+                    if (nombreEl && typeof invitados !== 'undefined') {
+                        const nombre = nombreEl.textContent.trim();
+                        const inv = invitados.find(i => i.nombre === nombre);
+                        if (inv) {
+                            const btn = document.createElement('button');
+                            btn.className = 'btn-edit-guest';
+                            btn.innerHTML = '<i class="fas fa-edit"></i>';
+                            btn.title = 'Editar';
+                            btn.onclick = function() {
+                                editarInvitadoClick(inv.id);
+                            };
+                            item.appendChild(btn);
+                        }
+                    }
+                }
+            });
+        }, 100);
+    };
+}
+
+// ===== ASIGNAR INVITADO A MESA/SILLA =====
+
+window.mostrarAsignacionInvitado = function(invitadoId) {
+    if (typeof invitados === 'undefined') return;
+    
+    const invitado = invitados.find(i => i.id === invitadoId);
+    if (!invitado) return;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-asignar show';
+    modal.id = 'modalAsignar';
+    modal.innerHTML = `
+        <div class="modal-asignar-box">
+            <div class="modal-asignar-header">
+                <h2>
+                    <i class="fas fa-chair"></i>
+                    Asignar Mesa y Silla
+                </h2>
+                <button class="btn-close-asignar" onclick="cerrarModalAsignar()">&times;</button>
+            </div>
+            <div class="modal-asignar-body">
+                <div class="invitado-info-asignar">
+                    <strong>${invitado.nombre}</strong>
+                    <small>${invitado.email || 'Sin email'}</small>
+                </div>
+                
+                <div class="select-mesa-silla">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 0.9rem;">Mesa</label>
+                        <select id="selectMesa">
+                            <option value="">Seleccionar mesa...</option>
+                            ${typeof mesas !== 'undefined' ? mesas.map(m => `
+                                <option value="${m.id}">Mesa ${m.numero || m.id}</option>
+                            `).join('') : ''}
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #1e293b; font-size: 0.9rem;">Silla</label>
+                        <select id="selectSilla" disabled>
+                            <option value="">Primero elige mesa</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-buttons-asignar">
+                    <button class="btn-cancel-asignar" onclick="cerrarModalAsignar()">
+                        Cancelar
+                    </button>
+                    <button class="btn-confirm-asignar" onclick="confirmarAsignacion(${invitadoId})">
+                        <i class="fas fa-check"></i> Asignar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Al seleccionar mesa, cargar sillas
+    document.getElementById('selectMesa').addEventListener('change', function() {
+        const mesaId = parseInt(this.value);
+        const selectSilla = document.getElementById('selectSilla');
+        
+        if (!mesaId || typeof mesas === 'undefined') {
+            selectSilla.disabled = true;
+            selectSilla.innerHTML = '<option value="">Primero elige mesa</option>';
+            return;
+        }
+        
+        const mesa = mesas.find(m => m.id === mesaId);
+        if (!mesa || !mesa.sillas) {
+            selectSilla.disabled = true;
+            return;
+        }
+        
+        selectSilla.disabled = false;
+        selectSilla.innerHTML = '<option value="">Seleccionar silla...</option>';
+        
+        mesa.sillas.forEach(silla => {
+            const disponible = !silla.invitadoId;
+            const option = document.createElement('option');
+            option.value = silla.id;
+            option.textContent = `Silla ${silla.id}${disponible ? ' (Disponible)' : ' (Ocupada)'}`;
+            option.disabled = !disponible;
+            selectSilla.appendChild(option);
+        });
+    });
+};
+
+window.cerrarModalAsignar = function() {
+    const modal = document.getElementById('modalAsignar');
+    if (modal) modal.remove();
+};
+
+window.confirmarAsignacion = function(invitadoId) {
+    const mesaId = parseInt(document.getElementById('selectMesa').value);
+    const sillaId = parseInt(document.getElementById('selectSilla').value);
+    
+    if (!mesaId || !sillaId) {
+        mostrarToastCustom('Selecciona mesa y silla', 'error');
+        return;
+    }
+    
+    if (typeof invitados === 'undefined' || typeof mesas === 'undefined') return;
+    
+    const invitado = invitados.find(i => i.id === invitadoId);
+    const mesa = mesas.find(m => m.id === mesaId);
+    
+    if (!invitado || !mesa) return;
+    
+    const silla = mesa.sillas.find(s => s.id === sillaId);
+    if (!silla) return;
+    
+    // Asignar invitado a silla
+    silla.invitadoId = invitadoId;
+    silla.nombre = invitado.nombre;
+    silla.estado = invitado.estado === 'confirmado' ? 'confirmado' : 'asignado';
+    
+    // Actualizar invitado
+    invitado.mesa = mesaId;
+    invitado.silla = sillaId;
+    
+    mostrarToastCustom(`${invitado.nombre} asignado a Mesa ${mesaId}, Silla ${sillaId}`, 'success');
+    
+    cerrarModalAsignar();
+    
+    if (typeof renderizarMesas === 'function') {
+        renderizarMesas();
+    }
+    
+    if (typeof actualizarListaInvitados === 'function') {
+        actualizarListaInvitados();
+    }
+    
+    if (typeof actualizarEstadisticas === 'function') {
+        actualizarEstadisticas();
+    }
+};
+
+// ===== TOAST PERSONALIZADO =====
+
+function mostrarToastCustom(mensaje, tipo = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-custom ${tipo}`;
+    toast.innerHTML = `
+        <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        <span>${mensaje}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(400px)';
+        setTimeout(() => toast.remove(), 400);
+    }, 3000);
+}
+
+console.log('✅ Formularios de invitados listos');
