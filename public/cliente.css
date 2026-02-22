@@ -1739,3 +1739,298 @@ body {
         transform: translateX(0);
     }
 }
+
+
+/* ===== DISEÑO INCREÍBLE DEL FORMULARIO ===== */
+
+/* Contenedor del formulario con fondo especial */
+.modal-invitado-body {
+    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #e9d5ff 100%) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.modal-invitado-body::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+    animation: movePattern 20s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes movePattern {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(30px, 30px); }
+}
+
+/* Grupos de formulario con tarjetas */
+.form-group-invitado {
+    background: white !important;
+    padding: 20px !important;
+    border-radius: 18px !important;
+    margin-bottom: 18px !important;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.08) !important;
+    border: 2px solid transparent !important;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.form-group-invitado::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, #a855f7, #9333ea);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.form-group-invitado:hover::before,
+.form-group-invitado:focus-within::before {
+    transform: scaleY(1);
+}
+
+.form-group-invitado:hover {
+    transform: translateX(5px) !important;
+    border-color: rgba(168, 85, 247, 0.2) !important;
+    box-shadow: 0 8px 25px rgba(168, 85, 247, 0.15) !important;
+}
+
+.form-group-invitado:focus-within {
+    border-color: #a855f7 !important;
+    box-shadow: 0 10px 30px rgba(168, 85, 247, 0.25) !important;
+    transform: translateX(8px) scale(1.02) !important;
+}
+
+/* Labels con iconos bonitos */
+.form-group-invitado label {
+    font-size: 0.85rem !important;
+    color: #7e22ce !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.2px !important;
+    margin-bottom: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.form-group-invitado label::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, #a855f7, #9333ea);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+    animation: labelPulse 2s ease-in-out infinite;
+}
+
+@keyframes labelPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(168, 85, 247, 0.5); }
+    50% { transform: scale(1.3); box-shadow: 0 0 15px rgba(168, 85, 247, 0.8); }
+}
+
+/* Inputs con diseño moderno */
+.form-group-invitado input,
+.form-group-invitado select {
+    padding: 16px 20px !important;
+    border: none !important;
+    background: linear-gradient(135deg, #faf5ff, #ffffff) !important;
+    border-radius: 12px !important;
+    font-size: 1.05rem !important;
+    font-weight: 500 !important;
+    color: #1e293b !important;
+    box-shadow: inset 0 2px 8px rgba(168, 85, 247, 0.08) !important;
+    transition: all 0.3s ease !important;
+}
+
+.form-group-invitado input:hover,
+.form-group-invitado select:hover {
+    background: linear-gradient(135deg, #ffffff, #faf5ff) !important;
+    box-shadow: inset 0 2px 12px rgba(168, 85, 247, 0.12) !important;
+}
+
+.form-group-invitado input:focus,
+.form-group-invitado select:focus {
+    background: white !important;
+    box-shadow: 
+        inset 0 2px 8px rgba(168, 85, 247, 0.1),
+        0 0 0 4px rgba(168, 85, 247, 0.15),
+        0 8px 20px rgba(168, 85, 247, 0.2) !important;
+    transform: translateY(-2px) !important;
+}
+
+.form-group-invitado input::placeholder {
+    color: #c4b5fd !important;
+    font-weight: 400 !important;
+    font-style: italic !important;
+}
+
+/* Fila de formulario (teléfono y estado) */
+.form-row-invitado {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 18px !important;
+    animation: slideInLeft 0.4s ease-out 0.3s backwards !important;
+}
+
+.form-row-invitado .form-group-invitado {
+    margin-bottom: 0 !important;
+}
+
+/* Área de botones mejorada */
+.form-buttons-invitado {
+    background: white !important;
+    padding: 25px !important;
+    border-radius: 18px !important;
+    margin-top: 25px !important;
+    border: 2px solid #f3e8ff !important;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.08) !important;
+}
+
+.form-buttons-invitado button {
+    padding: 16px 28px !important;
+    font-size: 1rem !important;
+    border-radius: 14px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+}
+
+/* Botón cancelar mejorado */
+.btn-cancel-invitado {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9) !important;
+    color: #64748b !important;
+    border: 2px solid #e2e8f0 !important;
+    position: relative !important;
+}
+
+.btn-cancel-invitado:hover {
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1) !important;
+    color: #334155 !important;
+    border-color: #cbd5e1 !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Botón guardar mejorado */
+.btn-save-invitado {
+    background: linear-gradient(135deg, #a855f7, #9333ea, #7e22ce) !important;
+    background-size: 200% 200% !important;
+    animation: gradientWave 3s ease infinite !important;
+    border: none !important;
+    box-shadow: 
+        0 10px 30px rgba(168, 85, 247, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+@keyframes gradientWave {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.btn-save-invitado::after {
+    content: '✨';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+.btn-save-invitado:hover::after {
+    opacity: 1;
+    right: 20px;
+}
+
+.btn-save-invitado:hover {
+    transform: translateY(-4px) scale(1.03) !important;
+    box-shadow: 
+        0 15px 40px rgba(168, 85, 247, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Indicador de campo requerido */
+.form-group-invitado label::after {
+    content: attr(data-required);
+    color: #ef4444;
+    font-weight: 900;
+    margin-left: 4px;
+}
+
+/* Animación de carga en campos */
+.form-group-invitado input:focus::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #a855f7, #9333ea);
+    animation: loadingBar 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingBar {
+    0% { transform: scaleX(0); transform-origin: left; }
+    50% { transform: scaleX(1); transform-origin: left; }
+    51% { transform: scaleX(1); transform-origin: right; }
+    100% { transform: scaleX(0); transform-origin: right; }
+}
+
+/* Efectos de hover en select */
+.form-group-invitado select {
+    cursor: pointer !important;
+    appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a855f7' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 16px center !important;
+    padding-right: 45px !important;
+}
+
+/* Tooltip de ayuda */
+.form-group-invitado:hover::after {
+    content: attr(data-hint);
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    background: linear-gradient(135deg, #1e293b, #334155);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-5px);
+    transition: all 0.3s;
+    z-index: 10;
+}
+
+.form-group-invitado:hover::after {
+    opacity: 0.9;
+    transform: translateY(0);
+}
+
+/* Separador decorativo */
+.form-buttons-invitado::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #a855f7, transparent);
+    border-radius: 2px;
+}
