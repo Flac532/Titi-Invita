@@ -1413,64 +1413,662 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
 }
-/* ===== ESTILOS FORZADOS PARA BOTONES - COPIAR AL FINAL DEL CSS ===== */
 
-/* IMPORTANTE: Estos estilos deben ir AL FINAL del archivo cliente.css */
+/* ===== FORMULARIO AGREGAR INVITADO MEJORADO ===== */
 
-/* Contenedor de botones - VERTICAL */
-.mesas-footer {
-    background: linear-gradient(135deg, #1e293b, #0f172a) !important;
-    padding: 30px 25px !important;
-    border-top: none !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 18px !important;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4) !important;
-    justify-content: flex-start !important;
-    align-items: stretch !important;
-    flex-wrap: nowrap !important;
-}
-
-/* Ocultar leyenda si existe */
-.mesas-footer .legend {
-    display: none !important;
-}
-
-/* ESTILOS BASE PARA TODOS LOS BOTONES */
-.mesas-footer button,
-#btnActualizarMesas,
-#btnGuardarCambios,
-#btnFinalizarEvento {
+/* Mejorar el botón Agregar Invitado */
+#addGuestBtn {
     width: 100% !important;
-    padding: 22px 35px !important;
-    margin: 0 !important;
-    border: 2px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 18px !important;
+    padding: 18px 24px !important;
+    background: linear-gradient(135deg, #a855f7, #9333ea) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 16px !important;
     font-weight: 800 !important;
-    font-size: 1.1rem !important;
-    text-transform: uppercase !important;
-    letter-spacing: 2px !important;
+    font-size: 1.05rem !important;
     cursor: pointer !important;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4) !important;
+    margin-bottom: 20px !important;
     position: relative !important;
     overflow: hidden !important;
+}
+
+#addGuestBtn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+}
+
+#addGuestBtn:hover::before {
+    left: 100%;
+}
+
+#addGuestBtn:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 15px 40px rgba(168, 85, 247, 0.6) !important;
+}
+
+/* Modal mejorado */
+.modal-invitado {
+    animation: fadeIn 0.3s ease-out !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-invitado-box {
+    animation: modalPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35) !important;
+}
+
+@keyframes modalPop {
+    0% {
+        opacity: 0;
+        transform: scale(0.7) translateY(30px);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Header mejorado con gradiente animado */
+.modal-invitado-header {
+    background: linear-gradient(135deg, #a855f7, #9333ea, #7e22ce) !important;
+    background-size: 200% 200% !important;
+    animation: gradientShift 3s ease infinite !important;
+    padding: 35px !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.modal-invitado-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 10s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.modal-invitado-header h2 {
+    font-size: 1.8rem !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
+}
+
+.modal-invitado-header h2 i {
+    font-size: 2rem !important;
+    animation: iconBounce 2s ease-in-out infinite !important;
+}
+
+@keyframes iconBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+/* Botón cerrar mejorado */
+.btn-close-invitado {
+    width: 40px !important;
+    height: 40px !important;
+    background: rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    font-size: 1.3rem !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-close-invitado:hover {
+    background: rgba(255, 255, 255, 0.35) !important;
+    transform: rotate(90deg) scale(1.1) !important;
+}
+
+/* Body del modal mejorado */
+.modal-invitado-body {
+    padding: 35px !important;
+    background: linear-gradient(to bottom, #ffffff, #faf8ff) !important;
+}
+
+/* Labels mejorados */
+.form-group-invitado label {
+    font-size: 0.95rem !important;
+    color: #4c1d95 !important;
+    font-weight: 700 !important;
+    margin-bottom: 10px !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
-    gap: 14px !important;
-    flex: none !important;
+    gap: 6px !important;
 }
 
-/* ACTUALIZAR MESAS - Cyan brillante */
+.form-group-invitado label::before {
+    content: '●';
+    color: #a855f7;
+    font-size: 0.6rem;
+}
+
+/* Inputs mejorados */
+.form-group-invitado input,
+.form-group-invitado select {
+    padding: 14px 18px !important;
+    border: 2px solid #e9d5ff !important;
+    border-radius: 14px !important;
+    font-size: 1rem !important;
+    background: white !important;
+    transition: all 0.3s ease !important;
+    font-weight: 500 !important;
+}
+
+.form-group-invitado input:focus,
+.form-group-invitado select:focus {
+    border-color: #a855f7 !important;
+    background: #faf5ff !important;
+    box-shadow: 0 0 0 5px rgba(168, 85, 247, 0.15), 0 5px 15px rgba(168, 85, 247, 0.1) !important;
+    transform: translateY(-2px) !important;
+}
+
+.form-group-invitado input::placeholder {
+    color: #c4b5fd;
+    font-weight: 400;
+}
+
+/* Iconos en los inputs */
+.form-group-invitado {
+    position: relative;
+}
+
+.form-group-invitado.with-icon input,
+.form-group-invitado.with-icon select {
+    padding-left: 45px !important;
+}
+
+.form-group-invitado .input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a855f7;
+    font-size: 1.1rem;
+    pointer-events: none;
+}
+
+/* Botones mejorados */
+.btn-cancel-invitado {
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0) !important;
+    color: #475569 !important;
+    font-weight: 700 !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.btn-cancel-invitado::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+}
+
+.btn-cancel-invitado:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-cancel-invitado:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+.btn-save-invitado {
+    background: linear-gradient(135deg, #a855f7, #9333ea) !important;
+    box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.btn-save-invitado::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.btn-save-invitado:hover::before {
+    left: 100%;
+}
+
+.btn-save-invitado:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 12px 35px rgba(168, 85, 247, 0.6) !important;
+}
+
+.btn-save-invitado i {
+    animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+/* Separador entre botones */
+.form-buttons-invitado {
+    border-top: 2px solid #f3e8ff !important;
+    padding-top: 25px !important;
+}
+
+/* Toast mejorado */
+.toast-custom {
+    border-radius: 16px !important;
+    padding: 20px 28px !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.toast-custom.success {
+    background: linear-gradient(135deg, #ffffff, #f0fdf4) !important;
+    border-left: 5px solid #22c55e !important;
+}
+
+.toast-custom i {
+    font-size: 1.5rem !important;
+    animation: iconScale 0.5s ease-out;
+}
+
+@keyframes iconScale {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Efecto de carga en el input al escribir */
+.form-group-invitado input:valid {
+    border-color: #a7f3d0 !important;
+}
+
+/* Animación de aparición de los campos */
+.form-group-invitado {
+    animation: slideInLeft 0.4s ease-out backwards;
+}
+
+.form-group-invitado:nth-child(1) { animation-delay: 0.1s; }
+.form-group-invitado:nth-child(2) { animation-delay: 0.2s; }
+.form-row-invitado { animation: slideInLeft 0.4s ease-out 0.3s backwards; }
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+
+/* ===== DISEÑO INCREÍBLE DEL FORMULARIO ===== */
+
+/* Contenedor del formulario con fondo especial */
+.modal-invitado-body {
+    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #e9d5ff 100%) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.modal-invitado-body::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+    animation: movePattern 20s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes movePattern {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(30px, 30px); }
+}
+
+/* Grupos de formulario con tarjetas */
+.form-group-invitado {
+    background: white !important;
+    padding: 20px !important;
+    border-radius: 18px !important;
+    margin-bottom: 18px !important;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.08) !important;
+    border: 2px solid transparent !important;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.form-group-invitado::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, #a855f7, #9333ea);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.form-group-invitado:hover::before,
+.form-group-invitado:focus-within::before {
+    transform: scaleY(1);
+}
+
+.form-group-invitado:hover {
+    transform: translateX(5px) !important;
+    border-color: rgba(168, 85, 247, 0.2) !important;
+    box-shadow: 0 8px 25px rgba(168, 85, 247, 0.15) !important;
+}
+
+.form-group-invitado:focus-within {
+    border-color: #a855f7 !important;
+    box-shadow: 0 10px 30px rgba(168, 85, 247, 0.25) !important;
+    transform: translateX(8px) scale(1.02) !important;
+}
+
+/* Labels con iconos bonitos */
+.form-group-invitado label {
+    font-size: 0.85rem !important;
+    color: #7e22ce !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.2px !important;
+    margin-bottom: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.form-group-invitado label::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: linear-gradient(135deg, #a855f7, #9333ea);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+    animation: labelPulse 2s ease-in-out infinite;
+}
+
+@keyframes labelPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(168, 85, 247, 0.5); }
+    50% { transform: scale(1.3); box-shadow: 0 0 15px rgba(168, 85, 247, 0.8); }
+}
+
+/* Inputs con diseño moderno */
+.form-group-invitado input,
+.form-group-invitado select {
+    padding: 16px 20px !important;
+    border: none !important;
+    background: linear-gradient(135deg, #faf5ff, #ffffff) !important;
+    border-radius: 12px !important;
+    font-size: 1.05rem !important;
+    font-weight: 500 !important;
+    color: #1e293b !important;
+    box-shadow: inset 0 2px 8px rgba(168, 85, 247, 0.08) !important;
+    transition: all 0.3s ease !important;
+}
+
+.form-group-invitado input:hover,
+.form-group-invitado select:hover {
+    background: linear-gradient(135deg, #ffffff, #faf5ff) !important;
+    box-shadow: inset 0 2px 12px rgba(168, 85, 247, 0.12) !important;
+}
+
+.form-group-invitado input:focus,
+.form-group-invitado select:focus {
+    background: white !important;
+    box-shadow: 
+        inset 0 2px 8px rgba(168, 85, 247, 0.1),
+        0 0 0 4px rgba(168, 85, 247, 0.15),
+        0 8px 20px rgba(168, 85, 247, 0.2) !important;
+    transform: translateY(-2px) !important;
+}
+
+.form-group-invitado input::placeholder {
+    color: #c4b5fd !important;
+    font-weight: 400 !important;
+    font-style: italic !important;
+}
+
+/* Fila de formulario (teléfono y estado) */
+.form-row-invitado {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 18px !important;
+    animation: slideInLeft 0.4s ease-out 0.3s backwards !important;
+}
+
+.form-row-invitado .form-group-invitado {
+    margin-bottom: 0 !important;
+}
+
+/* Área de botones mejorada */
+.form-buttons-invitado {
+    background: white !important;
+    padding: 25px !important;
+    border-radius: 18px !important;
+    margin-top: 25px !important;
+    border: 2px solid #f3e8ff !important;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.08) !important;
+}
+
+.form-buttons-invitado button {
+    padding: 16px 28px !important;
+    font-size: 1rem !important;
+    border-radius: 14px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+}
+
+/* Botón cancelar mejorado */
+.btn-cancel-invitado {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9) !important;
+    color: #64748b !important;
+    border: 2px solid #e2e8f0 !important;
+    position: relative !important;
+}
+
+.btn-cancel-invitado:hover {
+    background: linear-gradient(135deg, #e2e8f0, #cbd5e1) !important;
+    color: #334155 !important;
+    border-color: #cbd5e1 !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Botón guardar mejorado */
+.btn-save-invitado {
+    background: linear-gradient(135deg, #a855f7, #9333ea, #7e22ce) !important;
+    background-size: 200% 200% !important;
+    animation: gradientWave 3s ease infinite !important;
+    border: none !important;
+    box-shadow: 
+        0 10px 30px rgba(168, 85, 247, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+
+@keyframes gradientWave {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.btn-save-invitado::after {
+    content: '✨';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+.btn-save-invitado:hover::after {
+    opacity: 1;
+    right: 20px;
+}
+
+.btn-save-invitado:hover {
+    transform: translateY(-4px) scale(1.03) !important;
+    box-shadow: 
+        0 15px 40px rgba(168, 85, 247, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Indicador de campo requerido */
+.form-group-invitado label::after {
+    content: attr(data-required);
+    color: #ef4444;
+    font-weight: 900;
+    margin-left: 4px;
+}
+
+/* Animación de carga en campos */
+.form-group-invitado input:focus::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #a855f7, #9333ea);
+    animation: loadingBar 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingBar {
+    0% { transform: scaleX(0); transform-origin: left; }
+    50% { transform: scaleX(1); transform-origin: left; }
+    51% { transform: scaleX(1); transform-origin: right; }
+    100% { transform: scaleX(0); transform-origin: right; }
+}
+
+/* Efectos de hover en select */
+.form-group-invitado select {
+    cursor: pointer !important;
+    appearance: none !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a855f7' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 16px center !important;
+    padding-right: 45px !important;
+}
+
+/* Tooltip de ayuda */
+.form-group-invitado:hover::after {
+    content: attr(data-hint);
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    background: linear-gradient(135deg, #1e293b, #334155);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-5px);
+    transition: all 0.3s;
+    z-index: 10;
+}
+
+.form-group-invitado:hover::after {
+    opacity: 0.9;
+    transform: translateY(0);
+}
+
+/* Separador decorativo */
+.form-buttons-invitado::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #a855f7, transparent);
+    border-radius: 2px;
+}
+
+
+/* ===== BOTONES ACTUALIZAR MESAS, GUARDAR Y ELIMINAR MEJORADOS ===== */
+
+/* Contenedor de botones principales */
+.mesas-footer {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9) !important;
+    padding: 25px !important;
+    border-top: 3px solid #e2e8f0 !important;
+    display: flex !important;
+    gap: 12px !important;
+}
+
+/* Botón ACTUALIZAR MESAS - Azul brillante */
 #btnActualizarMesas {
-    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%) !important;
+    flex: 1 !important;
+    padding: 18px 28px !important;
+    background: linear-gradient(135deg, #3b82f6, #2563eb, #1d4ed8) !important;
     background-size: 200% 200% !important;
     color: white !important;
-    box-shadow: 0 8px 25px rgba(6, 182, 212, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-    animation: gradientMove 4s ease infinite !important;
+    border: none !important;
+    border-radius: 16px !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    cursor: pointer !important;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    animation: gradientWaveBlue 3s ease infinite !important;
 }
 
-@keyframes gradientMove {
+@keyframes gradientWaveBlue {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
@@ -1479,105 +2077,432 @@ body {
 #btnActualizarMesas::before {
     content: '';
     position: absolute;
-    top: -100%;
+    top: 0;
     left: -100%;
-    width: 300%;
-    height: 300%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
-    animation: rotateLight 8s linear infinite;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
 }
 
-@keyframes rotateLight {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+#btnActualizarMesas:hover::before {
+    left: 100%;
+}
+
+#btnActualizarMesas::after {
+    content: '🔄';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.3rem;
+    animation: spinIcon 2s linear infinite;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+@keyframes spinIcon {
+    from { transform: translateY(-50%) rotate(0deg); }
+    to { transform: translateY(-50%) rotate(360deg); }
+}
+
+#btnActualizarMesas:hover::after {
+    opacity: 1;
+    right: 20px;
 }
 
 #btnActualizarMesas:hover {
-    transform: translateY(-5px) scale(1.02) !important;
-    box-shadow: 0 15px 40px rgba(6, 182, 212, 0.7), 0 0 30px rgba(6, 182, 212, 0.5) !important;
-    border-color: rgba(255, 255, 255, 0.5) !important;
+    transform: translateY(-4px) scale(1.03) !important;
+    box-shadow: 0 15px 40px rgba(59, 130, 246, 0.6) !important;
 }
 
-/* GUARDAR CAMBIOS - Verde esmeralda */
+#btnActualizarMesas i {
+    margin-right: 10px;
+    animation: iconBounceBlue 2s ease-in-out infinite;
+}
+
+@keyframes iconBounceBlue {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* Botón GUARDAR CAMBIOS - Verde brillante */
 #btnGuardarCambios {
-    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%) !important;
+    flex: 1 !important;
+    padding: 18px 28px !important;
+    background: linear-gradient(135deg, #10b981, #059669, #047857) !important;
     background-size: 200% 200% !important;
     color: white !important;
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-    animation: gradientMove 4s ease infinite !important;
+    border: none !important;
+    border-radius: 16px !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    cursor: pointer !important;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    animation: gradientWaveGreen 3s ease infinite !important;
+}
+
+@keyframes gradientWaveGreen {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 #btnGuardarCambios::before {
     content: '';
     position: absolute;
-    top: -100%;
+    top: 0;
     left: -100%;
-    width: 300%;
-    height: 300%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
-    animation: rotateLight 10s linear infinite;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+}
+
+#btnGuardarCambios:hover::before {
+    left: 100%;
+}
+
+#btnGuardarCambios::after {
+    content: '✓';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    font-size: 1.5rem;
+    font-weight: 900;
+    transition: all 0.3s;
+}
+
+#btnGuardarCambios:hover::after {
+    transform: translateY(-50%) scale(1);
+    right: 20px;
 }
 
 #btnGuardarCambios:hover {
-    transform: translateY(-5px) scale(1.02) !important;
-    box-shadow: 0 15px 40px rgba(16, 185, 129, 0.7), 0 0 30px rgba(16, 185, 129, 0.5) !important;
-    border-color: rgba(255, 255, 255, 0.5) !important;
+    transform: translateY(-4px) scale(1.03) !important;
+    box-shadow: 0 15px 40px rgba(16, 185, 129, 0.6) !important;
 }
 
-/* ELIMINAR - Rojo intenso */
+#btnGuardarCambios i {
+    margin-right: 10px;
+    animation: iconPulseGreen 2s ease-in-out infinite;
+}
+
+@keyframes iconPulseGreen {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+/* Botón ELIMINAR - Rojo brillante */
 #btnFinalizarEvento {
-    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 50%, #be123c 100%) !important;
+    flex: 1 !important;
+    padding: 18px 28px !important;
+    background: linear-gradient(135deg, #ef4444, #dc2626, #b91c1c) !important;
     background-size: 200% 200% !important;
     color: white !important;
-    box-shadow: 0 8px 25px rgba(244, 63, 94, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-    animation: gradientMove 4s ease infinite !important;
+    border: none !important;
+    border-radius: 16px !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    cursor: pointer !important;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    animation: gradientWaveRed 3s ease infinite !important;
+}
+
+@keyframes gradientWaveRed {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 #btnFinalizarEvento::before {
     content: '';
     position: absolute;
-    top: -100%;
+    top: 0;
     left: -100%;
-    width: 300%;
-    height: 300%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
-    animation: rotateLight 6s linear infinite;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+}
+
+#btnFinalizarEvento:hover::before {
+    left: 100%;
+}
+
+#btnFinalizarEvento::after {
+    content: '⚠️';
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.3rem;
+    animation: warningShake 0.8s ease-in-out infinite;
+    opacity: 0;
+    transition: all 0.3s;
+}
+
+@keyframes warningShake {
+    0%, 100% { transform: translateY(-50%) translateX(0); }
+    25% { transform: translateY(-50%) translateX(-3px); }
+    75% { transform: translateY(-50%) translateX(3px); }
+}
+
+#btnFinalizarEvento:hover::after {
+    opacity: 1;
+    right: 20px;
 }
 
 #btnFinalizarEvento:hover {
-    transform: translateY(-5px) scale(1.02) !important;
-    box-shadow: 0 15px 40px rgba(244, 63, 94, 0.7), 0 0 30px rgba(244, 63, 94, 0.5) !important;
-    border-color: rgba(255, 255, 255, 0.5) !important;
+    transform: translateY(-4px) scale(1.03) !important;
+    box-shadow: 0 15px 40px rgba(239, 68, 68, 0.6) !important;
 }
 
-/* Iconos con animaciones */
-#btnActualizarMesas i {
-    font-size: 1.4rem !important;
-    animation: spin 3s linear infinite !important;
+#btnFinalizarEvento i {
+    margin-right: 10px;
+    animation: iconShake 2s ease-in-out infinite;
 }
 
-@keyframes spin {
+@keyframes iconShake {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30%, 50%, 70%, 90% { transform: rotate(-5deg); }
+    20%, 40%, 60%, 80% { transform: rotate(5deg); }
+}
+
+/* Efecto ripple al hacer click */
+.mesas-footer button:active::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    animation: ripple 0.6s ease-out;
+}
+
+@keyframes ripple {
+    to {
+        width: 300px;
+        height: 300px;
+        opacity: 0;
+    }
+}
+
+/* Estado deshabilitado */
+.mesas-footer button:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+.mesas-footer button:disabled:hover {
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Responsive para botones */
+@media (max-width: 768px) {
+    .mesas-footer {
+        flex-direction: column !important;
+    }
+    
+    .mesas-footer button {
+        width: 100% !important;
+    }
+}
+
+/* ===== BOTONES DE CONFIGURACIÓN HERMOSOS ===== */
+
+/* Grupo de botones */
+.button-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    margin-top: 25px !important;
+}
+
+/* Estilos base para botones */
+.button-group button,
+.btn-primary,
+.btn-secondary {
+    width: 100% !important;
+    padding: 16px 24px !important;
+    border: none !important;
+    border-radius: 14px !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.275) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+}
+
+/* BOTÓN ACTUALIZAR MESAS (Primary) - Azul brillante */
+#btnCrearMesas,
+.button-group .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    color: white !important;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+#btnCrearMesas::before,
+.button-group .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+#btnCrearMesas:hover::before,
+.button-group .btn-primary:hover::before {
+    left: 100%;
+}
+
+#btnCrearMesas:hover,
+.button-group .btn-primary:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.6) !important;
+}
+
+#btnCrearMesas i {
+    animation: spinBtn 3s linear infinite !important;
+}
+
+@keyframes spinBtn {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
-#btnGuardarCambios i {
-    font-size: 1.4rem !important;
-    animation: pulse 2s ease-in-out infinite !important;
+/* BOTÓN GUARDAR CAMBIOS (Secondary pero verde) */
+#btnGuardarEvento {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
 }
 
-@keyframes pulse {
+#btnGuardarEvento::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+#btnGuardarEvento:hover::before {
+    left: 100%;
+}
+
+#btnGuardarEvento:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.6) !important;
+}
+
+#btnGuardarEvento i {
+    animation: pulseBtn 2s ease-in-out infinite !important;
+}
+
+@keyframes pulseBtn {
     0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
+    50% { transform: scale(1.15); }
+}
+
+/* BOTÓN ELIMINAR (era Finalizar) - Rojo brillante */
+#btnFinalizarEvento {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: white !important;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+#btnFinalizarEvento::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+#btnFinalizarEvento:hover::before {
+    left: 100%;
+}
+
+#btnFinalizarEvento:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.6) !important;
 }
 
 #btnFinalizarEvento i {
-    font-size: 1.4rem !important;
-    animation: shake 1s ease-in-out infinite !important;
+    animation: shakeBtn 1.5s ease-in-out infinite !important;
 }
 
-@keyframes shake {
+@keyframes shakeBtn {
     0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(-10deg); }
-    75% { transform: rotate(10deg); }
+    25% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+}
+
+/* Otros botones secundarios */
+.btn-secondary {
+    background: linear-gradient(135deg, #64748b, #475569) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3) !important;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(100, 116, 139, 0.5) !important;
+}
+
+/* Efectos para iconos */
+.button-group button i {
+    font-size: 1.1rem !important;
+}
+
+/* Estado activo */
+.button-group button:active {
+    transform: translateY(0) scale(0.98) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .button-group {
+        gap: 10px !important;
+    }
+    
+    .button-group button {
+        padding: 14px 20px !important;
+        font-size: 0.9rem !important;
+    }
 }
