@@ -1607,3 +1607,18 @@ window.editarInvitado = function(invitadoId) {
 };
 
 console.log('✅ Modal bonito de agregar invitado activado');
+
+
+// ===== CAMBIAR TEXTO BOTÓN FINALIZAR A ELIMINAR =====
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Esperar un poco para que se cargue todo
+    setTimeout(() => {
+        const btnFinalizar = document.getElementById('btnFinalizarEvento');
+        if (btnFinalizar) {
+            btnFinalizar.innerHTML = '<i class="fas fa-trash-alt"></i> ELIMINAR';
+        }
+    }, 100);
+});
+
+console.log('✅ Botones principales mejorados');
