@@ -2945,3 +2945,31 @@ strong {
     outline: 2px solid #667eea !important;
     outline-offset: 2px !important;
 }
+
+
+/* ===== ARREGLO DE ANIMACIONES - AGREGAR AL FINAL ===== */
+
+/* Quitar ::after problemáticos de los botones */
+#btnActualizarMesas::after,
+#btnGuardarCambios::after,
+#btnFinalizarEvento::after,
+.btn-save-invitado::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* Mantener los ::before que son para efectos de brillo */
+#btnActualizarMesas::before,
+#btnGuardarCambios::before,
+#btnFinalizarEvento::before,
+.btn-save-invitado::before {
+    content: '' !important;
+}
+
+/* Asegurar que los iconos se vean correctamente */
+.button-group button i,
+.btn-primary i,
+.btn-secondary i {
+    display: inline-block !important;
+    margin-right: 8px !important;
+}
