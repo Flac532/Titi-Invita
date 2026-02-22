@@ -2324,3 +2324,276 @@ body {
         width: 100% !important;
     }
 }
+
+
+/* ===== BOTONES UNO DEBAJO DEL OTRO - VERSIÓN MEJORADA ===== */
+
+/* Contenedor vertical de botones */
+.mesas-footer {
+    background: linear-gradient(135deg, #0f172a, #1e293b) !important;
+    padding: 30px !important;
+    border-top: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Reset de estilos anteriores y base común */
+.mesas-footer button {
+    width: 100% !important;
+    padding: 20px 32px !important;
+    border: none !important;
+    border-radius: 18px !important;
+    font-weight: 800 !important;
+    font-size: 1.05rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+    cursor: pointer !important;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+}
+
+/* Botón ACTUALIZAR MESAS - Azul cielo brillante */
+#btnActualizarMesas {
+    background: linear-gradient(135deg, #06b6d4, #0891b2, #0e7490) !important;
+    background-size: 200% 200% !important;
+    color: white !important;
+    box-shadow: 
+        0 10px 30px rgba(6, 182, 212, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    animation: gradientWaveCyan 4s ease infinite !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+@keyframes gradientWaveCyan {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#btnActualizarMesas::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    animation: rotateGlow 6s linear infinite;
+}
+
+@keyframes rotateGlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+#btnActualizarMesas::after {
+    content: '✨';
+    position: absolute;
+    right: 28px;
+    font-size: 1.4rem;
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+    transition: all 0.4s;
+}
+
+#btnActualizarMesas:hover::after {
+    opacity: 1;
+    transform: scale(1) rotate(180deg);
+}
+
+#btnActualizarMesas:hover {
+    transform: translateY(-6px) scale(1.02) !important;
+    box-shadow: 
+        0 20px 50px rgba(6, 182, 212, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 0 40px rgba(6, 182, 212, 0.5) !important;
+}
+
+#btnActualizarMesas i {
+    font-size: 1.3rem;
+    animation: spinSlow 3s linear infinite;
+}
+
+@keyframes spinSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Botón GUARDAR CAMBIOS - Verde esmeralda brillante */
+#btnGuardarCambios {
+    background: linear-gradient(135deg, #10b981, #059669, #047857) !important;
+    background-size: 200% 200% !important;
+    color: white !important;
+    box-shadow: 
+        0 10px 30px rgba(16, 185, 129, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    animation: gradientWaveEmerald 4s ease infinite !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+@keyframes gradientWaveEmerald {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#btnGuardarCambios::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    animation: rotateGlow 8s linear infinite;
+}
+
+#btnGuardarCambios::after {
+    content: '💾';
+    position: absolute;
+    right: 28px;
+    font-size: 1.5rem;
+    animation: floatSave 2s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+@keyframes floatSave {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+#btnGuardarCambios:hover::after {
+    opacity: 1;
+}
+
+#btnGuardarCambios:hover {
+    transform: translateY(-6px) scale(1.02) !important;
+    box-shadow: 
+        0 20px 50px rgba(16, 185, 129, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 0 40px rgba(16, 185, 129, 0.5) !important;
+}
+
+#btnGuardarCambios i {
+    font-size: 1.3rem;
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    10%, 30% { transform: scale(1.1); }
+    20%, 40% { transform: scale(0.95); }
+}
+
+/* Botón ELIMINAR - Rojo intenso brillante */
+#btnFinalizarEvento {
+    background: linear-gradient(135deg, #f43f5e, #e11d48, #be123c) !important;
+    background-size: 200% 200% !important;
+    color: white !important;
+    box-shadow: 
+        0 10px 30px rgba(244, 63, 94, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    animation: gradientWaveRose 4s ease infinite !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+@keyframes gradientWaveRose {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#btnFinalizarEvento::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    animation: rotateGlow 5s linear infinite;
+}
+
+#btnFinalizarEvento::after {
+    content: '⚠️';
+    position: absolute;
+    right: 28px;
+    font-size: 1.5rem;
+    animation: warningBlink 1s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+
+@keyframes warningBlink {
+    0%, 50%, 100% { opacity: 1; transform: scale(1); }
+    25%, 75% { opacity: 0.7; transform: scale(1.15); }
+}
+
+#btnFinalizarEvento:hover::after {
+    opacity: 1;
+}
+
+#btnFinalizarEvento:hover {
+    transform: translateY(-6px) scale(1.02) !important;
+    box-shadow: 
+        0 20px 50px rgba(244, 63, 94, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 0 40px rgba(244, 63, 94, 0.5) !important;
+}
+
+#btnFinalizarEvento i {
+    font-size: 1.3rem;
+    animation: shake 2s ease-in-out infinite;
+}
+
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30%, 50%, 70%, 90% { transform: rotate(-8deg); }
+    20%, 40%, 60%, 80% { transform: rotate(8deg); }
+}
+
+/* Efecto de partículas al hacer click */
+.mesas-footer button:active::before {
+    animation: none;
+}
+
+.mesas-footer button:active {
+    transform: translateY(-2px) scale(0.98) !important;
+}
+
+/* Texto dentro de los botones */
+.mesas-footer button span {
+    position: relative;
+    z-index: 2;
+}
+
+/* Brillo en el borde al hover */
+.mesas-footer button:hover {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Estado activo con animación de éxito */
+@keyframes successPulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Separador decorativo entre botones */
+.mesas-footer button:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 10%;
+    width: 80%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
