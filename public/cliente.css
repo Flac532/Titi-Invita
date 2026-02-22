@@ -2507,294 +2507,145 @@ body {
     }
 }
 
-/* ===== DISEÑO PREMIUM COMPLETO - SIN TOCAR RENDERIZADO DE MESAS/SILLAS ===== */
+/* ===== DISEÑO HERMOSO Y SIMPLE - SIN SÍMBOLOS PROBLEMÁTICOS ===== */
 
-/* Importar fuente moderna */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+/* Fuente moderna */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-/* Aplicar fuente a TODO */
 * {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-family: 'Inter', -apple-system, sans-serif !important;
 }
 
-/* ===== FONDO GENERAL HERMOSO ===== */
+/* FONDO HERMOSO */
 body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%) !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     background-attachment: fixed !important;
 }
 
-/* Textura sutil sobre el fondo */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-        radial-gradient(circle at 25% 25%, rgba(255,255,255,0.15) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-}
-
-.cliente-main {
-    position: relative;
-    z-index: 1;
-}
-
-/* ===== PANEL IZQUIERDO - EVENTOS ===== */
+/* PANEL IZQUIERDO */
 .event-panel {
     background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%) !important;
-    border-right: 1px solid rgba(102, 126, 234, 0.2) !important;
 }
 
-/* Logo con gradiente animado */
 .logo h1 {
-    background: linear-gradient(135deg, #667eea, #764ba2, #f093fb) !important;
-    background-size: 200% 200% !important;
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
     font-weight: 900 !important;
-    letter-spacing: -1px !important;
-    animation: gradientShift 4s ease infinite !important;
 }
 
-@keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-}
-
-.logo i {
-    color: #667eea !important;
-    filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3)) !important;
-}
-
-/* Info de usuario hermosa */
 .user-info {
     background: linear-gradient(135deg, #eff6ff, #dbeafe) !important;
     border: 2px solid rgba(59, 130, 246, 0.2) !important;
-    border-radius: 16px !important;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1) !important;
+    border-radius: 14px !important;
 }
 
 .user-avatar {
     background: linear-gradient(135deg, #667eea, #764ba2) !important;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4) !important;
-    font-weight: 800 !important;
     color: white !important;
-}
-
-.user-info strong {
-    color: #0f172a !important;
-    font-weight: 700 !important;
-}
-
-.user-info small {
-    color: #475569 !important;
-    font-weight: 500 !important;
-}
-
-/* Títulos hermosos */
-.event-panel h3,
-.panel-section h3,
-.config-section h3,
-.guests-section h3 {
     font-weight: 800 !important;
-    color: #1e293b !important;
-    letter-spacing: -0.5px !important;
-    font-size: 1.1rem !important;
 }
 
-.event-panel h3 i,
-.panel-section h3 i,
-.config-section h3 i,
-.guests-section h3 i {
-    background: linear-gradient(135deg, #667eea, #764ba2) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
-}
-
-/* Selector de eventos */
-.event-selector select {
-    background: white !important;
-    border: 2px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    padding: 14px 18px !important;
-    font-weight: 600 !important;
-    color: #1e293b !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    cursor: pointer !important;
-}
-
-.event-selector select:focus {
-    border-color: #667eea !important;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15) !important;
-    outline: none !important;
-}
-
-/* Estadísticas hermosas */
 .event-stats {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    border-radius: 18px !important;
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    border-radius: 16px !important;
     padding: 24px !important;
-    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4) !important;
 }
 
 .event-stats h3 {
     color: white !important;
     font-weight: 800 !important;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
-.count-item {
-    background: rgba(255, 255, 255, 0.15) !important;
-    backdrop-filter: blur(10px) !important;
-    border-radius: 12px !important;
-    padding: 14px !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-
-.count-item strong {
-    color: white !important;
-    font-weight: 700 !important;
-}
-
-.count-item small {
-    color: rgba(255, 255, 255, 0.9) !important;
-    font-weight: 500 !important;
-}
-
-/* ===== PANEL CENTRAL - MESAS ===== */
+/* PANEL CENTRAL */
 .mesas-section {
     background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%) !important;
 }
 
-/* Header hermoso */
 .mesas-header {
-    background: linear-gradient(135deg, #ffffff, #f8fafc) !important;
-    border-bottom: 2px solid rgba(102, 126, 234, 0.1) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    background: white !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
 }
 
 .mesas-header h2 {
     font-weight: 800 !important;
     color: #1e293b !important;
-    letter-spacing: -1px !important;
 }
 
-/* Buscador hermoso */
 .search-box input {
     background: white !important;
     border: 2px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    padding: 14px 50px 14px 18px !important;
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
     font-weight: 500 !important;
-    color: #1e293b !important;
-    transition: all 0.3s ease !important;
 }
 
 .search-box input:focus {
     border-color: #667eea !important;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15) !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
     outline: none !important;
 }
 
-.search-box input::placeholder {
-    color: #94a3b8 !important;
-    font-weight: 400 !important;
-}
-
-/* Contenedor de mesas */
-.mesas-container {
-    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%) !important;
-}
-
-/* ===== PANEL DERECHO - CONFIGURACIÓN ===== */
+/* PANEL DERECHO */
 .right-panel {
     background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%) !important;
-    border-left: 1px solid rgba(102, 126, 234, 0.2) !important;
 }
 
-/* Secciones con tarjetas */
 .panel-section {
     background: white !important;
-    border-radius: 18px !important;
-    padding: 28px !important;
-    margin-bottom: 18px !important;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06) !important;
-    border: 1px solid rgba(102, 126, 234, 0.08) !important;
+    border-radius: 16px !important;
+    padding: 24px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+    margin-bottom: 16px !important;
 }
 
-/* ===== FORMULARIOS HERMOSOS ===== */
-
-/* Labels */
-.form-group label,
-.form-group-small label {
+/* FORMULARIOS */
+.form-group label {
     color: #334155 !important;
     font-weight: 700 !important;
     font-size: 0.85rem !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    margin-bottom: 8px !important;
 }
 
-/* Inputs hermosos */
 .form-group input,
 .form-group select,
-.form-group textarea,
-.form-group-small input,
-.form-group-small select {
+.form-group textarea {
     background: #f8fafc !important;
     border: 2px solid #e2e8f0 !important;
-    border-radius: 12px !important;
-    padding: 13px 16px !important;
+    border-radius: 10px !important;
+    padding: 12px 14px !important;
     font-weight: 500 !important;
-    color: #1e293b !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .form-group input:focus,
 .form-group select:focus,
-.form-group textarea:focus,
-.form-group-small input:focus,
-.form-group-small select:focus {
+.form-group textarea:focus {
     background: white !important;
     border-color: #667eea !important;
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15) !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
     outline: none !important;
-    transform: translateY(-1px) !important;
 }
 
-.form-group input::placeholder,
-.form-group textarea::placeholder {
-    color: #94a3b8 !important;
-    font-weight: 400 !important;
-}
-
-/* ===== LISTA DE INVITADOS HERMOSA ===== */
-
+/* LISTA DE INVITADOS */
 .guests-list {
     background: #f8fafc !important;
-    border-radius: 14px !important;
-    padding: 14px !important;
+    border-radius: 12px !important;
+    padding: 12px !important;
 }
 
 .guest-item {
     background: white !important;
     border: 2px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    padding: 16px !important;
-    margin-bottom: 10px !important;
-    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.275) !important;
+    border-radius: 12px !important;
+    padding: 14px !important;
+    margin-bottom: 8px !important;
+    transition: all 0.3s !important;
 }
 
 .guest-item:hover {
     border-color: #667eea !important;
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2) !important;
-    transform: translateX(6px) scale(1.02) !important;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15) !important;
+    transform: translateX(4px) !important;
 }
 
 .guest-item strong {
@@ -2802,230 +2653,110 @@ body::before {
     font-weight: 700 !important;
 }
 
-.guest-item small {
-    color: #64748b !important;
-    font-weight: 500 !important;
+/* BOTONES DE CONFIGURACIÓN */
+.button-group {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    margin-top: 20px !important;
 }
 
-/* ===== BOTONES HERMOSOS ===== */
+.button-group button {
+    width: 100% !important;
+    padding: 14px 20px !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    cursor: pointer !important;
+    transition: all 0.3s !important;
+}
 
+#btnCrearMesas {
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+}
+
+#btnCrearMesas:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
+}
+
+#btnGuardarEvento {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+}
+
+#btnGuardarEvento:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+}
+
+#btnFinalizarEvento {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+#btnFinalizarEvento:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* BOTONES PEQUEÑOS */
 .btn-icon {
     background: white !important;
     border: 2px solid #e2e8f0 !important;
     color: #64748b !important;
-    transition: all 0.3s ease !important;
-    border-radius: 12px !important;
+    transition: all 0.3s !important;
 }
 
 .btn-icon:hover {
-    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    background: #667eea !important;
     border-color: #667eea !important;
     color: white !important;
-    transform: translateY(-2px) scale(1.05) !important;
-    box-shadow: 0 6px 18px rgba(102, 126, 234, 0.4) !important;
+    transform: translateY(-2px) !important;
 }
 
-/* ===== SCROLLBARS HERMOSOS ===== */
-
+/* SCROLLBARS */
 ::-webkit-scrollbar {
-    width: 12px !important;
-    height: 12px !important;
+    width: 10px !important;
 }
 
 ::-webkit-scrollbar-track {
     background: #f1f5f9 !important;
-    border-radius: 10px !important;
 }
 
 ::-webkit-scrollbar-thumb {
     background: linear-gradient(135deg, #667eea, #764ba2) !important;
     border-radius: 10px !important;
-    border: 2px solid #f1f5f9 !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #764ba2, #f093fb) !important;
+    background: linear-gradient(135deg, #764ba2, #667eea) !important;
 }
 
-/* ===== TIPOGRAFÍA HERMOSA ===== */
-
-h1 {
-    font-weight: 900 !important;
-    letter-spacing: -1.5px !important;
-}
-
-h2 {
-    font-weight: 800 !important;
-    letter-spacing: -1px !important;
-}
-
-h3 {
-    font-weight: 800 !important;
-    letter-spacing: -0.5px !important;
-}
-
-p {
-    line-height: 1.7 !important;
-}
-
-strong {
-    font-weight: 700 !important;
-}
-
-/* ===== BADGES Y ETIQUETAS ===== */
-
-.badge,
-.status-badge,
-.role-badge {
-    font-weight: 700 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    font-size: 0.7rem !important;
-    border-radius: 8px !important;
-    padding: 4px 10px !important;
-}
-
-/* ===== ANIMACIONES SUTILES ===== */
-
-.panel-section,
-.guest-item {
-    animation: fadeInUp 0.4s ease-out !important;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(15px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* ===== CHECKBOXES ===== */
-
-.checkbox input[type="checkbox"] {
-    accent-color: #667eea !important;
-}
-
-.checkbox span {
-    color: #1e293b !important;
-    font-weight: 500 !important;
-}
-
-/* ===== MODALES HERMOSOS ===== */
-
-.modal {
-    background: rgba(15, 23, 42, 0.8) !important;
-    backdrop-filter: blur(12px) !important;
-}
-
-.modal-content {
-    background: white !important;
-    border-radius: 24px !important;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3) !important;
-}
-
-.modal-header h3 {
-    color: #1e293b !important;
+/* TIPOGRAFÍA */
+h1, h2, h3 {
     font-weight: 800 !important;
 }
 
-/* ===== SELECCIÓN DE TEXTO ===== */
+h1 { letter-spacing: -1px !important; }
+h2 { letter-spacing: -0.8px !important; }
+h3 { letter-spacing: -0.5px !important; }
 
+p { line-height: 1.6 !important; }
+
+/* TÍTULOS CON ICONOS */
+h3 i {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+/* SELECCIÓN DE TEXTO */
 ::selection {
     background: rgba(102, 126, 234, 0.3) !important;
-    color: #1e293b !important;
-}
-
-/* ===== FOCUS MEJORADO ===== */
-
-*:focus-visible {
-    outline: 2px solid #667eea !important;
-    outline-offset: 2px !important;
-}
-
-
-/* ===== ARREGLO DE ANIMACIONES - AGREGAR AL FINAL ===== */
-
-/* Quitar ::after problemáticos de los botones */
-#btnActualizarMesas::after,
-#btnGuardarCambios::after,
-#btnFinalizarEvento::after,
-.btn-save-invitado::after {
-    content: none !important;
-    display: none !important;
-}
-
-/* Mantener los ::before que son para efectos de brillo */
-#btnActualizarMesas::before,
-#btnGuardarCambios::before,
-#btnFinalizarEvento::before,
-.btn-save-invitado::before {
-    content: '' !important;
-}
-
-/* Asegurar que los iconos se vean correctamente */
-.button-group button i,
-.btn-primary i,
-.btn-secondary i {
-    display: inline-block !important;
-    margin-right: 8px !important;
-}
-
-
-/* ===== ELIMINACIÓN COMPLETA DE CONTENIDO PROBLEMÁTICO ===== */
-
-/* IMPORTANTE: Agregar esto AL FINAL del CSS para sobrescribir todo */
-
-/* Eliminar TODOS los ::before y ::after con emojis o símbolos */
-.form-group-invitado label::before,
-.form-invitado label::before,
-.color-opcion::before,
-.color-opcion::after,
-#btnActualizarMesas::after,
-#btnGuardarCambios::after,
-#btnFinalizarEvento::after,
-.btn-save-invitado::after,
-.form-group-invitado label::after,
-.form-invitado label::after,
-.form-group-invitado::after,
-.form-invitado::after,
-.form-buttons-invitado::before {
-    content: none !important;
-    display: none !important;
-}
-
-/* Mantener SOLO los ::before que son para efectos de brillo (sin texto) */
-#btnActualizarMesas::before,
-#btnGuardarCambios::before,
-#btnFinalizarEvento::before,
-.btn-primary::before,
-.btn-secondary::before,
-.btn-save-invitado::before,
-.btn-cancel-invitado::before {
-    content: '' !important;
-}
-
-/* Asegurar que body::before sea solo para efecto visual */
-body::before {
-    content: '' !important;
-}
-
-/* Limpiar cualquier otro content problemático */
-*::before,
-*::after {
-    content: none;
-}
-
-/* Ahora permitir SOLO los que son necesarios para efectos */
-#btnActualizarMesas::before,
-#btnGuardarCambios::before,
-#btnFinalizarEvento::before,
-.btn-primary::before,
-.btn-secondary::before,
-body::before {
-    content: '' !important;
-    display: block !important;
 }
