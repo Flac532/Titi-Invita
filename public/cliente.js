@@ -1438,217 +1438,33 @@ window.confirmarCerrarSesion = function() {
 
 console.log('✅ Cerrar sesión listo');
 
-// ===== REEMPLAZAR FUNCIÓN agregarInvitado CON MODAL BONITO =====
-
-// Sobrescribir la función agregarInvitado
-function agregarInvitado() {
-    mostrarModalAgregarInvitado();
-}
-
-function mostrarModalAgregarInvitado(invitadoId = null) {
-    let invitado = null;
-    let titulo = 'Agregar Invitado';
-    let isEdit = false;
-    
-    if (invitadoId) {
-        invitado = invitados.find(i => i.id === invitadoId);
-        titulo = 'Editar Invitado';
-        isEdit = true;
-    }
-    
-    // Crear modal
-    const modalHTML = `
-        <div class="modal-invitado show" id="modalAgregarInvitado">
-            <div class="modal-invitado-box">
-                <div class="modal-invitado-header">
-                    <h2>
-                        <i class="fas fa-user-${isEdit ? 'edit' : 'plus'}"></i>
-                        ${titulo}
-                    </h2>
-                    <button class="btn-close-invitado" onclick="cerrarModalAgregarInvitado()">&times;</button>
-                </div>
-                
-                <form class="modal-invitado-body" onsubmit="event.preventDefault(); guardarInvitadoModal(${invitadoId});">
-                    <div class="form-group-invitado" data-hint="Nombre completo del invitado">
-                        <label data-required="*">Nombre Completo</label>
-                        <input 
-                            type="text" 
-                            id="modalNombre" 
-                            required 
-                            value="${invitado ? invitado.nombre : ''}"
-                            placeholder="Ej: Ana María García"
-                            autofocus>
-                    </div>
-                    
-                    <div class="form-group-invitado" data-hint="Correo electrónico">
-                        <label>Email</label>
-                        <input 
-                            type="email" 
-                            id="modalEmail"
-                            value="${invitado ? (invitado.email || '') : ''}"
-                            placeholder="ejemplo@correo.com">
-                    </div>
-                    
-                    <div class="form-row-invitado">
-                        <div class="form-group-invitado" data-hint="Número telefónico">
-                            <label>Teléfono</label>
-                            <input 
-                                type="tel" 
-                                id="modalTelefono"
-                                value="${invitado ? (invitado.telefono || '') : ''}"
-                                placeholder="+52 55 1234 5678">
-                        </div>
-                        
-                        <div class="form-group-invitado" data-hint="Estado del invitado">
-                            <label>Estado</label>
-                            <select id="modalEstado">
-                                <option value="pendiente" ${invitado && invitado.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-                                <option value="confirmado" ${invitado && invitado.estado === 'confirmado' ? 'selected' : ''}>Confirmado</option>
-                                <option value="rechazado" ${invitado && invitado.estado === 'rechazado' ? 'selected' : ''}>Rechazado</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-buttons-invitado">
-                        <button type="button" class="btn-cancel-invitado" onclick="cerrarModalAgregarInvitado()">
-                            <i class="fas fa-times"></i> Cancelar
-                        </button>
-                        <button type="submit" class="btn-save-invitado">
-                            <i class="fas fa-save"></i> Guardar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    `;
-    
-    // Insertar modal en el body
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    // Focus en el primer campo
-    setTimeout(() => {
-        document.getElementById('modalNombre').focus();
-    }, 100);
-}
-
-window.cerrarModalAgregarInvitado = function() {
-    const modal = document.getElementById('modalAgregarInvitado');
-    if (modal) {
-        modal.classList.remove('show');
-        setTimeout(() => modal.remove(), 300);
-    }
-};
-
-window.guardarInvitadoModal = function(invitadoId) {
-    const nombre = document.getElementById('modalNombre').value.trim();
-    const email = document.getElementById('modalEmail').value.trim();
-    const telefono = document.getElementById('modalTelefono').value.trim();
-    const estado = document.getElementById('modalEstado').value;
-    
-    if (!nombre) {
-        mostrarToastBonito('El nombre es obligatorio', 'error');
-        return;
-    }
-    
-    if (invitadoId) {
-        // Editar
-        const invitado = invitados.find(i => i.id === invitadoId);
-        if (invitado) {
-            invitado.nombre = nombre;
-            invitado.email = email || null;
-            invitado.telefono = telefono || null;
-            invitado.estado = estado;
-            mostrarToastBonito('Invitado actualizado correctamente', 'success');
-        }
-    } else {
-        // Agregar nuevo
-        const nuevoInvitado = {
-            id: invitados.length + 1,
-            nombre: nombre,
-            email: email || null,
-            telefono: telefono || null,
-            estado: estado,
-            idMesa: null,
-            idSilla: null
-        };
-        
-        invitados.push(nuevoInvitado);
-        mostrarToastBonito('Invitado agregado correctamente', 'success');
-    }
-    
-    cerrarModalAgregarInvitado();
-    
-    if (typeof actualizarListaInvitados === 'function') {
-        actualizarListaInvitados();
-    }
-};
-
-// Toast bonito
-function mostrarToastBonito(mensaje, tipo = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `toast-custom ${tipo}`;
-    toast.innerHTML = `
-        <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-        <span>${mensaje}</span>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(400px)';
-        setTimeout(() => toast.remove(), 400);
-    }, 3000);
-}
-
-// También sobrescribir editarInvitado
-window.editarInvitado = function(invitadoId) {
-    mostrarModalAgregarInvitado(invitadoId);
-};
-
-console.log('✅ Modal bonito de agregar invitado activado');
-
-
-// ===== CAMBIAR TEXTO BOTÓN FINALIZAR A ELIMINAR =====
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Esperar un poco para que se cargue todo
-    setTimeout(() => {
-        const btnFinalizar = document.getElementById('btnFinalizarEvento');
-        if (btnFinalizar) {
-            btnFinalizar.innerHTML = '<i class="fas fa-trash-alt"></i> ELIMINAR';
-        }
-    }, 100);
-});
-
-console.log('✅ Botones principales mejorados');
-
-
-// ===== CAMBIAR BOTÓN FINALIZAR A ELIMINAR CON VERIFICACIÓN =====
-
-// Intentar cambiar inmediatamente
-const cambiarBotonEliminar = () => {
-    const btnFinalizar = document.getElementById('btnFinalizarEvento');
-    if (btnFinalizar) {
-        btnFinalizar.innerHTML = '<i class="fas fa-trash-alt"></i> <span>ELIMINAR</span>';
+// ===== CAMBIAR BOTÓN FINALIZAR A ELIMINAR =====
+const cambiarAEliminar = () => {
+    const btn = document.getElementById('btnFinalizarEvento');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-trash-alt"></i> ELIMINAR';
         console.log('✅ Botón cambiado a ELIMINAR');
         return true;
     }
     return false;
 };
 
-// Intentar múltiples veces para asegurar que funcione
-if (!cambiarBotonEliminar()) {
-    setTimeout(cambiarBotonEliminar, 100);
-    setTimeout(cambiarBotonEliminar, 300);
-    setTimeout(cambiarBotonEliminar, 500);
-    setTimeout(cambiarBotonEliminar, 1000);
+// Intentar cambiar inmediatamente
+cambiarAEliminar();
+
+// Intentar múltiples veces
+setTimeout(cambiarAEliminar, 100);
+setTimeout(cambiarAEliminar, 500);
+setTimeout(cambiarAEliminar, 1000);
+
+// Cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', cambiarAEliminar);
+} else {
+    cambiarAEliminar();
 }
 
-// También cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', cambiarBotonEliminar);
+// Cuando todo cargue
+window.addEventListener('load', cambiarAEliminar);
 
-// Y cuando la ventana cargue
-window.addEventListener('load', cambiarBotonEliminar);
-
-console.log('✅ Botones verticales mejorados activados');
+console.log('✅ Estilos de botones mejorados activados');
