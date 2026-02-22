@@ -2507,9 +2507,8 @@ body {
     }
 }
 
-/* ===== DISEÑO HERMOSO Y SIMPLE - SIN SÍMBOLOS PROBLEMÁTICOS ===== */
+/* ===== DISEÑO HERMOSO CON SÍMBOLOS SIMPLES ===== */
 
-/* Fuente moderna */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 * {
@@ -2542,14 +2541,12 @@ body {
 
 .user-avatar {
     background: linear-gradient(135deg, #667eea, #764ba2) !important;
-    color: white !important;
     font-weight: 800 !important;
 }
 
 .event-stats {
     background: linear-gradient(135deg, #667eea, #764ba2) !important;
     border-radius: 16px !important;
-    padding: 24px !important;
 }
 
 .event-stats h3 {
@@ -2564,7 +2561,6 @@ body {
 
 .mesas-header {
     background: white !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
 }
 
 .mesas-header h2 {
@@ -2596,7 +2592,6 @@ body {
     border-radius: 16px !important;
     padding: 24px !important;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
-    margin-bottom: 16px !important;
 }
 
 /* FORMULARIOS */
@@ -2609,7 +2604,8 @@ body {
 
 .form-group input,
 .form-group select,
-.form-group textarea {
+.form-group textarea,
+.form-group-small input {
     background: #f8fafc !important;
     border: 2px solid #e2e8f0 !important;
     border-radius: 10px !important;
@@ -2619,14 +2615,15 @@ body {
 
 .form-group input:focus,
 .form-group select:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-group-small input:focus {
     background: white !important;
     border-color: #667eea !important;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
     outline: none !important;
 }
 
-/* LISTA DE INVITADOS */
+/* INVITADOS */
 .guests-list {
     background: #f8fafc !important;
     border-radius: 12px !important;
@@ -2648,61 +2645,60 @@ body {
     transform: translateX(4px) !important;
 }
 
-.guest-item strong {
-    color: #1e293b !important;
-    font-weight: 700 !important;
-}
-
-/* BOTONES DE CONFIGURACIÓN */
+/* BOTONES DE CONFIGURACIÓN - MUY IMPORTANTES */
 .button-group {
     display: flex !important;
     flex-direction: column !important;
-    gap: 12px !important;
+    gap: 14px !important;
     margin-top: 20px !important;
 }
 
 .button-group button {
     width: 100% !important;
-    padding: 14px 20px !important;
+    padding: 16px 24px !important;
     border: none !important;
-    border-radius: 12px !important;
+    border-radius: 14px !important;
     font-weight: 700 !important;
-    font-size: 0.95rem !important;
+    font-size: 1rem !important;
     cursor: pointer !important;
     transition: all 0.3s !important;
+    text-align: center !important;
 }
 
+/* Botón ACTUALIZAR - Azul */
 #btnCrearMesas {
     background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
     color: white !important;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
 }
 
 #btnCrearMesas:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5) !important;
 }
 
+/* Botón GUARDAR - Verde */
 #btnGuardarEvento {
     background: linear-gradient(135deg, #10b981, #059669) !important;
     color: white !important;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
 }
 
 #btnGuardarEvento:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5) !important;
 }
 
+/* Botón ELIMINAR - Rojo */
 #btnFinalizarEvento {
     background: linear-gradient(135deg, #ef4444, #dc2626) !important;
     color: white !important;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
 }
 
 #btnFinalizarEvento:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.5) !important;
 }
 
 /* BOTONES PEQUEÑOS */
@@ -2734,29 +2730,16 @@ body {
     border-radius: 10px !important;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #764ba2, #667eea) !important;
-}
-
 /* TIPOGRAFÍA */
 h1, h2, h3 {
     font-weight: 800 !important;
 }
 
-h1 { letter-spacing: -1px !important; }
-h2 { letter-spacing: -0.8px !important; }
-h3 { letter-spacing: -0.5px !important; }
-
-p { line-height: 1.6 !important; }
-
-/* TÍTULOS CON ICONOS */
-h3 i {
-    background: linear-gradient(135deg, #667eea, #764ba2) !important;
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
+p {
+    line-height: 1.6 !important;
 }
 
-/* SELECCIÓN DE TEXTO */
+/* SELECCIÓN */
 ::selection {
     background: rgba(102, 126, 234, 0.3) !important;
 }
