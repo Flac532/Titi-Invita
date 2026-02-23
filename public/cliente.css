@@ -2840,3 +2840,175 @@ h3,
 .button-group button {
     font-family: 'Inter', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif !important;
 }
+
+
+/* ===== MODAL INVITADO SIN DUPLICAR ===== */
+
+.modal-invitado {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-invitado.show {
+    display: flex !important;
+}
+
+.modal-invitado-box {
+    background: white;
+    border-radius: 20px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    animation: modalPop 0.3s ease-out;
+}
+
+@keyframes modalPop {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-invitado-header {
+    background: linear-gradient(135deg, #10b981, #059669);
+    padding: 24px;
+    color: white;
+    border-radius: 20px 20px 0 0;
+    position: relative;
+}
+
+.modal-invitado-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.modal-close-invitado {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.modal-close-invitado:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-invitado-body {
+    padding: 24px;
+}
+
+.form-group-invitado {
+    margin-bottom: 16px;
+}
+
+.form-group-invitado label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+    color: #334155;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.form-group-invitado input,
+.form-group-invitado select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    background: #f8fafc;
+    transition: all 0.3s;
+}
+
+.form-group-invitado input:focus,
+.form-group-invitado select:focus {
+    outline: none;
+    border-color: #10b981;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.form-row-invitado {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-buttons-invitado {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #e2e8f0;
+}
+
+.form-buttons-invitado button {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-cancel-invitado {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.btn-cancel-invitado:hover {
+    background: #e2e8f0;
+}
+
+.btn-save-invitado {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.btn-save-invitado:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* Botón agregar más destacado */
+#addGuestBtn {
+    background: linear-gradient(135deg, #a855f7, #9333ea) !important;
+    color: white !important;
+    padding: 14px 20px !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    border: none !important;
+    margin-bottom: 16px !important;
+}
+
+#addGuestBtn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(168, 85, 247, 0.4) !important;
+}
