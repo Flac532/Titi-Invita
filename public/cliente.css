@@ -2743,3 +2743,100 @@ p {
 ::selection {
     background: rgba(102, 126, 234, 0.3) !important;
 }
+
+
+/* ===== ESTILOS MEJORADOS PARA TODOS LOS BOTONES CON SÍMBOLOS ===== */
+
+/* Botones con iconos más grandes */
+.btn-icon {
+    font-size: 1.2rem !important;
+    padding: 10px !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Botón agregar invitado grande */
+#addGuestBtn {
+    font-size: 1.5rem !important;
+    background: linear-gradient(135deg, #a855f7, #9333ea) !important;
+    color: white !important;
+    width: 100% !important;
+    padding: 14px !important;
+    border: none !important;
+    margin-bottom: 16px !important;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4) !important;
+}
+
+#addGuestBtn:hover {
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 6px 18px rgba(168, 85, 247, 0.5) !important;
+}
+
+/* Botón cerrar sesión */
+#logoutBtn {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    color: white !important;
+    border: none !important;
+    padding: 10px 16px !important;
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s !important;
+}
+
+#logoutBtn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+}
+
+/* Botones de importar/exportar/enviar */
+#importGuestsBtn,
+#exportGuestsBtn,
+#sendInvitationsBtn {
+    background: white !important;
+    border: 2px solid #e2e8f0 !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+    padding: 10px 16px !important;
+    border-radius: 10px !important;
+    transition: all 0.3s !important;
+}
+
+#importGuestsBtn:hover {
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    border-color: #3b82f6 !important;
+    color: white !important;
+}
+
+#exportGuestsBtn:hover {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    border-color: #10b981 !important;
+    color: white !important;
+}
+
+#sendInvitationsBtn:hover {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    border-color: #f59e0b !important;
+    color: white !important;
+}
+
+/* Logo con emoji */
+.logo h1 {
+    font-size: 1.6rem !important;
+}
+
+/* Títulos con emojis */
+h3 {
+    font-size: 1.15rem !important;
+}
+
+/* Asegurar que los emojis se vean bien */
+.btn-icon,
+#addGuestBtn,
+.logo h1,
+h3,
+.button-group button {
+    font-family: 'Inter', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif !important;
+}
