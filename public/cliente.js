@@ -1654,25 +1654,97 @@ window.addEventListener('load', cambiarBotonConfiguracion);
 
 console.log('✅ Botones de configuración mejorados');
 
-// ===== ICONOS SUPER SIMPLES QUE SÍ SE VEN - SIN ERRORES =====
+// ===== SÍMBOLOS MEJORADOS Y VISIBLES =====
 
-function iconosSimples() {
-    console.log('Aplicando iconos simples...');
+function simbolosMejorados() {
+    console.log('Aplicando símbolos mejorados...');
     
-    // ===== BOTONES DE CONFIGURACIÓN =====
+    // ===== BOTONES CONFIGURACIÓN =====
     const btnActualizar = document.getElementById('btnCrearMesas');
     if (btnActualizar) {
-        btnActualizar.textContent = '⟳ ACTUALIZAR MESAS';
+        btnActualizar.innerHTML = '<span style="font-size: 1.2em;">↻</span> ACTUALIZAR MESAS';
     }
     
     const btnGuardar = document.getElementById('btnGuardarEvento');
     if (btnGuardar) {
-        btnGuardar.textContent = '💾 GUARDAR CAMBIOS';
+        btnGuardar.innerHTML = '<span style="font-size: 1.2em;">💾</span> GUARDAR CAMBIOS';
     }
     
     const btnEliminar = document.getElementById('btnFinalizarEvento');
     if (btnEliminar) {
-        btnEliminar.textContent = '✕ ELIMINAR';
+        btnEliminar.innerHTML = '<span style="font-size: 1.2em;">✕</span> ELIMINAR';
+    }
+    
+    // ===== BOTONES EVENTOS =====
+    const newEventBtn = document.getElementById('newEventBtn');
+    if (newEventBtn) {
+        newEventBtn.textContent = '+';
+        newEventBtn.style.fontSize = '1.4rem';
+    }
+    
+    const editEventBtn = document.getElementById('editEventBtn');
+    if (editEventBtn) {
+        editEventBtn.textContent = '✎';
+        editEventBtn.style.fontSize = '1.2rem';
+    }
+    
+    const deleteEventBtn = document.getElementById('deleteEventBtn');
+    if (deleteEventBtn) {
+        deleteEventBtn.textContent = '✕';
+        deleteEventBtn.style.fontSize = '1.3rem';
+    }
+    
+    // ===== BOTONES ZOOM =====
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    if (zoomInBtn) {
+        zoomInBtn.textContent = '+';
+        zoomInBtn.style.fontSize = '1.5rem';
+    }
+    
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    if (zoomOutBtn) {
+        zoomOutBtn.textContent = '−';
+        zoomOutBtn.style.fontSize = '1.5rem';
+    }
+    
+    const resetViewBtn = document.getElementById('resetViewBtn');
+    if (resetViewBtn) {
+        resetViewBtn.textContent = '↻';
+        resetViewBtn.style.fontSize = '1.3rem';
+    }
+    
+    const changeLayoutBtn = document.getElementById('changeLayoutBtn');
+    if (changeLayoutBtn) {
+        changeLayoutBtn.textContent = '☰';
+        changeLayoutBtn.style.fontSize = '1.2rem';
+    }
+    
+    // ===== BOTÓN AGREGAR INVITADO =====
+    const addGuestBtn = document.getElementById('addGuestBtn');
+    if (addGuestBtn) {
+        addGuestBtn.innerHTML = '<span style="font-size: 1.3em;">+</span> AGREGAR INVITADO';
+    }
+    
+    // ===== BOTONES INVITADOS =====
+    const importBtn = document.getElementById('importGuestsBtn');
+    if (importBtn) {
+        importBtn.innerHTML = '<span style="font-size: 1.1em;">↓</span> Importar';
+    }
+    
+    const exportBtn = document.getElementById('exportGuestsBtn');
+    if (exportBtn) {
+        exportBtn.innerHTML = '<span style="font-size: 1.1em;">↑</span> Exportar';
+    }
+    
+    const sendBtn = document.getElementById('sendInvitationsBtn');
+    if (sendBtn) {
+        sendBtn.innerHTML = '<span style="font-size: 1.1em;">✉</span> Enviar';
+    }
+    
+    // ===== CERRAR SESIÓN =====
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.innerHTML = '<span style="font-size: 1.2em;">✕</span> Cerrar Sesión';
     }
     
     // ===== LOGO =====
@@ -1681,10 +1753,10 @@ function iconosSimples() {
         logo.textContent = 'Titi Invita';
     }
     
-    // ===== TÍTULOS =====
+    // ===== TÍTULOS CON BULLETS =====
     const titulos = document.querySelectorAll('h3');
     titulos.forEach(h3 => {
-        const texto = h3.textContent.trim();
+        const texto = h3.textContent.trim().replace(/^[•\[\]]/g, '').trim();
         
         if (texto.includes('Seleccionar Evento')) {
             h3.textContent = '• Seleccionar Evento';
@@ -1694,110 +1766,24 @@ function iconosSimples() {
             h3.textContent = '• Vista del Salón';
         } else if (texto.includes('Configuración')) {
             h3.textContent = '• Configuración del Evento';
-        } else if (texto.includes('Invitados') || texto.includes('Lista de Invitados')) {
+        } else if (texto.includes('Invitados') || texto.includes('Lista')) {
             h3.textContent = '• Lista de Invitados';
         }
     });
     
-    // ===== BOTONES PEQUEÑOS =====
-    const addGuestBtn = document.getElementById('addGuestBtn');
-    if (addGuestBtn) {
-        addGuestBtn.textContent = '+ Agregar Invitado';
-    }
+    // ===== ELIMINAR ICONOS FA =====
+    document.querySelectorAll('i.fas, i.fa, i.far').forEach(i => i.remove());
     
-    const newEventBtn = document.getElementById('newEventBtn');
-    if (newEventBtn) {
-        newEventBtn.textContent = '+';
-        newEventBtn.title = 'Nuevo Evento';
-    }
-    
-    const editEventBtn = document.getElementById('editEventBtn');
-    if (editEventBtn) {
-        editEventBtn.textContent = '✎';
-        editEventBtn.title = 'Editar Evento';
-    }
-    
-    const deleteEventBtn = document.getElementById('deleteEventBtn');
-    if (deleteEventBtn) {
-        deleteEventBtn.textContent = '✕';
-        deleteEventBtn.title = 'Eliminar Evento';
-    }
-    
-    // ===== BOTONES DE ZOOM =====
-    const zoomInBtn = document.getElementById('zoomInBtn');
-    if (zoomInBtn) {
-        zoomInBtn.textContent = '+';
-        zoomInBtn.title = 'Acercar';
-    }
-    
-    const zoomOutBtn = document.getElementById('zoomOutBtn');
-    if (zoomOutBtn) {
-        zoomOutBtn.textContent = '−';
-        zoomOutBtn.title = 'Alejar';
-    }
-    
-    const resetViewBtn = document.getElementById('resetViewBtn');
-    if (resetViewBtn) {
-        resetViewBtn.textContent = '⟳';
-        resetViewBtn.title = 'Restablecer Vista';
-    }
-    
-    const changeLayoutBtn = document.getElementById('changeLayoutBtn');
-    if (changeLayoutBtn) {
-        changeLayoutBtn.textContent = '☰';
-        changeLayoutBtn.title = 'Cambiar Disposición';
-    }
-    
-    // ===== BOTONES DE INVITADOS =====
-    const importBtn = document.getElementById('importGuestsBtn');
-    if (importBtn) {
-        importBtn.textContent = '↓ Importar';
-    }
-    
-    const exportBtn = document.getElementById('exportGuestsBtn');
-    if (exportBtn) {
-        exportBtn.textContent = '↑ Exportar';
-    }
-    
-    const sendBtn = document.getElementById('sendInvitationsBtn');
-    if (sendBtn) {
-        sendBtn.textContent = '✉ Enviar';
-    }
-    
-    // ===== BOTÓN CERRAR SESIÓN =====
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.textContent = '✕ Cerrar Sesión';
-    }
-    
-    // ===== LIMPIAR TODOS LOS <i> QUE CAUSAN PROBLEMAS =====
-    document.querySelectorAll('i.fas, i.fa').forEach(icono => {
-        icono.remove();
-    });
-    
-    console.log('✅ Iconos simples aplicados');
+    console.log('✅ Símbolos mejorados aplicados');
 }
 
-// Ejecutar varias veces para asegurar
-iconosSimples();
-setTimeout(iconosSimples, 50);
-setTimeout(iconosSimples, 100);
-setTimeout(iconosSimples, 200);
-setTimeout(iconosSimples, 500);
-setTimeout(iconosSimples, 1000);
-setTimeout(iconosSimples, 2000);
+// Ejecutar múltiples veces
+simbolosMejorados();
+setTimeout(simbolosMejorados, 50);
+setTimeout(simbolosMejorados, 100);
+setTimeout(simbolosMejorados, 300);
+setTimeout(simbolosMejorados, 500);
+setTimeout(simbolosMejorados, 1000);
 
-document.addEventListener('DOMContentLoaded', iconosSimples);
-window.addEventListener('load', iconosSimples);
-
-// Observer para cuando se agreguen nuevos elementos
-const observer = new MutationObserver(function() {
-    setTimeout(iconosSimples, 100);
-});
-
-observer.observe(document.body, {
-    childList: true,
-    subtree: true
-});
-
-console.log('✅ Sistema de iconos simples cargado');
+document.addEventListener('DOMContentLoaded', simbolosMejorados);
+window.addEventListener('load', simbolosMejorados);
