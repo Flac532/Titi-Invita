@@ -1691,3 +1691,179 @@ document.addEventListener('DOMContentLoaded', cambiarIconosSimples);
 window.addEventListener('load', cambiarIconosSimples);
 
 console.log('✅ Iconos simples configurados');
+
+
+// ===== CAMBIAR TODOS LOS ICONOS A SÍMBOLOS SIMPLES =====
+
+function cambiarTodosLosIconos() {
+    console.log('🔄 Cambiando todos los iconos...');
+    
+    // BOTONES DE CONFIGURACIÓN
+    const btnActualizar = document.getElementById('btnCrearMesas');
+    if (btnActualizar) {
+        btnActualizar.innerHTML = '↻ ACTUALIZAR MESAS';
+    }
+    
+    const btnGuardar = document.getElementById('btnGuardarEvento');
+    if (btnGuardar) {
+        btnGuardar.innerHTML = '💾 GUARDAR CAMBIOS';
+    }
+    
+    const btnEliminar = document.getElementById('btnFinalizarEvento');
+    if (btnEliminar) {
+        btnEliminar.innerHTML = '🗑 ELIMINAR';
+    }
+    
+    // LOGO
+    const logo = document.querySelector('.logo h1');
+    if (logo && !logo.hasAttribute('data-changed')) {
+        logo.textContent = '🪑 Titi Invita';
+        logo.setAttribute('data-changed', 'true');
+    }
+    
+    // TÍTULOS DE SECCIONES
+    const titulos = {
+        'Seleccionar Evento': '📅',
+        'Estadísticas de Eventos': '📊',
+        'Vista del Salón': '🏛',
+        'Configuración del Evento': '⚙',
+        'Lista de Invitados': '👥',
+        'Invitados': '👥'
+    };
+    
+    document.querySelectorAll('h3').forEach(h3 => {
+        const texto = h3.textContent.trim();
+        for (let [titulo, emoji] of Object.entries(titulos)) {
+            if (texto.includes(titulo) && !h3.hasAttribute('data-changed')) {
+                h3.innerHTML = emoji + ' ' + titulo;
+                h3.setAttribute('data-changed', 'true');
+            }
+        }
+    });
+    
+    // BOTÓN AGREGAR INVITADO
+    const addGuestBtn = document.getElementById('addGuestBtn');
+    if (addGuestBtn && !addGuestBtn.hasAttribute('data-changed')) {
+        addGuestBtn.innerHTML = '➕';
+        addGuestBtn.title = 'Agregar Invitado';
+        addGuestBtn.setAttribute('data-changed', 'true');
+    }
+    
+    // BOTÓN NUEVO EVENTO
+    const newEventBtn = document.getElementById('newEventBtn');
+    if (newEventBtn && !newEventBtn.hasAttribute('data-changed')) {
+        newEventBtn.innerHTML = '➕';
+        newEventBtn.title = 'Nuevo Evento';
+        newEventBtn.setAttribute('data-changed', 'true');
+    }
+    
+    // BOTÓN EDITAR EVENTO
+    const editEventBtn = document.getElementById('editEventBtn');
+    if (editEventBtn && !editEventBtn.hasAttribute('data-changed')) {
+        editEventBtn.innerHTML = '✏';
+        editEventBtn.title = 'Editar Evento';
+        editEventBtn.setAttribute('data-changed', 'true');
+    }
+    
+    // BOTÓN ELIMINAR EVENTO
+    const deleteEventBtn = document.getElementById('deleteEventBtn');
+    if (deleteEventBtn && !deleteEventBtn.hasAttribute('data-changed')) {
+        deleteEventBtn.innerHTML = '🗑';
+        deleteEventBtn.title = 'Eliminar Evento';
+        deleteEventBtn.setAttribute('data-changed', 'true');
+    }
+    
+    // BOTONES DE ZOOM
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    if (zoomInBtn && !zoomInBtn.hasAttribute('data-changed')) {
+        zoomInBtn.innerHTML = '🔍+';
+        zoomInBtn.title = 'Acercar';
+        zoomInBtn.setAttribute('data-changed', 'true');
+    }
+    
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    if (zoomOutBtn && !zoomOutBtn.hasAttribute('data-changed')) {
+        zoomOutBtn.innerHTML = '🔍-';
+        zoomOutBtn.title = 'Alejar';
+        zoomOutBtn.setAttribute('data-changed', 'true');
+    }
+    
+    const resetViewBtn = document.getElementById('resetViewBtn');
+    if (resetViewBtn && !resetViewBtn.hasAttribute('data-changed')) {
+        resetViewBtn.innerHTML = '⟲';
+        resetViewBtn.title = 'Restablecer Vista';
+        resetViewBtn.setAttribute('data-changed', 'true');
+    }
+    
+    const changeLayoutBtn = document.getElementById('changeLayoutBtn');
+    if (changeLayoutBtn && !changeLayoutBtn.hasAttribute('data-changed')) {
+        changeLayoutBtn.innerHTML = '▦';
+        changeLayoutBtn.title = 'Cambiar Disposición';
+        changeLayoutBtn.setAttribute('data-changed', 'true');
+    }
+    
+    // BOTONES DE INVITADOS
+    const importGuestsBtn = document.getElementById('importGuestsBtn');
+    if (importGuestsBtn && !importGuestsBtn.hasAttribute('data-changed')) {
+        importGuestsBtn.innerHTML = '📥 Importar';
+        importGuestsBtn.setAttribute('data-changed', 'true');
+    }
+    
+    const exportGuestsBtn = document.getElementById('exportGuestsBtn');
+    if (exportGuestsBtn && !exportGuestsBtn.hasAttribute('data-changed')) {
+        exportGuestsBtn.innerHTML = '📤 Exportar';
+        exportGuestsBtn.setAttribute('data-changed', 'true');
+    }
+    
+    const sendInvitationsBtn = document.getElementById('sendInvitationsBtn');
+    if (sendInvitationsBtn && !sendInvitationsBtn.hasAttribute('data-changed')) {
+        sendInvitationsBtn.innerHTML = '✉ Enviar';
+        sendInvitationsBtn.setAttribute('data-changed', 'true');
+    }
+    
+    // BOTÓN CERRAR SESIÓN
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn && !logoutBtn.hasAttribute('data-changed')) {
+        logoutBtn.innerHTML = '🚪 Cerrar Sesión';
+        logoutBtn.setAttribute('data-changed', 'true');
+    }
+    
+    // BUSCADORES
+    document.querySelectorAll('.search-box').forEach(box => {
+        const input = box.querySelector('input');
+        if (input && !input.placeholder.includes('🔍')) {
+            input.placeholder = '🔍 ' + input.placeholder.replace('Buscar', 'Buscar');
+        }
+    });
+    
+    console.log('✅ Todos los iconos cambiados');
+}
+
+// Ejecutar múltiples veces para asegurar
+cambiarTodosLosIconos();
+setTimeout(cambiarTodosLosIconos, 100);
+setTimeout(cambiarTodosLosIconos, 300);
+setTimeout(cambiarTodosLosIconos, 500);
+setTimeout(cambiarTodosLosIconos, 1000);
+setTimeout(cambiarTodosLosIconos, 2000);
+
+document.addEventListener('DOMContentLoaded', cambiarTodosLosIconos);
+window.addEventListener('load', cambiarTodosLosIconos);
+
+// Observar cambios en el DOM para re-aplicar iconos
+if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                setTimeout(cambiarTodosLosIconos, 100);
+            }
+        });
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
+
+console.log('✅ Sistema de iconos simples activado');
