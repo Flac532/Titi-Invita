@@ -1654,216 +1654,260 @@ window.addEventListener('load', cambiarBotonConfiguracion);
 
 console.log('✅ Botones de configuración mejorados');
 
-// ===== CAMBIAR ICONOS A SÍMBOLOS SIMPLES QUE SÍ SE VEN =====
+// ===== ARREGLO FINAL - ICONOS Y MODAL =====
 
-function cambiarIconosSimples() {
-    // Botón Actualizar Mesas
+function cambiarIconosQueNoSeVen() {
+    console.log('🔄 Cambiando iconos que no se ven...');
+    
+    // BOTONES DE CONFIGURACIÓN (ya funcionan bien)
     const btnActualizar = document.getElementById('btnCrearMesas');
-    if (btnActualizar) {
-        btnActualizar.innerHTML = '↻ ACTUALIZAR MESAS';
-        console.log('✅ Botón actualizar cambiado');
-    }
-    
-    // Botón Guardar
-    const btnGuardar = document.getElementById('btnGuardarEvento');
-    if (btnGuardar) {
-        btnGuardar.innerHTML = '💾 GUARDAR CAMBIOS';
-        console.log('✅ Botón guardar cambiado');
-    }
-    
-    // Botón Eliminar (era Finalizar)
-    const btnEliminar = document.getElementById('btnFinalizarEvento');
-    if (btnEliminar) {
-        btnEliminar.innerHTML = '🗑 ELIMINAR';
-        console.log('✅ Botón eliminar cambiado');
-    }
-}
-
-// Ejecutar múltiples veces para asegurar
-cambiarIconosSimples();
-setTimeout(cambiarIconosSimples, 100);
-setTimeout(cambiarIconosSimples, 300);
-setTimeout(cambiarIconosSimples, 500);
-setTimeout(cambiarIconosSimples, 1000);
-setTimeout(cambiarIconosSimples, 2000);
-
-document.addEventListener('DOMContentLoaded', cambiarIconosSimples);
-window.addEventListener('load', cambiarIconosSimples);
-
-console.log('✅ Iconos simples configurados');
-
-
-// ===== CAMBIAR TODOS LOS ICONOS A SÍMBOLOS SIMPLES =====
-
-function cambiarTodosLosIconos() {
-    console.log('🔄 Cambiando todos los iconos...');
-    
-    // BOTONES DE CONFIGURACIÓN
-    const btnActualizar = document.getElementById('btnCrearMesas');
-    if (btnActualizar) {
-        btnActualizar.innerHTML = '↻ ACTUALIZAR MESAS';
+    if (btnActualizar && !btnActualizar.textContent.includes('ACTUALIZAR')) {
+        btnActualizar.textContent = '↻ ACTUALIZAR MESAS';
     }
     
     const btnGuardar = document.getElementById('btnGuardarEvento');
-    if (btnGuardar) {
-        btnGuardar.innerHTML = '💾 GUARDAR CAMBIOS';
+    if (btnGuardar && !btnGuardar.textContent.includes('GUARDAR')) {
+        btnGuardar.textContent = '💾 GUARDAR CAMBIOS';
     }
     
     const btnEliminar = document.getElementById('btnFinalizarEvento');
-    if (btnEliminar) {
-        btnEliminar.innerHTML = '🗑 ELIMINAR';
+    if (btnEliminar && !btnEliminar.textContent.includes('ELIMINAR')) {
+        btnEliminar.textContent = '🗑 ELIMINAR';
     }
     
-    // LOGO
+    // CAMBIAR ICONOS QUE NO SE VEN POR TEXTO SIMPLE
+    
+    // Logo - Solo texto
     const logo = document.querySelector('.logo h1');
-    if (logo && !logo.hasAttribute('data-changed')) {
-        logo.textContent = '🪑 Titi Invita';
-        logo.setAttribute('data-changed', 'true');
+    if (logo && logo.textContent !== 'Titi Invita') {
+        logo.textContent = 'Titi Invita';
     }
     
-    // TÍTULOS DE SECCIONES
-    const titulos = {
-        'Seleccionar Evento': '📅',
-        'Estadísticas de Eventos': '📊',
-        'Vista del Salón': '🏛',
-        'Configuración del Evento': '⚙',
-        'Lista de Invitados': '👥',
-        'Invitados': '👥'
+    // Títulos - Usar texto simple entre []
+    const titulosSimples = {
+        'Seleccionar Evento': '[📅] Seleccionar Evento',
+        'Estadísticas de Eventos': '[📊] Estadísticas',
+        'Vista del Salón': '[🏛️] Vista del Salón',
+        'Configuración del Evento': '[⚙️] Configuración',
+        'Lista de Invitados': '[👥] Invitados',
+        'Invitados': '[👥] Invitados'
     };
     
     document.querySelectorAll('h3').forEach(h3 => {
-        const texto = h3.textContent.trim();
-        for (let [titulo, emoji] of Object.entries(titulos)) {
-            if (texto.includes(titulo) && !h3.hasAttribute('data-changed')) {
-                h3.innerHTML = emoji + ' ' + titulo;
-                h3.setAttribute('data-changed', 'true');
-            }
+        const textoOriginal = h3.textContent.replace(/\[.*?\]\s*/g, '').trim();
+        if (titulosSimples[textoOriginal]) {
+            h3.textContent = titulosSimples[textoOriginal];
         }
     });
     
-    // BOTÓN AGREGAR INVITADO
-    const addGuestBtn = document.getElementById('addGuestBtn');
-    if (addGuestBtn && !addGuestBtn.hasAttribute('data-changed')) {
-        addGuestBtn.innerHTML = '➕';
-        addGuestBtn.title = 'Agregar Invitado';
-        addGuestBtn.setAttribute('data-changed', 'true');
+    // Botones pequeños - SOLO TEXTO
+    const botones = {
+        'addGuestBtn': '[ + ]',
+        'newEventBtn': '[ + ]',
+        'editEventBtn': '[ ✎ ]',
+        'deleteEventBtn': '[ × ]',
+        'zoomInBtn': '[ + ]',
+        'zoomOutBtn': '[ - ]',
+        'resetViewBtn': '[ ↻ ]',
+        'changeLayoutBtn': '[ ▦ ]'
+    };
+    
+    for (let [id, texto] of Object.entries(botones)) {
+        const btn = document.getElementById(id);
+        if (btn && btn.textContent !== texto) {
+            btn.textContent = texto;
+        }
     }
     
-    // BOTÓN NUEVO EVENTO
-    const newEventBtn = document.getElementById('newEventBtn');
-    if (newEventBtn && !newEventBtn.hasAttribute('data-changed')) {
-        newEventBtn.innerHTML = '➕';
-        newEventBtn.title = 'Nuevo Evento';
-        newEventBtn.setAttribute('data-changed', 'true');
+    // Botones con texto
+    const importBtn = document.getElementById('importGuestsBtn');
+    if (importBtn && !importBtn.textContent.includes('Importar')) {
+        importBtn.textContent = '↓ Importar';
     }
     
-    // BOTÓN EDITAR EVENTO
-    const editEventBtn = document.getElementById('editEventBtn');
-    if (editEventBtn && !editEventBtn.hasAttribute('data-changed')) {
-        editEventBtn.innerHTML = '✏';
-        editEventBtn.title = 'Editar Evento';
-        editEventBtn.setAttribute('data-changed', 'true');
+    const exportBtn = document.getElementById('exportGuestsBtn');
+    if (exportBtn && !exportBtn.textContent.includes('Exportar')) {
+        exportBtn.textContent = '↑ Exportar';
     }
     
-    // BOTÓN ELIMINAR EVENTO
-    const deleteEventBtn = document.getElementById('deleteEventBtn');
-    if (deleteEventBtn && !deleteEventBtn.hasAttribute('data-changed')) {
-        deleteEventBtn.innerHTML = '🗑';
-        deleteEventBtn.title = 'Eliminar Evento';
-        deleteEventBtn.setAttribute('data-changed', 'true');
+    const sendBtn = document.getElementById('sendInvitationsBtn');
+    if (sendBtn && !sendBtn.textContent.includes('Enviar')) {
+        sendBtn.textContent = '✉ Enviar';
     }
     
-    // BOTONES DE ZOOM
-    const zoomInBtn = document.getElementById('zoomInBtn');
-    if (zoomInBtn && !zoomInBtn.hasAttribute('data-changed')) {
-        zoomInBtn.innerHTML = '🔍+';
-        zoomInBtn.title = 'Acercar';
-        zoomInBtn.setAttribute('data-changed', 'true');
-    }
-    
-    const zoomOutBtn = document.getElementById('zoomOutBtn');
-    if (zoomOutBtn && !zoomOutBtn.hasAttribute('data-changed')) {
-        zoomOutBtn.innerHTML = '🔍-';
-        zoomOutBtn.title = 'Alejar';
-        zoomOutBtn.setAttribute('data-changed', 'true');
-    }
-    
-    const resetViewBtn = document.getElementById('resetViewBtn');
-    if (resetViewBtn && !resetViewBtn.hasAttribute('data-changed')) {
-        resetViewBtn.innerHTML = '⟲';
-        resetViewBtn.title = 'Restablecer Vista';
-        resetViewBtn.setAttribute('data-changed', 'true');
-    }
-    
-    const changeLayoutBtn = document.getElementById('changeLayoutBtn');
-    if (changeLayoutBtn && !changeLayoutBtn.hasAttribute('data-changed')) {
-        changeLayoutBtn.innerHTML = '▦';
-        changeLayoutBtn.title = 'Cambiar Disposición';
-        changeLayoutBtn.setAttribute('data-changed', 'true');
-    }
-    
-    // BOTONES DE INVITADOS
-    const importGuestsBtn = document.getElementById('importGuestsBtn');
-    if (importGuestsBtn && !importGuestsBtn.hasAttribute('data-changed')) {
-        importGuestsBtn.innerHTML = '📥 Importar';
-        importGuestsBtn.setAttribute('data-changed', 'true');
-    }
-    
-    const exportGuestsBtn = document.getElementById('exportGuestsBtn');
-    if (exportGuestsBtn && !exportGuestsBtn.hasAttribute('data-changed')) {
-        exportGuestsBtn.innerHTML = '📤 Exportar';
-        exportGuestsBtn.setAttribute('data-changed', 'true');
-    }
-    
-    const sendInvitationsBtn = document.getElementById('sendInvitationsBtn');
-    if (sendInvitationsBtn && !sendInvitationsBtn.hasAttribute('data-changed')) {
-        sendInvitationsBtn.innerHTML = '✉ Enviar';
-        sendInvitationsBtn.setAttribute('data-changed', 'true');
-    }
-    
-    // BOTÓN CERRAR SESIÓN
     const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn && !logoutBtn.hasAttribute('data-changed')) {
-        logoutBtn.innerHTML = '🚪 Cerrar Sesión';
-        logoutBtn.setAttribute('data-changed', 'true');
+    if (logoutBtn && !logoutBtn.textContent.includes('Cerrar')) {
+        logoutBtn.textContent = '[ × ] Cerrar Sesión';
     }
     
-    // BUSCADORES
-    document.querySelectorAll('.search-box').forEach(box => {
-        const input = box.querySelector('input');
-        if (input && !input.placeholder.includes('🔍')) {
-            input.placeholder = '🔍 ' + input.placeholder.replace('Buscar', 'Buscar');
+    console.log('✅ Iconos actualizados');
+}
+
+// Ejecutar múltiples veces
+cambiarIconosQueNoSeVen();
+setTimeout(cambiarIconosQueNoSeVen, 100);
+setTimeout(cambiarIconosQueNoSeVen, 500);
+setTimeout(cambiarIconosQueNoSeVen, 1000);
+
+document.addEventListener('DOMContentLoaded', cambiarIconosQueNoSeVen);
+window.addEventListener('load', cambiarIconosQueNoSeVen);
+
+// ===== ARREGLO DEL MODAL QUE SE MULTIPLICA =====
+
+// Función mejorada para cerrar modal sin duplicar
+window.cerrarModalInvitado = function() {
+    // Buscar TODOS los modales de invitado y eliminarlos
+    const modales = document.querySelectorAll('.modal-invitado, #modalInvitado, #modalAgregarInvitado');
+    modales.forEach(modal => {
+        modal.classList.remove('show', 'active');
+        setTimeout(() => modal.remove(), 300);
+    });
+};
+
+// Función mejorada para abrir modal SIN duplicar
+window.mostrarModalInvitadoUnico = function(invitadoId = null) {
+    // PRIMERO: Cerrar cualquier modal existente
+    cerrarModalInvitado();
+    
+    // SEGUNDO: Esperar un poco antes de crear el nuevo
+    setTimeout(() => {
+        // Verificar que no exista ya un modal
+        if (document.getElementById('modalAgregarInvitado')) {
+            return; // Ya existe, no crear otro
         }
-    });
-    
-    console.log('✅ Todos los iconos cambiados');
+        
+        let invitado = null;
+        let titulo = 'Agregar Invitado';
+        
+        if (invitadoId && typeof invitados !== 'undefined') {
+            invitado = invitados.find(i => i.id === invitadoId);
+            titulo = 'Editar Invitado';
+        }
+        
+        const modalHTML = `
+            <div class="modal-invitado show" id="modalAgregarInvitado">
+                <div class="modal-invitado-box">
+                    <div class="modal-invitado-header">
+                        <h2>${titulo}</h2>
+                        <button class="modal-close-invitado" onclick="cerrarModalInvitado()">&times;</button>
+                    </div>
+                    
+                    <form class="modal-invitado-body" onsubmit="event.preventDefault(); guardarInvitadoModal(${invitadoId});">
+                        <div class="form-group-invitado">
+                            <label>Nombre Completo *</label>
+                            <input type="text" id="modalNombre" required 
+                                   value="${invitado ? invitado.nombre : ''}" 
+                                   placeholder="Ej: Ana María García">
+                        </div>
+                        
+                        <div class="form-group-invitado">
+                            <label>Email</label>
+                            <input type="email" id="modalEmail" 
+                                   value="${invitado ? (invitado.email || '') : ''}" 
+                                   placeholder="ejemplo@correo.com">
+                        </div>
+                        
+                        <div class="form-row-invitado">
+                            <div class="form-group-invitado">
+                                <label>Teléfono</label>
+                                <input type="tel" id="modalTelefono" 
+                                       value="${invitado ? (invitado.telefono || '') : ''}" 
+                                       placeholder="+52 55 1234 5678">
+                            </div>
+                            
+                            <div class="form-group-invitado">
+                                <label>Estado</label>
+                                <select id="modalEstado">
+                                    <option value="pendiente" ${invitado && invitado.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                                    <option value="confirmado" ${invitado && invitado.estado === 'confirmado' ? 'selected' : ''}>Confirmado</option>
+                                    <option value="rechazado" ${invitado && invitado.estado === 'rechazado' ? 'selected' : ''}>Rechazado</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-buttons-invitado">
+                            <button type="button" class="btn-cancel-invitado" onclick="cerrarModalInvitado()">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="btn-save-invitado">
+                                Guardar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Focus en primer campo
+        setTimeout(() => {
+            const input = document.getElementById('modalNombre');
+            if (input) input.focus();
+        }, 100);
+        
+    }, 100);
+};
+
+// Sobrescribir la función original de agregar invitado
+if (typeof agregarInvitado !== 'undefined') {
+    const originalAgregarInvitado = agregarInvitado;
+    agregarInvitado = function() {
+        mostrarModalInvitadoUnico();
+    };
 }
 
-// Ejecutar múltiples veces para asegurar
-cambiarTodosLosIconos();
-setTimeout(cambiarTodosLosIconos, 100);
-setTimeout(cambiarTodosLosIconos, 300);
-setTimeout(cambiarTodosLosIconos, 500);
-setTimeout(cambiarTodosLosIconos, 1000);
-setTimeout(cambiarTodosLosIconos, 2000);
+// Event listener para el botón de agregar
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'addGuestBtn') {
+        e.preventDefault();
+        e.stopPropagation();
+        mostrarModalInvitadoUnico();
+    }
+});
 
-document.addEventListener('DOMContentLoaded', cambiarTodosLosIconos);
-window.addEventListener('load', cambiarTodosLosIconos);
-
-// Observar cambios en el DOM para re-aplicar iconos
-if (typeof MutationObserver !== 'undefined') {
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.addedNodes.length) {
-                setTimeout(cambiarTodosLosIconos, 100);
-            }
+// Guardar invitado
+window.guardarInvitadoModal = function(invitadoId) {
+    const nombre = document.getElementById('modalNombre').value.trim();
+    const email = document.getElementById('modalEmail').value.trim();
+    const telefono = document.getElementById('modalTelefono').value.trim();
+    const estado = document.getElementById('modalEstado').value;
+    
+    if (!nombre) {
+        alert('El nombre es obligatorio');
+        return;
+    }
+    
+    if (typeof invitados === 'undefined') {
+        window.invitados = [];
+    }
+    
+    if (invitadoId) {
+        const invitado = invitados.find(i => i.id === invitadoId);
+        if (invitado) {
+            invitado.nombre = nombre;
+            invitado.email = email;
+            invitado.telefono = telefono;
+            invitado.estado = estado;
+        }
+    } else {
+        const nuevoId = invitados.length > 0 ? Math.max(...invitados.map(i => i.id)) + 1 : 1;
+        invitados.push({
+            id: nuevoId,
+            nombre: nombre,
+            email: email,
+            telefono: telefono,
+            estado: estado,
+            mesa: null,
+            silla: null
         });
-    });
+    }
     
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-}
+    cerrarModalInvitado();
+    
+    if (typeof actualizarListaInvitados === 'function') {
+        actualizarListaInvitados();
+    }
+};
 
-console.log('✅ Sistema de iconos simples activado');
+console.log('✅ Sistema de modal único activado');
