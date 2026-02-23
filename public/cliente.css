@@ -3012,3 +3012,48 @@ h3,
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 18px rgba(168, 85, 247, 0.4) !important;
 }
+
+
+/* ===== ESTILOS PARA ICONOS SIMPLES ===== */
+
+/* Ocultar TODOS los iconos de FontAwesome */
+i.fas, i.fa, i.far, i.fab {
+    display: none !important;
+}
+
+/* Asegurar fuente para símbolos */
+.btn-icon,
+.button-group button,
+#addGuestBtn,
+#logoutBtn,
+h3,
+.logo h1 {
+    font-family: Arial, Helvetica, sans-serif !important;
+}
+
+/* Botones con símbolos más grandes */
+.btn-icon {
+    font-size: 1.3rem !important;
+    font-weight: bold !important;
+}
+
+/* Botón agregar invitado destacado */
+#addGuestBtn {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+}
+
+/* Títulos con bullets */
+h3 {
+    font-weight: 700 !important;
+}
+
+/* Botones de configuración con símbolos claros */
+#btnCrearMesas,
+#btnGuardarEvento,
+#btnFinalizarEvento {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+}
