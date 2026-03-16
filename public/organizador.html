@@ -4,462 +4,212 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Organizador - Titi Invita</title>
+    <link rel="stylesheet" href="titi-design.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2d3748;
-        }
-        
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 14px;
-            box-sizing: border-box;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #764ba2;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #764ba2, #9a7bb8);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 100%;
-        }
-        
-        .btn-secondary {
-            background: #e2e8f0;
-            color: #2d3748;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 10px;
-        }
-        
-        .evento-card {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-        }
-        
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        
-        .badge-pendiente { background: #FFA726; color: white; }
-        .badge-activo { background: #4CAF50; color: white; }
-        .badge-finalizado { background: #999; color: white; }
-        
-        .colaborador-item {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-    </style>
     <script>
         const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
         let currentUser = null;
         let eventos = [];
         let eventoSeleccionado = null;
-        
-        function obtenerToken() {
-            return localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
-        }
-        
+
+        function obtenerToken() { return localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token'); }
         function obtenerUsuario() {
-            const usuarioStr = localStorage.getItem('titi_usuario_actual') || sessionStorage.getItem('titi_usuario_actual');
-            if (!usuarioStr) return null;
-            try {
-                return JSON.parse(usuarioStr);
-            } catch (e) {
-                console.error('Error parseando usuario:', e);
-                return null;
-            }
+            const s = localStorage.getItem('titi_usuario_actual') || sessionStorage.getItem('titi_usuario_actual');
+            if (!s) return null;
+            try { return JSON.parse(s); } catch(e) { return null; }
         }
-        
+
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Organizador Panel Cargando...');
-            
             currentUser = obtenerUsuario();
             const token = obtenerToken();
-            
-            console.log('Usuario:', currentUser);
-            console.log('Token:', token ? 'Presente' : 'Ausente');
-            
-            if (!currentUser || !token) {
-                console.log('❌ No hay sesión válida');
-                alert('No hay sesión válida. Redirigiendo a login...');
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            if (currentUser.rol !== 'organizador' && currentUser.rol !== 'admin') {
-                console.log('❌ Rol incorrecto:', currentUser.rol);
-                alert('Acceso denegado. Solo organizadores.');
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            console.log('✅ Sesión válida. Rol:', currentUser.rol);
+            if (!currentUser || !token) { alert('No hay sesión válida.'); window.location.href = 'login.html'; return; }
+            if (currentUser.rol !== 'organizador' && currentUser.rol !== 'admin') { alert('Solo organizadores.'); window.location.href = 'index.html'; return; }
             document.getElementById('userName').textContent = currentUser.nombre;
+            document.getElementById('sidebarUserName').textContent = currentUser.nombre;
+            const initials = currentUser.nombre.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+            document.getElementById('sidebarUserInitials').textContent = initials;
             cargarMisEventos();
         });
-        
+
         function showPage(page) {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            const pageEl = document.getElementById(page);
-            if (pageEl) pageEl.style.display = 'block';
-            
+            const el = document.getElementById(page);
+            if (el) el.style.display = 'block';
             const nav = document.querySelector(`[data-page="${page}"]`);
             if (nav) nav.classList.add('active');
-            
+            const titles = { dashboard:'Dashboard', solicitudes:'Mis Solicitudes', 'eventos-activos':'Eventos Activos' };
+            document.getElementById('pageTitle').textContent = titles[page] || 'Panel Organizador';
             if (page === 'solicitudes') renderizarEventos();
             if (page === 'eventos-activos') renderizarEventos();
         }
-        
+
         async function cargarMisEventos() {
-            console.log('📡 Cargando eventos del organizador...');
             try {
                 const token = obtenerToken();
                 const response = await fetch(API_BASE + '/mis-eventos', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    }
+                    headers: { 'Authorization':'Bearer '+token, 'Content-Type':'application/json' }
                 });
-                
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Error ' + response.status);
-                }
-                
+                if (!response.ok) { const error = await response.json(); throw new Error(error.error || 'Error ' + response.status); }
                 const data = await response.json();
-                console.log('📊 Datos recibidos:', data);
-                
-                // El endpoint devuelve array directo
                 eventos = Array.isArray(data) ? data : [];
-                
-                console.log('✅ Eventos cargados:', eventos.length);
-                
                 renderizarEventos();
                 actualizarEstadisticas();
-            } catch (error) {
-                console.error('❌ Error cargando eventos:', error);
-                alert('Error al cargar eventos: ' + error.message);
-            }
+            } catch (error) { console.error('Error:', error); alert('Error al cargar eventos: ' + error.message); }
         }
-        
+
         function renderizarEventos() {
             const pendientes = eventos.filter(e => e.estado === 'pendiente');
             const activos = eventos.filter(e => e.estado === 'activo');
-            
-            console.log('Renderizando:', pendientes.length, 'pendientes,', activos.length, 'activos');
-            
-            const containerSolicitudes = document.getElementById('solicitudesContainer');
-            if (containerSolicitudes) {
+
+            const containerSol = document.getElementById('solicitudesContainer');
+            if (containerSol) {
                 if (pendientes.length === 0) {
-                    containerSolicitudes.innerHTML = '<p style="text-align:center; color:#999; padding:40px">No tienes solicitudes pendientes</p>';
+                    containerSol.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><h3>Sin solicitudes pendientes</h3><p style="color:var(--titi-ash)">Crea una nueva solicitud de evento</p></div>';
                 } else {
-                    containerSolicitudes.innerHTML = pendientes.map(e => crearCardEvento(e)).join('');
+                    containerSol.innerHTML = pendientes.map(e => crearCardEvento(e)).join('');
                 }
             }
-            
-            const containerActivos = document.getElementById('eventosActivosContainer');
-            if (containerActivos) {
+
+            const containerAct = document.getElementById('eventosActivosContainer');
+            if (containerAct) {
                 if (activos.length === 0) {
-                    containerActivos.innerHTML = '<p style="text-align:center; color:#999; padding:40px">No tienes eventos activos</p>';
+                    containerAct.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-check"></i><h3>Sin eventos activos</h3><p style="color:var(--titi-ash)">Tus eventos aprobados aparecerán aquí</p></div>';
                 } else {
-                    containerActivos.innerHTML = activos.map(e => crearCardEvento(e)).join('');
+                    containerAct.innerHTML = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:20px">' + activos.map(e => crearCardEvento(e)).join('') + '</div>';
                 }
             }
         }
-        
+
         function crearCardEvento(evento) {
             const badgeClass = `badge-${evento.estado}`;
             const fecha = evento.fecha_evento ? new Date(evento.fecha_evento).toLocaleDateString() : 'Sin fecha';
-            
             return `
-                <div class="evento-card">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:12px">
-                        <h3 style="margin:0">${evento.nombre}</h3>
+                <div class="evento-card" style="cursor:default; margin-bottom:16px">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+                        <h3 style="margin:0; font-family:var(--font-display); font-size:1.05rem; color:var(--titi-ink)">${evento.nombre}</h3>
                         <span class="badge ${badgeClass}">${evento.estado}</span>
                     </div>
-                    <p style="margin:8px 0; color:#666"><i class="fas fa-calendar"></i> ${fecha}</p>
-                    <p style="margin:8px 0; color:#666"><i class="fas fa-map-marker-alt"></i> ${evento.ubicacion || 'Sin ubicación'}</p>
-                    
+                    <p style="margin:5px 0; color:var(--titi-slate); font-size:.88rem"><i class="fas fa-calendar" style="width:18px; color:var(--titi-lavender)"></i> ${fecha}</p>
+                    <p style="margin:5px 0; color:var(--titi-slate); font-size:.88rem"><i class="fas fa-map-marker-alt" style="width:18px; color:var(--titi-lavender)"></i> ${evento.ubicacion || 'Sin ubicación'}</p>
                     ${evento.estado === 'activo' ? `
-                        <div style="display:flex; gap:12px; margin-top:16px; padding-top:16px; border-top:2px solid #f0f0f0">
-                            <button onclick="verEventoCompleto(${evento.id})" style="flex:1; padding:10px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
+                        <div style="display:flex; gap:10px; margin-top:16px; padding-top:16px; border-top:1px solid var(--titi-fog)">
+                            <button onclick="verEventoCompleto(${evento.id})" class="titi-btn titi-btn-primary" style="flex:1; padding:10px">
                                 <i class="fas fa-eye"></i> Ver Renderizado
                             </button>
-                            <button onclick="gestionarColaboradores(${evento.id}, '${evento.nombre.replace(/'/g, "\\'")})')" style="flex:1; padding:10px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
+                            <button onclick="gestionarColaboradores(${evento.id}, '${evento.nombre.replace(/'/g, "\\'")}')" class="titi-btn titi-btn-ghost" style="flex:1; padding:10px; color:var(--titi-sky); border-color:var(--titi-sky-bg)">
                                 <i class="fas fa-users"></i> Colaboradores
                             </button>
                         </div>
                     ` : evento.estado === 'pendiente' ? `
-                        <div style="margin-top:16px; padding-top:16px; border-top:2px solid #f0f0f0">
-                            <p style="color:#FFA726; margin:0"><i class="fas fa-clock"></i> Esperando aprobación del administrador</p>
+                        <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--titi-fog)">
+                            <p style="color:var(--titi-gold); margin:0; font-size:.88rem"><i class="fas fa-clock"></i> Esperando aprobación del administrador</p>
                         </div>
                     ` : ''}
-                </div>
-            `;
+                </div>`;
         }
-        
+
         function actualizarEstadisticas() {
             document.getElementById('statSolicitudes').textContent = eventos.filter(e => e.estado === 'pendiente').length;
             document.getElementById('statActivos').textContent = eventos.filter(e => e.estado === 'activo').length;
             document.getElementById('statTotal').textContent = eventos.length;
         }
-        
+
         function abrirModalSolicitud() {
-            const pendientes = eventos.filter(e => e.estado === 'pendiente').length;
-            if (pendientes >= 3) {
-                alert('Ya tienes 3 solicitudes pendientes. Espera a que sean aprobadas.');
-                return;
-            }
+            const pend = eventos.filter(e => e.estado === 'pendiente').length;
+            if (pend >= 3) { alert('Ya tienes 3 solicitudes pendientes. Espera a que sean aprobadas.'); return; }
             document.getElementById('modalSolicitud').classList.add('active');
         }
-        
-        function cerrarModalSolicitud() {
-            document.getElementById('modalSolicitud').classList.remove('active');
-            document.getElementById('formSolicitud').reset();
-        }
-        
+        function cerrarModalSolicitud() { document.getElementById('modalSolicitud').classList.remove('active'); document.getElementById('formSolicitud').reset(); }
+
         async function enviarSolicitud(event) {
             event.preventDefault();
-            
-            const formData = new FormData(event.target);
-            const data = {
-                nombre: formData.get('nombre'),
-                descripcion: formData.get('descripcion'),
-                fecha_evento: formData.get('fecha_evento'),
-                hora_evento: formData.get('hora_evento'),
-                ubicacion: formData.get('ubicacion')
-            };
-            
+            const fd = new FormData(event.target);
+            const data = { nombre:fd.get('nombre'), descripcion:fd.get('descripcion'), fecha_evento:fd.get('fecha_evento'), hora_evento:fd.get('hora_evento'), ubicacion:fd.get('ubicacion') };
             try {
                 const token = obtenerToken();
                 const response = await fetch(API_BASE + '/solicitudes', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
+                    method:'POST', headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
+                    body:JSON.stringify(data)
                 });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Error al crear solicitud');
-                }
-                
-                alert('✅ Solicitud enviada exitosamente. Espera la aprobación del administrador.');
-                cerrarModalSolicitud();
-                cargarMisEventos();
-            } catch (error) {
-                console.error('❌ Error:', error);
-                alert(error.message);
-            }
+                if (!response.ok) { const err = await response.json(); throw new Error(err.error || 'Error'); }
+                alert('Solicitud enviada exitosamente. Espera la aprobación del administrador.');
+                cerrarModalSolicitud(); cargarMisEventos();
+            } catch (error) { alert(error.message); }
         }
-        
+
         async function gestionarColaboradores(eventoId, eventoNombre) {
             eventoSeleccionado = eventoId;
-            document.getElementById('tituloColaboradores').textContent = `Colaboradores - ${eventoNombre}`;
+            document.getElementById('tituloColaboradores').textContent = `Colaboradores — ${eventoNombre}`;
             document.getElementById('modalColaboradores').classList.add('active');
-            
             await cargarColaboradores(eventoId);
         }
-        
+
         async function cargarColaboradores(eventoId) {
             try {
                 const token = obtenerToken();
                 const response = await fetch(API_BASE + '/eventos/' + eventoId + '/colaboradores', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    }
+                    headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'}
                 });
-                
                 if (!response.ok) throw new Error('Error');
-                
                 const colaboradores = await response.json();
-                
                 const container = document.getElementById('listaColaboradores');
                 if (colaboradores.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; color:#999; padding:20px">No hay colaboradores</p>';
+                    container.innerHTML = '<p style="text-align:center; color:var(--titi-ash); padding:20px">No hay colaboradores asignados</p>';
                 } else {
                     container.innerHTML = colaboradores.map(c => `
                         <div class="colaborador-item">
                             <div>
-                                <strong>${c.nombre}</strong>
-                                <br>
-                                <small style="color:#666">${c.email}</small>
+                                <strong style="font-size:.9rem; color:var(--titi-ink)">${c.nombre}</strong><br>
+                                <small style="color:var(--titi-slate)">${c.email}</small>
                             </div>
-                            <button onclick="eliminarColaborador(${c.id})" style="padding:6px 12px; background:#f44336; color:white; border:none; border-radius:6px; cursor:pointer">
+                            <button onclick="eliminarColaborador(${c.id})" class="titi-btn titi-btn-danger" style="padding:6px 12px; font-size:.8rem">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     `).join('');
                 }
-            } catch (error) {
-                console.error('❌ Error:', error);
-            }
+            } catch (error) { console.error('Error:', error); }
         }
-        
-        function cerrarModalColaboradores() {
-            document.getElementById('modalColaboradores').classList.remove('active');
-            document.getElementById('formColaborador').style.display = 'none';
-            eventoSeleccionado = null;
-        }
-        
-        function abrirFormColaborador() {
-            document.getElementById('formColaborador').style.display = 'block';
-        }
-        
+
+        function cerrarModalColaboradores() { document.getElementById('modalColaboradores').classList.remove('active'); document.getElementById('formColaborador').style.display = 'none'; eventoSeleccionado = null; }
+        function abrirFormColaborador() { document.getElementById('formColaborador').style.display = 'block'; }
+
         async function agregarColaborador(event) {
             event.preventDefault();
-            
-            const formData = new FormData(event.target);
-            const data = {
-                nombre: formData.get('nombre'),
-                email: formData.get('email'),
-                password: formData.get('password')
-            };
-            
+            const fd = new FormData(event.target);
+            const data = { nombre:fd.get('nombre'), email:fd.get('email'), password:fd.get('password') };
             try {
                 const token = obtenerToken();
                 const response = await fetch(API_BASE + '/eventos/' + eventoSeleccionado + '/colaboradores', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
+                    method:'POST', headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
+                    body:JSON.stringify(data)
                 });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error);
-                }
-                
-                alert('✅ Colaborador agregado');
-                event.target.reset();
-                document.getElementById('formColaborador').style.display = 'none';
+                if (!response.ok) { const err = await response.json(); throw new Error(err.error); }
+                alert('Colaborador agregado');
+                event.target.reset(); document.getElementById('formColaborador').style.display = 'none';
                 cargarColaboradores(eventoSeleccionado);
-            } catch (error) {
-                console.error('❌ Error:', error);
-                alert(error.message);
-            }
+            } catch (error) { alert(error.message); }
         }
-        
+
         async function eliminarColaborador(id) {
             if (!confirm('¿Eliminar este colaborador?')) return;
-            
             try {
                 const token = obtenerToken();
                 const response = await fetch(API_BASE + '/colaboradores/' + id, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    }
+                    method:'DELETE', headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'}
                 });
-                
                 if (!response.ok) throw new Error('Error');
-                
-                alert('✅ Colaborador eliminado');
-                cargarColaboradores(eventoSeleccionado);
-            } catch (error) {
-                console.error('❌ Error:', error);
-                alert('Error al eliminar');
-            }
+                alert('Colaborador eliminado'); cargarColaboradores(eventoSeleccionado);
+            } catch (error) { alert('Error al eliminar'); }
         }
-        
-        function verEventoCompleto(eventoId) {
-            window.open('cliente.html?evento=' + eventoId, '_blank');
-        }
-        
-        function mostrarLogout() {
-            if (confirm('¿Cerrar sesión?')) {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.href = 'login.html';
-            }
-        }
-    function cancelarLogout() {
-    document.getElementById("logoutModal").classList.remove("active");
-}
-function confirmarLogout() {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = "login.html";
-}
-</script>
+
+        function verEventoCompleto(eventoId) { window.open('cliente.html?evento=' + eventoId, '_blank'); }
+        function mostrarLogout() { document.getElementById('logoutModal').classList.add('active'); }
+        function cancelarLogout() { document.getElementById('logoutModal').classList.remove('active'); }
+        function confirmarLogout() { localStorage.clear(); sessionStorage.clear(); window.location.href = 'login.html'; }
+    </script>
 </head>
 <body>
     <div class="admin-container">
@@ -468,14 +218,18 @@ function confirmarLogout() {
                 <i class="fas fa-briefcase"></i>
                 <h2>Organizador</h2>
             </div>
-            
-            <div style="padding:20px; border-bottom:1px solid rgba(255,255,255,0.1)">
-                <p style="color:white; margin:0"><i class="fas fa-user"></i> <span id="userName">Cargando...</span></p>
+
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar" id="sidebarUserInitials">OR</div>
+                <div>
+                    <div class="sidebar-user-name" id="sidebarUserName">Cargando...</div>
+                    <div class="sidebar-user-role">Organizador</div>
+                </div>
             </div>
-            
+
             <nav class="nav-menu">
                 <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
-                    <i class="fas fa-tachometer-alt"></i>
+                    <i class="fas fa-th-large"></i>
                     <a>Dashboard</a>
                 </div>
                 <div class="nav-item" data-page="solicitudes" onclick="showPage('solicitudes')">
@@ -487,7 +241,7 @@ function confirmarLogout() {
                     <a>Eventos Activos</a>
                 </div>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <div class="nav-item" onclick="location.href='index.html'">
                     <i class="fas fa-home"></i>
@@ -502,141 +256,109 @@ function confirmarLogout() {
 
         <main class="main-content">
             <header class="top-bar">
-                <h1>Panel Organizador</h1>
+                <h1 id="pageTitle">Panel Organizador</h1>
+                <span id="userName" style="display:none"></span>
             </header>
 
-            <div class="page" id="dashboard" style="display:block; padding:30px">
-                <h2>Mis Estadísticas</h2>
-                
-                <div style="margin-top:30px; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px">
-                    <div style="background:linear-gradient(135deg,#FFA726,#FF9800); color:white; padding:30px; border-radius:12px">
+            <!-- Dashboard -->
+            <div class="page" id="dashboard" style="display:block; padding:32px">
+                <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--titi-ink); margin-bottom:4px">Mis Estadísticas</h2>
+                <p style="color:var(--titi-ash); font-size:.88rem; margin-bottom:8px">Resumen de tus eventos y solicitudes</p>
+
+                <div class="stats-grid-dash">
+                    <div class="stat-card-gradient" style="background:linear-gradient(135deg, var(--titi-gold), #D4922A)">
                         <h3>Solicitudes Pendientes</h3>
-                        <p style="font-size:3rem; margin:10px 0" id="statSolicitudes">0</p>
+                        <p class="big-num" id="statSolicitudes">0</p>
                         <small>Máximo 3 simultáneas</small>
                     </div>
-                    <div style="background:linear-gradient(135deg,#4CAF50,#45a049); color:white; padding:30px; border-radius:12px">
+                    <div class="stat-card-gradient" style="background:linear-gradient(135deg, var(--titi-emerald), #1F9D6A)">
                         <h3>Eventos Activos</h3>
-                        <p style="font-size:3rem; margin:10px 0" id="statActivos">0</p>
+                        <p class="big-num" id="statActivos">0</p>
                         <small>Sin límite</small>
                     </div>
-                    <div style="background:linear-gradient(135deg,#2196F3,#1976D2); color:white; padding:30px; border-radius:12px">
+                    <div class="stat-card-gradient" style="background:linear-gradient(135deg, var(--titi-sky), #2563EB)">
                         <h3>Total Eventos</h3>
-                        <p style="font-size:3rem; margin:10px 0" id="statTotal">0</p>
+                        <p class="big-num" id="statTotal">0</p>
+                        <small>&nbsp;</small>
                     </div>
                 </div>
-                
-                <div style="margin-top:40px">
-                    <button onclick="abrirModalSolicitud()" style="padding:15px 30px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-size:1.1rem; font-weight:600">
+
+                <div style="margin-top:32px">
+                    <button onclick="abrirModalSolicitud()" class="titi-btn titi-btn-primary" style="padding:14px 28px; font-size:1rem">
                         <i class="fas fa-plus"></i> Solicitar Nuevo Evento
                     </button>
                 </div>
             </div>
 
-            <div class="page" id="solicitudes" style="display:none; padding:30px">
-                <div style="display:flex; justify-content:space-between; margin-bottom:24px">
-                    <h2>Mis Solicitudes Pendientes</h2>
-                    <button onclick="abrirModalSolicitud()" style="padding:10px 20px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
+            <!-- Solicitudes -->
+            <div class="page" id="solicitudes" style="display:none; padding:32px">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px">
+                    <div>
+                        <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--titi-ink); margin-bottom:4px">Mis Solicitudes Pendientes</h2>
+                        <p style="color:var(--titi-ash); font-size:.85rem">Solicitudes esperando aprobación</p>
+                    </div>
+                    <button onclick="abrirModalSolicitud()" class="titi-btn titi-btn-success">
                         <i class="fas fa-plus"></i> Nueva Solicitud
                     </button>
                 </div>
-                
-                <div id="solicitudesContainer">
-                    <p style="text-align:center; padding:40px">Cargando...</p>
-                </div>
+                <div id="solicitudesContainer"><p style="text-align:center; padding:40px; color:var(--titi-ash)">Cargando...</p></div>
             </div>
 
-            <div class="page" id="eventos-activos" style="display:none; padding:30px">
-                <h2>Mis Eventos Activos</h2>
-                <div id="eventosActivosContainer" style="margin-top:24px">
-                    <p style="text-align:center; padding:40px">Cargando...</p>
-                </div>
+            <!-- Eventos Activos -->
+            <div class="page" id="eventos-activos" style="display:none; padding:32px">
+                <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--titi-ink); margin-bottom:4px">Mis Eventos Activos</h2>
+                <p style="color:var(--titi-ash); font-size:.85rem; margin-bottom:24px">Gestiona tus eventos aprobados</p>
+                <div id="eventosActivosContainer"><p style="text-align:center; padding:40px; color:var(--titi-ash)">Cargando...</p></div>
             </div>
         </main>
     </div>
 
+    <!-- Modal Solicitud -->
     <div id="modalSolicitud" class="modal">
         <div class="modal-content">
-            <h2>Solicitar Nuevo Evento</h2>
+            <h2><i class="fas fa-paper-plane" style="color:var(--titi-lavender)"></i> Solicitar Nuevo Evento</h2>
             <form id="formSolicitud" onsubmit="enviarSolicitud(event)">
-                <div class="form-group">
-                    <label>Nombre del Evento *</label>
-                    <input type="text" name="nombre" required>
-                </div>
-                <div class="form-group">
-                    <label>Descripción</label>
-                    <textarea name="descripcion" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Fecha del Evento *</label>
-                    <input type="date" name="fecha_evento" required>
-                </div>
-                <div class="form-group">
-                    <label>Hora</label>
-                    <input type="time" name="hora_evento">
-                </div>
-                <div class="form-group">
-                    <label>Ubicación</label>
-                    <input type="text" name="ubicacion">
-                </div>
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-paper-plane"></i> Enviar Solicitud
-                </button>
-                <button type="button" class="btn-secondary" onclick="cerrarModalSolicitud()">
-                    Cancelar
-                </button>
+                <div class="form-group"><label>Nombre del Evento *</label><input type="text" name="nombre" required></div>
+                <div class="form-group"><label>Descripción</label><textarea name="descripcion" rows="3" style="width:100%; padding:12px; border:1.5px solid var(--titi-mist); border-radius:var(--r-md); font-size:.92rem; resize:vertical"></textarea></div>
+                <div class="form-group"><label>Fecha del Evento *</label><input type="date" name="fecha_evento" required></div>
+                <div class="form-group"><label>Hora</label><input type="time" name="hora_evento"></div>
+                <div class="form-group"><label>Ubicación</label><input type="text" name="ubicacion"></div>
+                <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Enviar Solicitud</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalSolicitud()">Cancelar</button>
             </form>
         </div>
     </div>
 
+    <!-- Modal Colaboradores -->
     <div id="modalColaboradores" class="modal">
         <div class="modal-content">
-            <h2 id="tituloColaboradores">Colaboradores</h2>
-            
-            <div id="listaColaboradores" style="margin:20px 0">
-                <p style="text-align:center; padding:20px">Cargando...</p>
-            </div>
-            
-            <button onclick="abrirFormColaborador()" style="width:100%; padding:12px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; margin-bottom:20px; font-weight:600">
+            <h2 id="tituloColaboradores" style="font-size:1.2rem">Colaboradores</h2>
+            <div id="listaColaboradores" style="margin:20px 0"><p style="text-align:center; padding:20px; color:var(--titi-ash)">Cargando...</p></div>
+            <button onclick="abrirFormColaborador()" class="titi-btn titi-btn-success" style="width:100%; margin-bottom:16px">
                 <i class="fas fa-plus"></i> Agregar Colaborador
             </button>
-            
-            <form id="formColaborador" style="display:none; margin-bottom:20px; padding:20px; background:#f8f9fa; border-radius:8px" onsubmit="agregarColaborador(event)">
-                <h3>Nuevo Colaborador</h3>
-                <div class="form-group">
-                    <label>Nombre *</label>
-                    <input type="text" name="nombre" required>
-                </div>
-                <div class="form-group">
-                    <label>Email *</label>
-                    <input type="email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label>Contraseña *</label>
-                    <input type="password" name="password" required minlength="6">
-                </div>
-                <button type="submit" style="width:100%; padding:10px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
-                    Crear Colaborador
-                </button>
+            <form id="formColaborador" style="display:none; margin-bottom:20px; padding:20px; background:var(--titi-snow); border-radius:var(--r-md); border:1px solid var(--titi-fog)" onsubmit="agregarColaborador(event)">
+                <h4 style="font-size:.95rem; margin-bottom:16px; color:var(--titi-ink)">Nuevo Colaborador</h4>
+                <div class="form-group"><label>Nombre *</label><input type="text" name="nombre" required></div>
+                <div class="form-group"><label>Email *</label><input type="email" name="email" required></div>
+                <div class="form-group"><label>Contraseña *</label><input type="password" name="password" required minlength="6"></div>
+                <button type="submit" class="btn-primary">Crear Colaborador</button>
             </form>
-            
-            <button type="button" class="btn-secondary" onclick="cerrarModalColaboradores()">
-                Cerrar
-            </button>
+            <button type="button" class="btn-secondary" onclick="cerrarModalColaboradores()">Cerrar</button>
         </div>
     </div>
-<!-- Modal Logout -->
-<div id="logoutModal" class="modal">
-    <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideIn 0.3s ease">
-        <div style="width:80px; height:80px; margin:0 auto 20px; background:linear-gradient(135deg, #667eea, #764ba2); border-radius:50%; display:flex; align-items:center; justify-content:center">
-            <i class="fas fa-sign-out-alt" style="font-size:2.5rem; color:white"></i>
-        </div>
-        <h2 style="margin:0 0 10px 0; font-size:1.8rem; color:#2d3748">¿Cerrar Sesión?</h2>
-        <p style="color:#718096; margin:0 0 30px 0">Tu sesión se cerrará y tendrás que volver a iniciar sesión</p>
-        <div style="display:flex; gap:12px">
-            <button onclick="cancelarLogout()" style="flex:1; padding:14px; background:#e2e8f0; color:#2d3748; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem">Cancelar</button>
-            <button onclick="confirmarLogout()" style="flex:1; padding:14px; background:linear-gradient(135deg, #f44336, #d32f2f); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem">Salir</button>
+
+    <!-- Modal Logout -->
+    <div id="logoutModal" class="modal">
+        <div class="logout-modal-inner">
+            <div class="logout-icon"><i class="fas fa-sign-out-alt"></i></div>
+            <h2 style="margin:0 0 8px; font-family:var(--font-display); font-size:1.5rem; color:var(--titi-ink)">¿Cerrar Sesión?</h2>
+            <p style="color:var(--titi-slate); margin:0 0 28px; font-size:.92rem">Tu sesión se cerrará y tendrás que volver a iniciar sesión</p>
+            <div style="display:flex; gap:12px">
+                <button onclick="cancelarLogout()" class="titi-btn titi-btn-ghost" style="flex:1; padding:13px">Cancelar</button>
+                <button onclick="confirmarLogout()" class="titi-btn titi-btn-danger" style="flex:1; padding:13px">Salir</button>
+            </div>
         </div>
     </div>
-</div>
 </body>
 </html>
