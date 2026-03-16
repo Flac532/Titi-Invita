@@ -4,443 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Admin - Titi Invita</title>
+    <link rel="stylesheet" href="titi-design.css">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Notificaciones */
-        .notification-badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #f44336;
-            color: white;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 700;
-            animation: pulse-badge 2s infinite;
-        }
-        
-        @keyframes pulse-badge {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        
-        .notification-toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 20px 24px;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            display: none;
-            align-items: center;
-            gap: 16px;
-            z-index: 10001;
-            animation: slideInRight 0.3s ease;
-            max-width: 400px;
-        }
-        
-        .notification-toast.show {
-            display: flex;
-        }
-        
-        @keyframes slideInRight {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        .notification-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            flex-shrink: 0;
-        }
-        
-        .notification-icon.success {
-            background: #e8f5e9;
-            color: #4CAF50;
-        }
-        
-        .notification-icon.info {
-            background: #e3f2fd;
-            color: #2196F3;
-        }
-        
-        .notification-content {
-            flex: 1;
-        }
-        
-        .notification-title {
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 4px;
-        }
-        
-        .notification-message {
-            font-size: 0.9rem;
-            color: #718096;
-        }
-        
-        .notification-close {
-            cursor: pointer;
-            color: #cbd5e0;
-            font-size: 1.2rem;
-            transition: color 0.3s;
-        }
-        
-        .notification-close:hover {
-            color: #2d3748;
-        }
-        
-        /* Stats Cards Mejoradas */
-        .stat-card {
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-        }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-        }
-        
-        .stat-card.purple::before { background: linear-gradient(135deg, #764ba2, #9a7bb8); }
-        .stat-card.green::before { background: linear-gradient(135deg, #4CAF50, #45a049); }
-        .stat-card.blue::before { background: linear-gradient(135deg, #2196F3, #1976D2); }
-        .stat-card.orange::before { background: linear-gradient(135deg, #FFA726, #FF9800); }
-        
-        .stat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        
-        .stat-label {
-            color: #718096;
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-        
-        .stat-icon.purple { background: linear-gradient(135deg, #764ba2, #9a7bb8); color: white; }
-        .stat-icon.green { background: linear-gradient(135deg, #4CAF50, #45a049); color: white; }
-        .stat-icon.blue { background: linear-gradient(135deg, #2196F3, #1976D2); color: white; }
-        .stat-icon.orange { background: linear-gradient(135deg, #FFA726, #FF9800); color: white; }
-        
-        .stat-value {
-            font-size: 3rem;
-            font-weight: 700;
-            color: #2d3748;
-            line-height: 1;
-        }
-        
-        /* Tabla de usuarios mejorada */
-        .users-table {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-        
-        .table-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .table-header h2 {
-            margin: 0;
-            font-size: 1.5rem;
-        }
-        
-        .search-box {
-            position: relative;
-        }
-        
-        .search-box input {
-            padding: 10px 16px 10px 40px;
-            border: 2px solid rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border-radius: 8px;
-            width: 250px;
-            transition: all 0.3s;
-        }
-        
-        .search-box input::placeholder {
-            color: rgba(255,255,255,0.7);
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.5);
-        }
-        
-        .search-box i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255,255,255,0.7);
-        }
-        
-        .user-row {
-            display: grid;
-            grid-template-columns: 60px 1fr 1.5fr 120px 100px 150px 150px;
-            align-items: center;
-            padding: 20px 24px;
-            border-bottom: 1px solid #f0f0f0;
-            transition: all 0.3s;
-        }
-        
-        .user-row:hover {
-            background: #f7fafc;
-        }
-        
-        .user-avatar-cell {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #764ba2, #9a7bb8);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-        
-        .user-name {
-            font-weight: 600;
-            color: #2d3748;
-        }
-        
-        .user-email {
-            color: #718096;
-            font-size: 0.9rem;
-        }
-        
-        .role-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        
-        .role-badge.admin { background: #e8f5e9; color: #2e7d32; }
-        .role-badge.organizador { background: #fff3e0; color: #f57c00; }
-        .role-badge.cliente { background: #e3f2fd; color: #1976d2; }
-        .role-badge.colaborador { background: #f3e5f5; color: #7b1fa2; }
-        
-        .event-count {
-            font-weight: 600;
-            color: #2d3748;
-        }
-        
-        .user-actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .btn-icon-action {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-icon-action.edit {
-            background: #e3f2fd;
-            color: #2196F3;
-        }
-        
-        .btn-icon-action.edit:hover {
-            background: #2196F3;
-            color: white;
-        }
-        
-        .btn-icon-action.delete {
-            background: #ffebee;
-            color: #f44336;
-        }
-        
-        .btn-icon-action.delete:hover {
-            background: #f44336;
-            color: white;
-        }
-        
-        /* Modal mejorado */
-        .modal {
-            backdrop-filter: blur(4px);
-        }
-        
-        .modal-content {
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: slideInModal 0.3s ease;
-            max-width: 550px;
-        }
-        
-        @keyframes slideInModal {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        .modal-content h2 {
-            margin: 0 0 24px 0;
-            font-size: 1.8rem;
-            color: #2d3748;
-        }
-        
-        .form-group {
-            margin-bottom: 24px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2d3748;
-            font-size: 0.95rem;
-        }
-        
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 15px;
-            transition: all 0.3s;
-            box-sizing: border-box;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #764ba2;
-            box-shadow: 0 0 0 4px rgba(118,75,162,0.1);
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #764ba2, #9a7bb8);
-            color: white;
-            padding: 16px 24px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 100%;
-            font-size: 1.05rem;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(118,75,162,0.3);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(118,75,162,0.4);
-        }
-        
-        .btn-secondary {
-            background: #e2e8f0;
-            color: #2d3748;
-            padding: 14px 24px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 12px;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        
-        .btn-secondary:hover {
-            background: #cbd5e0;
-        }
-        
-        .campos-extra {
-            background: #f7fafc;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 16px;
-            border-left: 4px solid #764ba2;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #cbd5e0;
-        }
-        
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-        
-        .iframe-container {
-            width: 100%;
-            height: calc(100vh - 150px);
-            border: none;
-            border-radius: 12px;
-            background: white;
-            overflow: hidden;
-        }
-        
-        .iframe-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-    </style>
     <script>
         const API_BASE = 'https://titi-invita-app-azhcw.ondigitalocean.app/api';
         let currentUser = null;
@@ -450,114 +16,81 @@
         let checkInterval = null;
         let organizadores = [];
         let todosEventos = [];
-        
+
         function obtenerToken() {
             return localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
         }
-        
+
         document.addEventListener('DOMContentLoaded', function() {
             const usuarioStr = localStorage.getItem('titi_usuario_actual');
-            if (!usuarioStr) {
-                window.location.href = 'login.html';
-                return;
-            }
-            
+            if (!usuarioStr) { window.location.href = 'login.html'; return; }
             currentUser = JSON.parse(usuarioStr);
-            if (currentUser.rol !== 'admin') {
-                alert('Solo administradores');
-                window.location.href = 'index.html';
-                return;
-            }
-            
+            if (currentUser.rol !== 'admin') { alert('Solo administradores'); window.location.href = 'index.html'; return; }
+            document.getElementById('sidebarUserName').textContent = currentUser.nombre;
+            document.getElementById('sidebarUserInitials').textContent = currentUser.nombre.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
             inicializarDashboard();
             checkInterval = setInterval(checkNuevasSolicitudes, 30000);
         });
-        
+
         async function inicializarDashboard() {
             await cargarEstadisticas();
             showPage('dashboard');
         }
-        
+
         async function cargarEstadisticas() {
             try {
                 const token = obtenerToken();
-                
                 const [solicitudesRes, usuariosRes, eventosRes] = await Promise.all([
                     fetch(API_BASE + '/solicitudes', { headers: { 'Authorization': 'Bearer ' + token }}),
                     fetch(API_BASE + '/usuarios', { headers: { 'Authorization': 'Bearer ' + token }}),
                     fetch(API_BASE + '/eventos', { headers: { 'Authorization': 'Bearer ' + token }})
                 ]);
-                
                 const solicitudes = await solicitudesRes.json();
                 usuarios = await usuariosRes.json();
                 const eventosData = await eventosRes.json();
                 todosEventos = eventosData.eventos || eventosData;
-                
                 const eventosPorUsuario = {};
                 todosEventos.forEach(e => {
                     const userId = e.id_usuario || e.organizador_id;
-                    if (userId) {
-                        eventosPorUsuario[userId] = (eventosPorUsuario[userId] || 0) + 1;
-                    }
+                    if (userId) eventosPorUsuario[userId] = (eventosPorUsuario[userId] || 0) + 1;
                 });
-                
-                usuarios.forEach(u => {
-                    u.eventCount = eventosPorUsuario[u.id] || 0;
-                });
-                
+                usuarios.forEach(u => { u.eventCount = eventosPorUsuario[u.id] || 0; });
                 const numSolicitudes = solicitudes.length;
                 const numUsuarios = usuarios.length;
                 const numEventos = todosEventos.length;
                 const numActivos = todosEventos.filter(e => e.estado === 'activo').length;
-                
                 document.getElementById('statSolicitudes').textContent = numSolicitudes;
                 document.getElementById('statUsuarios').textContent = numUsuarios;
                 document.getElementById('statEventos').textContent = numEventos;
                 document.getElementById('statActivos').textContent = numActivos;
-                
                 actualizarBadgeSolicitudes(numSolicitudes);
-                
                 if (numUsuarios > usuariosCount && usuariosCount > 0) {
                     mostrarNotificacion('Nuevo Usuario', 'Se ha registrado un nuevo usuario', 'success');
                 }
-                
                 solicitudesPendientes = numSolicitudes;
                 usuariosCount = numUsuarios;
-                
-                console.log('✅ Estadísticas:', { solicitudes: numSolicitudes, usuarios: numUsuarios, eventos: numEventos });
-                
-            } catch (error) {
-                console.error('❌ Error:', error);
-            }
+            } catch (error) { console.error('Error:', error); }
         }
-        
+
         async function checkNuevasSolicitudes() {
             try {
                 const token = obtenerToken();
-                const response = await fetch(API_BASE + '/solicitudes', {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
+                const response = await fetch(API_BASE + '/solicitudes', { headers: { 'Authorization': 'Bearer ' + token }});
                 const solicitudes = await response.json();
                 const nuevoCont = solicitudes.length;
-                
                 if (nuevoCont > solicitudesPendientes) {
-                    mostrarNotificacion('Nueva Solicitud', 'Tienes una nueva solicitud de evento pendiente', 'info');
+                    mostrarNotificacion('Nueva Solicitud', 'Tienes una nueva solicitud pendiente', 'info');
                     playNotificationSound();
                 }
-                
                 solicitudesPendientes = nuevoCont;
                 document.getElementById('statSolicitudes').textContent = nuevoCont;
                 actualizarBadgeSolicitudes(nuevoCont);
-                
-            } catch (error) {
-                console.error('Error:', error);
-            }
+            } catch (error) { console.error('Error:', error); }
         }
-        
+
         function actualizarBadgeSolicitudes(count) {
             const navSolicitudes = document.querySelector('[data-page="solicitudes"]');
             let badge = navSolicitudes.querySelector('.notification-badge');
-            
             if (count > 0) {
                 if (!badge) {
                     badge = document.createElement('span');
@@ -566,419 +99,270 @@
                     navSolicitudes.appendChild(badge);
                 }
                 badge.textContent = count;
-            } else if (badge) {
-                badge.remove();
-            }
+            } else if (badge) { badge.remove(); }
         }
-        
+
         function mostrarNotificacion(titulo, mensaje, tipo = 'info') {
             const toast = document.getElementById('notificationToast');
             const icon = toast.querySelector('.notification-icon');
             const title = toast.querySelector('.notification-title');
             const msg = toast.querySelector('.notification-message');
-            
             icon.className = 'notification-icon ' + tipo;
             icon.innerHTML = tipo === 'success' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-bell"></i>';
             title.textContent = titulo;
             msg.textContent = mensaje;
-            
+            toast.style.borderLeftColor = tipo === 'success' ? 'var(--titi-emerald)' : 'var(--titi-sky)';
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 5000);
         }
-        
+
         function playNotificationSound() {
             try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                oscillator.frequency.value = 800;
-                oscillator.type = 'sine';
-                gainNode.gain.value = 0.1;
-                oscillator.start();
-                setTimeout(() => oscillator.stop(), 200);
-            } catch (e) {
-                console.log('Sin sonido');
-            }
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = 800; osc.type = 'sine'; gain.gain.value = 0.1;
+                osc.start(); setTimeout(() => osc.stop(), 200);
+            } catch (e) {}
         }
-        
+
         function showPage(pageName) {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
             const page = document.getElementById(pageName);
             if (page) page.style.display = 'block';
-            
             const nav = document.querySelector(`[data-page="${pageName}"]`);
             if (nav) nav.classList.add('active');
-            
+            // Update top bar title
+            const titles = { dashboard:'Dashboard', solicitudes:'Solicitudes', usuarios:'Usuarios', 'todos-eventos':'Todos los Eventos', 'mis-eventos':'Mis Eventos' };
+            document.getElementById('pageTitle').textContent = titles[pageName] || 'Dashboard';
             if (pageName === 'usuarios') renderizarUsuarios();
             if (pageName === 'solicitudes') cargarSolicitudes();
             if (pageName === 'todos-eventos') cargarTodosEventos();
         }
-        
+
         function renderizarUsuarios() {
             const container = document.getElementById('usersContainer');
             const searchTerm = (document.getElementById('searchUsers')?.value || '').toLowerCase();
-            
-            const usuariosFiltrados = usuarios.filter(u => 
+            const filtrados = usuarios.filter(u =>
                 u.nombre.toLowerCase().includes(searchTerm) ||
                 u.email.toLowerCase().includes(searchTerm) ||
                 u.rol.toLowerCase().includes(searchTerm)
             );
-            
-            if (usuariosFiltrados.length === 0) {
+            if (filtrados.length === 0) {
                 container.innerHTML = '<div class="empty-state"><i class="fas fa-users"></i><h3>No hay usuarios</h3></div>';
                 return;
             }
-            
-            let html = '';
-            usuariosFiltrados.forEach(u => {
-                const iniciales = u.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-                html += `
+            container.innerHTML = filtrados.map(u => {
+                const iniciales = u.nombre.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+                return `
                     <div class="user-row">
                         <div class="user-avatar-cell">${iniciales}</div>
                         <div class="user-name">${u.nombre}</div>
                         <div class="user-email">${u.email}</div>
                         <div><span class="role-badge ${u.rol}">${u.rol}</span></div>
                         <div class="event-count">${u.eventCount || 0}</div>
-                        <div style="color:#718096; font-size:0.85rem">${u.fecha_creacion ? new Date(u.fecha_creacion).toLocaleDateString() : '-'}</div>
+                        <div style="color:var(--titi-ash); font-size:.82rem">${u.fecha_creacion ? new Date(u.fecha_creacion).toLocaleDateString() : '-'}</div>
                         <div class="user-actions">
-                            <button class="btn-icon-action edit" onclick="editarUsuario(${u.id})" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-icon-action delete" onclick="eliminarUsuario(${u.id})" title="Eliminar">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            <button class="btn-icon-action edit" onclick="editarUsuario(${u.id})" title="Editar"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon-action delete" onclick="eliminarUsuario(${u.id}, '${u.nombre.replace(/'/g,"\\'")}')" title="Eliminar"><i class="fas fa-trash"></i></button>
                         </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
+                    </div>`;
+            }).join('');
         }
-        
-        function buscarUsuarios() {
-            renderizarUsuarios();
-        }
-        
+
+        function buscarUsuarios() { renderizarUsuarios(); }
+
         async function eliminarUsuario(id, nombre) {
             if (!confirm(`¿Eliminar usuario "${nombre}"?\n\nEsta acción no se puede deshacer.`)) return;
-            
             try {
                 const token = obtenerToken();
-                const response = await fetch(API_BASE + '/usuarios/' + id, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                
+                const response = await fetch(API_BASE + '/usuarios/' + id, { method:'DELETE', headers:{'Authorization':'Bearer '+token} });
                 if (!response.ok) throw new Error('Error');
-                
                 mostrarNotificacion('Usuario Eliminado', `"${nombre}" eliminado correctamente`, 'success');
-                await cargarEstadisticas();
-                renderizarUsuarios();
-                
-            } catch (error) {
-                alert('Error al eliminar');
-            }
+                await cargarEstadisticas(); renderizarUsuarios();
+            } catch (error) { alert('Error al eliminar'); }
         }
-        
+
         let usuarioEditando = null;
-        
         async function editarUsuario(id) {
             usuarioEditando = usuarios.find(u => u.id === id);
             if (!usuarioEditando) return;
-            
             document.getElementById('editUserId').value = usuarioEditando.id;
             document.getElementById('editUserName').value = usuarioEditando.nombre;
             document.getElementById('editUserEmail').value = usuarioEditando.email;
             document.getElementById('editUserRol').value = usuarioEditando.rol;
             document.getElementById('editUserPassword').value = '';
-            
             document.getElementById('modalEditarUsuario').classList.add('active');
         }
-        
-        function cerrarModalEditar() {
-            document.getElementById('modalEditarUsuario').classList.remove('active');
-            usuarioEditando = null;
-        }
-        
+
+        function cerrarModalEditar() { document.getElementById('modalEditarUsuario').classList.remove('active'); usuarioEditando = null; }
+
         async function guardarEdicionUsuario(event) {
             event.preventDefault();
-            
             const formData = new FormData(event.target);
             const id = formData.get('id');
-            const data = {
-                nombre: formData.get('nombre'),
-                email: formData.get('email'),
-                rol: formData.get('rol')
-            };
-            
+            const data = { nombre:formData.get('nombre'), email:formData.get('email'), rol:formData.get('rol') };
             const password = formData.get('password');
             if (password) data.password = password;
-            
             try {
                 const token = obtenerToken();
                 const response = await fetch(API_BASE + '/usuarios/' + id, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
+                    method:'PUT', headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
+                    body:JSON.stringify(data)
                 });
-                
                 if (!response.ok) throw new Error('Error');
-                
                 mostrarNotificacion('Usuario Actualizado', 'Cambios guardados', 'success');
-                cerrarModalEditar();
-                await cargarEstadisticas();
-                renderizarUsuarios();
-                
-            } catch (error) {
-                alert('Error al actualizar');
-            }
+                cerrarModalEditar(); await cargarEstadisticas(); renderizarUsuarios();
+            } catch (error) { alert('Error al actualizar'); }
         }
-        
+
         async function cargarSolicitudes() {
             const container = document.getElementById('solicitudesContainer');
-            container.innerHTML = '<p style="text-align:center">Cargando...</p>';
-            
+            container.innerHTML = '<p style="text-align:center; padding:40px; color:var(--titi-ash)">Cargando solicitudes...</p>';
             try {
                 const token = obtenerToken();
-                const response = await fetch(API_BASE + '/solicitudes', {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                
+                const response = await fetch(API_BASE + '/solicitudes', { headers:{'Authorization':'Bearer '+token} });
                 const solicitudes = await response.json();
-                
                 if (solicitudes.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; padding:60px; color:#999"><i class="fas fa-inbox" style="font-size:4rem; opacity:0.3"></i><h3>No hay solicitudes pendientes</h3></div>';
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><h3>No hay solicitudes pendientes</h3><p style="color:var(--titi-ash)">Las nuevas solicitudes aparecerán aquí</p></div>';
                 } else {
-                    let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(400px,1fr)); gap:24px">';
-                    solicitudes.forEach(sol => {
-                        html += `
-                            <div style="background:white; padding:24px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); border-left:6px solid #FFA726">
-                                <div style="display:flex; justify-content:space-between; margin-bottom:16px">
-                                    <h3 style="margin:0">${sol.nombre}</h3>
-                                    <span style="background:#FFA726; color:white; padding:4px 12px; border-radius:12px; font-size:0.75rem">PENDIENTE</span>
+                    container.innerHTML = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(380px,1fr)); gap:20px">' +
+                        solicitudes.map(sol => `
+                            <div class="solicitud-card">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px">
+                                    <h3 style="margin:0; font-family:var(--font-display); font-size:1.1rem; color:var(--titi-ink)">${sol.nombre}</h3>
+                                    <span class="badge badge-pendiente">Pendiente</span>
                                 </div>
-                                <div style="margin-bottom:16px">
-                                    <p style="margin:5px 0"><i class="fas fa-user"></i> ${sol.organizador_nombre}</p>
-                                    <p style="margin:5px 0"><i class="fas fa-envelope"></i> ${sol.organizador_email}</p>
-                                    <p style="margin:5px 0"><i class="fas fa-calendar"></i> ${new Date(sol.fecha_evento).toLocaleDateString()}</p>
+                                <div style="margin-bottom:16px; display:flex; flex-direction:column; gap:6px">
+                                    <p style="margin:0; color:var(--titi-slate); font-size:.88rem"><i class="fas fa-user" style="width:18px; color:var(--titi-lavender)"></i> ${sol.organizador_nombre}</p>
+                                    <p style="margin:0; color:var(--titi-slate); font-size:.88rem"><i class="fas fa-envelope" style="width:18px; color:var(--titi-lavender)"></i> ${sol.organizador_email}</p>
+                                    <p style="margin:0; color:var(--titi-slate); font-size:.88rem"><i class="fas fa-calendar" style="width:18px; color:var(--titi-lavender)"></i> ${new Date(sol.fecha_evento).toLocaleDateString()}</p>
                                 </div>
-                                <div style="display:flex; gap:12px; margin-top:20px; padding-top:20px; border-top:2px solid #f0f0f0">
-                                    <button onclick="aprobarSolicitud(${sol.id})" style="flex:1; padding:12px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
+                                <div style="display:flex; gap:10px; padding-top:16px; border-top:1px solid var(--titi-fog)">
+                                    <button onclick="aprobarSolicitud(${sol.id})" class="titi-btn titi-btn-success" style="flex:1; padding:10px">
                                         <i class="fas fa-check"></i> Aprobar
                                     </button>
-                                    <button onclick="rechazarSolicitud(${sol.id})" style="flex:1; padding:12px; background:#f44336; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
+                                    <button onclick="rechazarSolicitud(${sol.id})" class="titi-btn titi-btn-danger" style="flex:1; padding:10px">
                                         <i class="fas fa-times"></i> Rechazar
                                     </button>
                                 </div>
                             </div>
-                        `;
-                    });
-                    html += '</div>';
-                    container.innerHTML = html;
+                        `).join('') + '</div>';
                 }
-            } catch (error) {
-                container.innerHTML = '<p style="text-align:center; color:red">Error</p>';
-            }
+            } catch (error) { container.innerHTML = '<p style="text-align:center; color:var(--titi-coral)">Error al cargar solicitudes</p>'; }
         }
-        
+
         async function aprobarSolicitud(id) {
-            if (!confirm('¿Aprobar?')) return;
+            if (!confirm('¿Aprobar esta solicitud?')) return;
             try {
                 const token = obtenerToken();
-                await fetch(API_BASE + '/solicitudes/' + id + '/aprobar', {
-                    method: 'PUT',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
+                await fetch(API_BASE + '/solicitudes/' + id + '/aprobar', { method:'PUT', headers:{'Authorization':'Bearer '+token} });
                 mostrarNotificacion('Solicitud Aprobada', 'El evento ha sido aprobado', 'success');
-                cargarSolicitudes();
-                cargarEstadisticas();
-            } catch (error) {
-                alert('Error');
-            }
+                cargarSolicitudes(); cargarEstadisticas();
+            } catch (error) { alert('Error'); }
         }
-        
+
         async function rechazarSolicitud(id) {
-            const motivo = prompt('Motivo (opcional):');
+            const motivo = prompt('Motivo del rechazo (opcional):');
             if (motivo === null) return;
             try {
                 const token = obtenerToken();
                 await fetch(API_BASE + '/solicitudes/' + id + '/rechazar', {
-                    method: 'PUT',
-                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ motivo })
+                    method:'PUT', headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
+                    body:JSON.stringify({ motivo })
                 });
                 mostrarNotificacion('Solicitud Rechazada', 'El evento ha sido rechazado', 'info');
-                cargarSolicitudes();
-                cargarEstadisticas();
-            } catch (error) {
-                alert('Error');
-            }
+                cargarSolicitudes(); cargarEstadisticas();
+            } catch (error) { alert('Error'); }
         }
-        
+
         async function cargarTodosEventos() {
             const container = document.getElementById('todosEventosContainer');
-            container.innerHTML = '<p style="text-align:center">Cargando...</p>';
-            
+            container.innerHTML = '<p style="text-align:center; padding:40px; color:var(--titi-ash)">Cargando eventos...</p>';
             try {
                 const token = obtenerToken();
-                const response = await fetch(API_BASE + '/eventos', {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                
+                const response = await fetch(API_BASE + '/eventos', { headers:{'Authorization':'Bearer '+token} });
                 const data = await response.json();
                 const eventos = data.eventos || data;
-                
                 if (eventos.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; color:#999">No hay eventos</p>';
+                    container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-alt"></i><h3>No hay eventos</h3></div>';
                 } else {
-                    let html = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(350px,1fr)); gap:24px">';
-                    eventos.forEach(e => {
-                        html += `
-                            <div style="background:white; padding:24px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer" onclick="verEventoCompleto(${e.id})">
-                                <h3 style="margin:0 0 12px 0">${e.nombre}</h3>
-                                <p style="margin:5px 0; color:#666"><i class="fas fa-user"></i> ${e.usuario_nombre || 'Usuario'}</p>
-                                <p style="margin:5px 0; color:#666"><i class="fas fa-calendar"></i> ${e.fecha_evento ? new Date(e.fecha_evento).toLocaleDateString() : 'Sin fecha'}</p>
-                                <div style="margin-top:16px; padding-top:16px; border-top:2px solid #f0f0f0">
-                                    <button style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; width:100%; font-weight:600">
+                    container.innerHTML = '<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:20px">' +
+                        eventos.map(e => `
+                            <div class="evento-card" onclick="verEventoCompleto(${e.id})">
+                                <h3 style="margin:0 0 10px; font-family:var(--font-display); font-size:1.05rem; color:var(--titi-ink)">${e.nombre}</h3>
+                                <p style="margin:4px 0; color:var(--titi-slate); font-size:.85rem"><i class="fas fa-user" style="width:18px; color:var(--titi-lavender)"></i> ${e.usuario_nombre || 'Usuario'}</p>
+                                <p style="margin:4px 0; color:var(--titi-slate); font-size:.85rem"><i class="fas fa-calendar" style="width:18px; color:var(--titi-lavender)"></i> ${e.fecha_evento ? new Date(e.fecha_evento).toLocaleDateString() : 'Sin fecha'}</p>
+                                <div style="margin-top:14px; padding-top:14px; border-top:1px solid var(--titi-fog)">
+                                    <button class="titi-btn titi-btn-primary" style="width:100%; padding:10px">
                                         <i class="fas fa-eye"></i> Ver Renderizado
                                     </button>
                                 </div>
                             </div>
-                        `;
-                    });
-                    html += '</div>';
-                    container.innerHTML = html;
+                        `).join('') + '</div>';
                 }
-            } catch (error) {
-                container.innerHTML = '<p style="text-align:center; color:red">Error</p>';
-            }
+            } catch (error) { container.innerHTML = '<p style="text-align:center; color:var(--titi-coral)">Error al cargar</p>'; }
         }
-        
-        function verEventoCompleto(eventoId) {
-            window.open('cliente.html?evento=' + eventoId, '_blank');
-        }
-        
+
+        function verEventoCompleto(eventoId) { window.open('cliente.html?evento=' + eventoId, '_blank'); }
+
         async function abrirModalCrearUsuario() {
             document.getElementById('modalCrearUsuario').classList.add('active');
             await cargarOrganizadores();
-            await cargarTodosEventosParaAdmin();
         }
-        
         function cerrarModalCrearUsuario() {
             document.getElementById('modalCrearUsuario').classList.remove('active');
             document.getElementById('formCrearUsuario').reset();
             document.getElementById('camposColaborador').style.display = 'none';
         }
-        
         async function cargarOrganizadores() {
             organizadores = usuarios.filter(u => u.rol === 'organizador');
             const select = document.getElementById('selectOrganizador');
             select.innerHTML = '<option value="">Seleccionar...</option>';
-            organizadores.forEach(org => {
-                select.innerHTML += `<option value="${org.id}">${org.nombre} (${org.email})</option>`;
-            });
+            organizadores.forEach(org => { select.innerHTML += `<option value="${org.id}">${org.nombre} (${org.email})</option>`; });
         }
-        
-        async function cargarTodosEventosParaAdmin() {
-            // Ya tenemos todosEventos cargado
-        }
-        
         function mostrarCamposSegunRol() {
             const rol = document.getElementById('selectRol').value;
             document.getElementById('camposColaborador').style.display = rol === 'colaborador' ? 'block' : 'none';
         }
-        
         function cambiarOrganizador() {
             const organizadorId = parseInt(document.getElementById('selectOrganizador').value);
             const selectEvento = document.getElementById('selectEvento');
-            
-            if (!organizadorId) {
-                selectEvento.innerHTML = '<option value="">Primero selecciona organizador</option>';
-                return;
-            }
-            
+            if (!organizadorId) { selectEvento.innerHTML = '<option value="">Primero selecciona organizador</option>'; return; }
             const eventosOrg = todosEventos.filter(e => e.organizador_id === organizadorId && e.estado === 'activo');
             selectEvento.innerHTML = '<option value="">Seleccionar evento...</option>';
-            eventosOrg.forEach(e => {
-                selectEvento.innerHTML += `<option value="${e.id}">${e.nombre}</option>`;
-            });
+            eventosOrg.forEach(e => { selectEvento.innerHTML += `<option value="${e.id}">${e.nombre}</option>`; });
         }
-        
+
         async function crearUsuario(event) {
             event.preventDefault();
-            
             const formData = new FormData(event.target);
             const rol = formData.get('rol');
-            
             try {
                 const token = obtenerToken();
                 let endpoint = '/usuarios';
-                let body = {
-                    nombre: formData.get('nombre'),
-                    email: formData.get('email'),
-                    password: formData.get('password'),
-                    rol: rol
-                };
-                
+                let body = { nombre:formData.get('nombre'), email:formData.get('email'), password:formData.get('password'), rol };
                 if (rol === 'colaborador') {
                     const eventoId = formData.get('evento_id');
-                    if (!eventoId) {
-                        alert('Debes seleccionar un evento');
-                        return;
-                    }
+                    if (!eventoId) { alert('Debes seleccionar un evento'); return; }
                     endpoint = '/eventos/' + eventoId + '/colaboradores';
-                    body = {
-                        nombre: body.nombre,
-                        email: body.email,
-                        password: body.password
-                    };
+                    body = { nombre:body.nombre, email:body.email, password:body.password };
                 }
-                
                 const response = await fetch(API_BASE + endpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
+                    method:'POST', headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
+                    body:JSON.stringify(body)
                 });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Error');
-                }
-                
+                if (!response.ok) { const err = await response.json(); throw new Error(err.error || 'Error'); }
                 mostrarNotificacion('Usuario Creado', 'El usuario ha sido creado exitosamente', 'success');
-                cerrarModalCrearUsuario();
-                await cargarEstadisticas();
-                renderizarUsuarios();
-                
-            } catch (error) {
-                alert(error.message);
-            }
+                cerrarModalCrearUsuario(); await cargarEstadisticas(); renderizarUsuarios();
+            } catch (error) { alert(error.message); }
         }
-        
-        function mostrarLogout() {
-            document.getElementById('logoutModal').classList.add('active');
-        }
-        
-        function cancelarLogout() {
-            document.getElementById('logoutModal').classList.remove('active');
-        }
-        
-        function confirmarLogout() {
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.href = 'login.html';
-        }
+
+        function mostrarLogout() { document.getElementById('logoutModal').classList.add('active'); }
+        function cancelarLogout() { document.getElementById('logoutModal').classList.remove('active'); }
+        function confirmarLogout() { localStorage.clear(); sessionStorage.clear(); window.location.href = 'login.html'; }
     </script>
 </head>
 <body>
@@ -988,10 +372,18 @@
                 <i class="fas fa-calendar-check"></i>
                 <h2>Titi Invita</h2>
             </div>
-            
+
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar" id="sidebarUserInitials">AD</div>
+                <div>
+                    <div class="sidebar-user-name" id="sidebarUserName">Admin</div>
+                    <div class="sidebar-user-role">Administrador</div>
+                </div>
+            </div>
+
             <nav class="nav-menu">
                 <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
-                    <i class="fas fa-tachometer-alt"></i>
+                    <i class="fas fa-th-large"></i>
                     <a>Dashboard</a>
                 </div>
                 <div class="nav-item" data-page="solicitudes" onclick="showPage('solicitudes')">
@@ -1011,7 +403,7 @@
                     <a>Mis Eventos</a>
                 </div>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <div class="nav-item" onclick="location.href='index.html'">
                     <i class="fas fa-home"></i>
@@ -1026,50 +418,40 @@
 
         <main class="main-content">
             <header class="top-bar">
-                <h1>Dashboard Admin</h1>
+                <h1 id="pageTitle">Dashboard</h1>
             </header>
 
             <!-- Dashboard -->
-            <div class="page" id="dashboard" style="display:block; padding:30px">
-                <h2>Panel de Control</h2>
-                
-                <div style="margin-top:30px; display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:20px">
+            <div class="page" id="dashboard" style="display:block; padding:32px">
+                <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--titi-ink); margin-bottom:4px">Panel de Control</h2>
+                <p style="color:var(--titi-ash); font-size:.88rem">Resumen general de tu plataforma</p>
+
+                <div class="stats-grid-dash">
                     <div class="stat-card purple">
                         <div class="stat-header">
                             <div class="stat-label">Solicitudes Pendientes</div>
-                            <div class="stat-icon purple">
-                                <i class="fas fa-inbox"></i>
-                            </div>
+                            <div class="stat-icon purple"><i class="fas fa-inbox"></i></div>
                         </div>
                         <div class="stat-value" id="statSolicitudes">0</div>
                     </div>
-                    
                     <div class="stat-card green">
                         <div class="stat-header">
                             <div class="stat-label">Total Usuarios</div>
-                            <div class="stat-icon green">
-                                <i class="fas fa-users"></i>
-                            </div>
+                            <div class="stat-icon green"><i class="fas fa-users"></i></div>
                         </div>
                         <div class="stat-value" id="statUsuarios">0</div>
                     </div>
-                    
                     <div class="stat-card blue">
                         <div class="stat-header">
                             <div class="stat-label">Total Eventos</div>
-                            <div class="stat-icon blue">
-                                <i class="fas fa-calendar-alt"></i>
-                            </div>
+                            <div class="stat-icon blue"><i class="fas fa-calendar-alt"></i></div>
                         </div>
                         <div class="stat-value" id="statEventos">0</div>
                     </div>
-                    
                     <div class="stat-card orange">
                         <div class="stat-header">
                             <div class="stat-label">Eventos Activos</div>
-                            <div class="stat-icon orange">
-                                <i class="fas fa-calendar-check"></i>
-                            </div>
+                            <div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div>
                         </div>
                         <div class="stat-value" id="statActivos">0</div>
                     </div>
@@ -1077,10 +459,13 @@
             </div>
 
             <!-- Solicitudes -->
-            <div class="page" id="solicitudes" style="display:none; padding:30px">
-                <div style="display:flex; justify-content:space-between; margin-bottom:24px">
-                    <h2>Solicitudes de Eventos</h2>
-                    <button onclick="cargarSolicitudes()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
+            <div class="page" id="solicitudes" style="display:none; padding:32px">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px">
+                    <div>
+                        <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--titi-ink); margin-bottom:4px">Solicitudes de Eventos</h2>
+                        <p style="color:var(--titi-ash); font-size:.85rem">Aprueba o rechaza solicitudes de organizadores</p>
+                    </div>
+                    <button onclick="cargarSolicitudes()" class="titi-btn titi-btn-ghost">
                         <i class="fas fa-sync-alt"></i> Actualizar
                     </button>
                 </div>
@@ -1088,7 +473,7 @@
             </div>
 
             <!-- Usuarios -->
-            <div class="page" id="usuarios" style="display:none; padding:30px">
+            <div class="page" id="usuarios" style="display:none; padding:32px">
                 <div class="users-table">
                     <div class="table-header">
                         <h2><i class="fas fa-users"></i> Gestión de Usuarios</h2>
@@ -1097,7 +482,7 @@
                                 <i class="fas fa-search"></i>
                                 <input type="text" id="searchUsers" placeholder="Buscar usuarios..." oninput="buscarUsuarios()">
                             </div>
-                            <button onclick="abrirModalCrearUsuario()" style="padding:10px 20px; background:rgba(255,255,255,0.2); color:white; border:2px solid rgba(255,255,255,0.3); border-radius:8px; cursor:pointer; font-weight:600; transition:all 0.3s">
+                            <button onclick="abrirModalCrearUsuario()" style="padding:10px 18px; background:rgba(255,255,255,.15); color:#fff; border:1.5px solid rgba(255,255,255,.3); border-radius:var(--r-md); cursor:pointer; font-weight:600; font-size:.85rem; transition:all var(--t-fast)">
                                 <i class="fas fa-plus"></i> Crear Usuario
                             </button>
                         </div>
@@ -1107,10 +492,13 @@
             </div>
 
             <!-- Todos los Eventos -->
-            <div class="page" id="todos-eventos" style="display:none; padding:30px">
-                <div style="display:flex; justify-content:space-between; margin-bottom:24px">
-                    <h2>Todos los Eventos</h2>
-                    <button onclick="cargarTodosEventos()" style="padding:10px 20px; background:#764ba2; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600">
+            <div class="page" id="todos-eventos" style="display:none; padding:32px">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px">
+                    <div>
+                        <h2 style="font-family:var(--font-display); font-size:1.3rem; color:var(--titi-ink); margin-bottom:4px">Todos los Eventos</h2>
+                        <p style="color:var(--titi-ash); font-size:.85rem">Vista general de eventos en la plataforma</p>
+                    </div>
+                    <button onclick="cargarTodosEventos()" class="titi-btn titi-btn-ghost">
                         <i class="fas fa-sync-alt"></i> Actualizar
                     </button>
                 </div>
@@ -1129,7 +517,7 @@
     <!-- Modal Crear Usuario -->
     <div id="modalCrearUsuario" class="modal">
         <div class="modal-content">
-            <h2><i class="fas fa-user-plus"></i> Crear Nuevo Usuario</h2>
+            <h2><i class="fas fa-user-plus" style="color:var(--titi-lavender)"></i> Crear Nuevo Usuario</h2>
             <form id="formCrearUsuario" onsubmit="crearUsuario(event)">
                 <div class="form-group">
                     <label>Nombre</label>
@@ -1153,9 +541,8 @@
                         <option value="colaborador">Colaborador</option>
                     </select>
                 </div>
-                
                 <div id="camposColaborador" class="campos-extra" style="display:none">
-                    <h4><i class="fas fa-link"></i> Asignar a Evento</h4>
+                    <h4 style="font-size:.95rem; margin-bottom:16px; color:var(--titi-plum)"><i class="fas fa-link"></i> Asignar a Evento</h4>
                     <div class="form-group">
                         <label>Organizador</label>
                         <select name="organizador_id" id="selectOrganizador" onchange="cambiarOrganizador()">
@@ -1169,13 +556,8 @@
                         </select>
                     </div>
                 </div>
-                
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-save"></i> Crear Usuario
-                </button>
-                <button type="button" class="btn-secondary" onclick="cerrarModalCrearUsuario()">
-                    Cancelar
-                </button>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Crear Usuario</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalCrearUsuario()">Cancelar</button>
             </form>
         </div>
     </div>
@@ -1183,7 +565,7 @@
     <!-- Modal Editar Usuario -->
     <div id="modalEditarUsuario" class="modal">
         <div class="modal-content">
-            <h2><i class="fas fa-edit"></i> Editar Usuario</h2>
+            <h2><i class="fas fa-edit" style="color:var(--titi-lavender)"></i> Editar Usuario</h2>
             <form onsubmit="guardarEdicionUsuario(event)">
                 <input type="hidden" id="editUserId" name="id">
                 <div class="form-group">
@@ -1207,40 +589,30 @@
                     <label>Nueva Contraseña (opcional)</label>
                     <input type="password" id="editUserPassword" name="password" placeholder="Dejar vacío para no cambiar">
                 </div>
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-save"></i> Guardar Cambios
-                </button>
-                <button type="button" class="btn-secondary" onclick="cerrarModalEditar()">
-                    Cancelar
-                </button>
+                <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
             </form>
         </div>
     </div>
 
     <!-- Modal Logout -->
     <div id="logoutModal" class="modal">
-        <div style="background:white; padding:40px; border-radius:20px; max-width:400px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:slideInModal 0.3s ease">
-            <div style="width:80px; height:80px; margin:0 auto 20px; background:linear-gradient(135deg, #667eea, #764ba2); border-radius:50%; display:flex; align-items:center; justify-content:center">
-                <i class="fas fa-sign-out-alt" style="font-size:2.5rem; color:white"></i>
+        <div class="logout-modal-inner">
+            <div class="logout-icon">
+                <i class="fas fa-sign-out-alt"></i>
             </div>
-            <h2 style="margin:0 0 10px 0; font-size:1.8rem; color:#2d3748">¿Cerrar Sesión?</h2>
-            <p style="color:#718096; margin:0 0 30px 0">Tu sesión se cerrará y tendrás que volver a iniciar sesión</p>
+            <h2 style="margin:0 0 8px; font-family:var(--font-display); font-size:1.5rem; color:var(--titi-ink)">¿Cerrar Sesión?</h2>
+            <p style="color:var(--titi-slate); margin:0 0 28px; font-size:.92rem">Tu sesión se cerrará y tendrás que volver a iniciar sesión</p>
             <div style="display:flex; gap:12px">
-                <button onclick="cancelarLogout()" style="flex:1; padding:14px; background:#e2e8f0; color:#2d3748; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem">
-                    Cancelar
-                </button>
-                <button onclick="confirmarLogout()" style="flex:1; padding:14px; background:linear-gradient(135deg, #f44336, #d32f2f); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:1rem">
-                    Salir
-                </button>
+                <button onclick="cancelarLogout()" class="titi-btn titi-btn-ghost" style="flex:1; padding:13px">Cancelar</button>
+                <button onclick="confirmarLogout()" class="titi-btn titi-btn-danger" style="flex:1; padding:13px">Salir</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast de Notificaciones -->
+    <!-- Notification Toast -->
     <div id="notificationToast" class="notification-toast">
-        <div class="notification-icon info">
-            <i class="fas fa-bell"></i>
-        </div>
+        <div class="notification-icon info"><i class="fas fa-bell"></i></div>
         <div class="notification-content">
             <div class="notification-title">Notificación</div>
             <div class="notification-message">Mensaje</div>
