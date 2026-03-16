@@ -1404,7 +1404,7 @@ function mostrarModalCerrarSesion() {
     modal.innerHTML = `
         <div class="modal-logout-box">
             <div class="logout-icon">
-                <i class="fas fa-sign-out-alt"></i>
+                🚪
             </div>
             <h3>¿Cerrar Sesión?</h3>
             <p>¿Estás seguro de que deseas cerrar tu sesión?</p>
@@ -1588,7 +1588,7 @@ function mostrarToastBonito(mensaje, tipo = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast-custom ${tipo}`;
     toast.innerHTML = `
-        <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        <span>${tipo === 'success' ? '✅' : '⚠️'}</span>
         <span>${mensaje}</span>
     `;
     
