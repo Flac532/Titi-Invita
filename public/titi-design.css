@@ -1,0 +1,329 @@
+/* ============================================================
+   TITI INVITA — Design System
+   Shared variables, typography, and base components
+   ============================================================ */
+ 
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@500;600;700&display=swap');
+ 
+:root {
+    /* ── Brand palette ── */
+    --titi-plum:        #5B2D8E;
+    --titi-plum-deep:   #3E1D63;
+    --titi-lavender:    #8B6BB5;
+    --titi-lilac:       #C4A8E0;
+    --titi-periwinkle:  #667eea;
+    --titi-ice:         #EDE7F6;
+    --titi-cream:       #FAF8FC;
+ 
+    /* Accents */
+    --titi-gold:        #E8A838;
+    --titi-gold-light:  #FFF3DB;
+    --titi-emerald:     #2CB67D;
+    --titi-emerald-bg:  #E6F9F0;
+    --titi-coral:       #E5534B;
+    --titi-coral-bg:    #FFF0EF;
+    --titi-sky:         #3B82F6;
+    --titi-sky-bg:      #EBF3FF;
+ 
+    /* Neutrals */
+    --titi-ink:         #1A1035;
+    --titi-charcoal:    #3D3558;
+    --titi-slate:       #6B6580;
+    --titi-ash:         #9A94A8;
+    --titi-mist:        #D4D0DC;
+    --titi-fog:         #EEEAF2;
+    --titi-snow:        #F9F8FB;
+    --titi-white:       #FFFFFF;
+ 
+    /* Shadows */
+    --shadow-xs:   0 1px 2px rgba(27,16,55,.04);
+    --shadow-sm:   0 2px 6px rgba(27,16,55,.06);
+    --shadow-md:   0 4px 12px rgba(27,16,55,.08);
+    --shadow-lg:   0 8px 24px rgba(27,16,55,.10);
+    --shadow-xl:   0 16px 48px rgba(27,16,55,.14);
+    --shadow-glow: 0 0 0 4px rgba(91,45,142,.12);
+ 
+    /* Radii */
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 14px;
+    --r-xl: 20px;
+    --r-pill: 50px;
+ 
+    /* Transitions */
+    --ease-out: cubic-bezier(.22,1,.36,1);
+    --t-fast: 150ms var(--ease-out);
+    --t-mid:  250ms var(--ease-out);
+    --t-slow: 400ms var(--ease-out);
+ 
+    /* Typography */
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body:    'DM Sans', system-ui, -apple-system, sans-serif;
+}
+ 
+/* ── Reset ── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+ 
+html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+ 
+body {
+    font-family: var(--font-body);
+    color: var(--titi-charcoal);
+    background: var(--titi-snow);
+    line-height: 1.55;
+}
+ 
+a { text-decoration: none; color: inherit; }
+img { max-width: 100%; display: block; }
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+ 
+/* ── Utility classes ── */
+.sr-only {
+    position: absolute; width:1px; height:1px;
+    padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0,0,0,0); border:0;
+}
+ 
+/* ── Gradient helpers ── */
+.gradient-brand {
+    background: linear-gradient(135deg, var(--titi-periwinkle) 0%, var(--titi-plum) 50%, var(--titi-plum-deep) 100%);
+}
+ 
+.gradient-text {
+    background: linear-gradient(135deg, var(--titi-periwinkle), var(--titi-plum));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+ 
+/* ── Shared button base ── */
+.titi-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border: none;
+    border-radius: var(--r-md);
+    font-size: .9rem;
+    font-weight: 600;
+    letter-spacing: .01em;
+    transition: all var(--t-mid);
+    white-space: nowrap;
+}
+ 
+.titi-btn-primary {
+    background: linear-gradient(135deg, var(--titi-periwinkle), var(--titi-plum));
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(91,45,142,.25);
+}
+.titi-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(91,45,142,.35);
+}
+ 
+.titi-btn-ghost {
+    background: transparent;
+    color: var(--titi-plum);
+    border: 1.5px solid var(--titi-mist);
+}
+.titi-btn-ghost:hover {
+    background: var(--titi-ice);
+    border-color: var(--titi-lavender);
+}
+ 
+.titi-btn-danger {
+    background: linear-gradient(135deg, var(--titi-coral), #C23B33);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(229,83,75,.25);
+}
+.titi-btn-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(229,83,75,.35);
+}
+ 
+.titi-btn-success {
+    background: linear-gradient(135deg, var(--titi-emerald), #1F9D6A);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(44,182,125,.25);
+}
+ 
+.titi-btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+ 
+/* ── Card base ── */
+.titi-card {
+    background: var(--titi-white);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--titi-fog);
+    transition: box-shadow var(--t-mid), transform var(--t-mid);
+}
+.titi-card:hover {
+    box-shadow: var(--shadow-md);
+}
+ 
+/* ── Input base ── */
+.titi-input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--titi-mist);
+    border-radius: var(--r-md);
+    font-size: .92rem;
+    color: var(--titi-charcoal);
+    background: var(--titi-white);
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.titi-input::placeholder { color: var(--titi-ash); }
+.titi-input:focus {
+    outline: none;
+    border-color: var(--titi-lavender);
+    box-shadow: var(--shadow-glow);
+}
+ 
+select.titi-input { cursor: pointer; }
+ 
+/* ── Badge base ── */
+.titi-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: var(--r-pill);
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.titi-badge-admin       { background: var(--titi-emerald-bg); color: var(--titi-emerald); }
+.titi-badge-organizador { background: var(--titi-gold-light); color: #B8860B; }
+.titi-badge-cliente     { background: var(--titi-sky-bg);     color: var(--titi-sky); }
+.titi-badge-colaborador { background: var(--titi-ice);        color: var(--titi-plum); }
+.titi-badge-pendiente   { background: #FFF3E0; color: #E65100; }
+.titi-badge-activo      { background: var(--titi-emerald-bg); color: var(--titi-emerald); }
+.titi-badge-finalizado  { background: var(--titi-fog); color: var(--titi-ash); }
+ 
+/* ── Toast ── */
+.titi-toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    padding: 14px 22px;
+    border-radius: var(--r-md);
+    color: #fff;
+    font-weight: 500;
+    font-size: .9rem;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity .3s, transform .3s;
+    z-index: 10000;
+    max-width: 380px;
+    box-shadow: var(--shadow-lg);
+    pointer-events: none;
+}
+.titi-toast.show { opacity:1; transform:translateY(0); pointer-events:auto; }
+.titi-toast.success { background: var(--titi-emerald); }
+.titi-toast.error   { background: var(--titi-coral); }
+.titi-toast.warning { background: var(--titi-gold); }
+.titi-toast.info    { background: var(--titi-sky); }
+ 
+/* ── Modal base ── */
+.titi-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,16,53,.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 9000;
+    align-items: center;
+    justify-content: center;
+}
+.titi-modal-overlay.active { display: flex; }
+ 
+.titi-modal {
+    background: var(--titi-white);
+    border-radius: var(--r-xl);
+    padding: 0;
+    width: 92%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
+    animation: titi-modal-in .3s var(--ease-out);
+}
+ 
+@keyframes titi-modal-in {
+    from { opacity:0; transform:translateY(24px) scale(.97); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+}
+ 
+.titi-modal-header {
+    padding: 24px 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+ 
+.titi-modal-header h3 {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    color: var(--titi-ink);
+}
+ 
+.titi-modal-close {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: var(--titi-fog);
+    color: var(--titi-slate);
+    font-size: 1.2rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all var(--t-fast);
+}
+.titi-modal-close:hover { background: var(--titi-coral-bg); color: var(--titi-coral); }
+ 
+.titi-modal-body { padding: 20px 28px; }
+ 
+.titi-modal-footer {
+    padding: 16px 28px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+ 
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: var(--titi-mist);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--titi-ash); }
+ 
+/* ── Animations ── */
+@keyframes fadeInUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+ 
+@keyframes fadeIn {
+    from { opacity:0; }
+    to   { opacity:1; }
+}
+ 
+@keyframes slideInRight {
+    from { opacity:0; transform:translateX(24px); }
+    to   { opacity:1; transform:translateX(0); }
+}
+ 
+.anim-in { animation: fadeInUp .5s var(--ease-out) both; }
+.anim-in-delay-1 { animation-delay: .08s; }
+.anim-in-delay-2 { animation-delay: .16s; }
+.anim-in-delay-3 { animation-delay: .24s; }
+.anim-in-delay-4 { animation-delay: .32s; }
