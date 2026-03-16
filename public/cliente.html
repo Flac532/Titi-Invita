@@ -6,7 +6,7 @@
     <title>Mis Eventos - Titi Invita</title>
     <link rel="stylesheet" href="titi-design.css">
     <link rel="stylesheet" href="cliente.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- FontAwesome removed - using emoji -->
     <style>
         .role-badge {
             display:inline-block; padding:2px 8px; border-radius:var(--r-pill,20px);
@@ -29,7 +29,7 @@
         <aside class="event-panel">
             <div class="panel-section">
                 <div class="logo">
-                    <i class="fas fa-chair"></i>
+                    🪑
                     <h1>Titi Invita</h1>
                 </div>
 
@@ -45,17 +45,17 @@
                 </div>
 
                 <div class="event-limit-info" id="eventLimitInfo">
-                    <i class="fas fa-info-circle"></i>
+                    ℹ️
                     <span id="limitText"></span>
                 </div>
 
                 <div class="event-selector-container">
-                    <h3><i class="fas fa-calendar-alt"></i> Seleccionar Evento</h3>
+                    <h3> Seleccionar Evento</h3>
                     <div class="event-selector">
                         <select id="eventSelector"><option value="">Seleccionar Evento...</option></select>
                         <div class="event-selector-buttons">
-                            <button class="btn-icon" id="newEventBtn" title="Nuevo Evento"><i class="fas fa-plus"></i></button>
-                            <button class="btn-icon" id="refreshEventsBtn" title="Actualizar"><i class="fas fa-sync-alt"></i></button>
+                            <button class="btn-icon" id="newEventBtn" title="Nuevo Evento">+</button>
+                            <button class="btn-icon" id="refreshEventsBtn" title="Actualizar">↻</button>
                         </div>
                     </div>
                     <div class="current-event-info">
@@ -67,15 +67,15 @@
                 </div>
 
                 <div class="header-actions">
-                    <button class="btn-icon" id="shareBtn" title="Compartir Vista"><i class="fas fa-share-alt"></i></button>
-                    <button class="btn-icon" id="helpBtn" title="Ayuda"><i class="fas fa-question-circle"></i></button>
-                    <button class="btn-icon" id="logoutBtn" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i></button>
-                    <button class="btn-icon" id="fullscreenBtn" title="Pantalla Completa"><i class="fas fa-expand"></i></button>
+                    <button class="btn-icon" id="shareBtn" title="Compartir Vista">↗</button>
+                    <button class="btn-icon" id="helpBtn" title="Ayuda">?</button>
+                    <button class="btn-icon" id="logoutBtn" title="Cerrar Sesión">⏻</button>
+                    <button class="btn-icon" id="fullscreenBtn" title="Pantalla Completa">⛶</button>
                 </div>
             </div>
 
             <div class="panel-section quick-stats">
-                <h3><i class="fas fa-tachometer-alt"></i> Vista Rápida</h3>
+                <h3> Vista Rápida</h3>
                 <div class="stats-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="statTotalMesas">8</div>
@@ -103,7 +103,7 @@
             </div>
 
             <div class="panel-section event-stats">
-                <h3><i class="fas fa-chart-bar"></i> Estadísticas de Eventos</h3>
+                <h3> Estadísticas de Eventos</h3>
                 <div class="event-counts">
                     <div class="count-item">
                         <span class="count-value" id="totalEventsCount">1</span>
@@ -125,14 +125,14 @@
         <section class="mesas-area">
             <div class="mesas-header">
                 <div class="search-box">
-                    <i class="fas fa-search"></i>
+                    <span class="search-emoji">🔍</span>
                     <input type="text" id="searchGuests" placeholder="Buscar invitado en mesas...">
                 </div>
                 <div class="mesas-controls">
-                    <button class="btn-icon" id="zoomInBtn" title="Acercar"><i class="fas fa-search-plus"></i></button>
-                    <button class="btn-icon" id="zoomOutBtn" title="Alejar"><i class="fas fa-search-minus"></i></button>
-                    <button class="btn-icon" id="resetViewBtn" title="Restablecer Vista"><i class="fas fa-expand-arrows-alt"></i></button>
-                    <button class="btn-icon" id="changeLayoutBtn" title="Cambiar Disposición" onclick="mostrarOpcionesDisposicion()"><i class="fas fa-th"></i></button>
+                    <button class="btn-icon" id="zoomInBtn" title="Acercar">+</button>
+                    <button class="btn-icon" id="zoomOutBtn" title="Alejar">−</button>
+                    <button class="btn-icon" id="resetViewBtn" title="Restablecer Vista">↻</button>
+                    <button class="btn-icon" id="changeLayoutBtn" title="Cambiar Disposición" onclick="mostrarOpcionesDisposicion()">☰</button>
                 </div>
             </div>
 
@@ -158,7 +158,7 @@
         <aside class="right-panel">
             <div class="config-section">
                 <div class="panel-section">
-                    <h3><i class="fas fa-sliders-h"></i> Configuración del Evento</h3>
+                    <h3> Configuración del Evento</h3>
                     <div class="form-group"><label for="eventName">Nombre del Evento *</label><input type="text" id="eventName" placeholder="Ej: Boda de Ana y Carlos" value="Boda de Ana y Carlos"></div>
                     <div class="form-row">
                         <div class="form-group"><label for="eventDate">Fecha</label><input type="date" id="eventDate" value="2024-06-15"></div>
@@ -182,19 +182,19 @@
                         <select id="formaMesa"><option value="rectangular">Rectangular</option><option value="circular">Circular</option><option value="cuadrada">Cuadrada</option></select>
                     </div>
                     <div class="button-group">
-                        <button class="btn-primary" id="btnCrearMesas"><i class="fas fa-sync"></i> Actualizar Mesas</button>
-                        <button class="btn-secondary" id="btnGuardarEvento"><i class="fas fa-save"></i> Guardar Cambios</button>
-                        <button class="btn-secondary" id="btnFinalizarEvento" title="Finalizar Evento"><i class="fas fa-flag-checkered"></i> Finalizar</button>
+                        <button class="btn-primary" id="btnCrearMesas">↻ Actualizar Mesas</button>
+                        <button class="btn-secondary" id="btnGuardarEvento">💾 Guardar Cambios</button>
+                        <button class="btn-secondary" id="btnFinalizarEvento" title="Finalizar Evento">⚠️ Finalizar</button>
                     </div>
                 </div>
             </div>
 
             <div class="guests-section">
                 <div class="panel-section">
-                    <h3><i class="fas fa-users"></i> Lista de Invitados</h3>
+                    <h3> Lista de Invitados</h3>
                     <div class="guest-search">
                         <input type="text" id="guestSearch" placeholder="Buscar invitado...">
-                        <button class="btn-icon" id="addGuestBtn" title="Agregar Invitado"><i class="fas fa-user-plus"></i></button>
+                        <button class="btn-icon" id="addGuestBtn" title="Agregar Invitado">＋</button>
                     </div>
                     <div class="guest-filters">
                         <select id="guestFilter">
@@ -206,15 +206,15 @@
                     </div>
                     <div class="guests-list" id="guestsList"></div>
                     <div class="guest-actions">
-                        <button class="btn-secondary btn-small" id="importGuestsBtn"><i class="fas fa-file-import"></i> Importar CSV</button>
-                        <button class="btn-secondary btn-small" id="exportGuestsBtn"><i class="fas fa-file-export"></i> Exportar Lista</button>
-                        <button class="btn-secondary btn-small" id="sendInvitationsBtn"><i class="fas fa-envelope"></i> Enviar Invitaciones</button>
+                        <button class="btn-secondary btn-small" id="importGuestsBtn">↓ Importar CSV</button>
+                        <button class="btn-secondary btn-small" id="exportGuestsBtn">↑ Exportar Lista</button>
+                        <button class="btn-secondary btn-small" id="sendInvitationsBtn">✉ Enviar Invitaciones</button>
                     </div>
                 </div>
                 <div class="panel-section guest-details-section">
-                    <h3><i class="fas fa-info-circle"></i> Información de Invitado</h3>
+                    <h3>ℹ️ Información de Invitado</h3>
                     <div class="guest-details" id="guestDetails">
-                        <div class="empty-state"><i class="fas fa-user"></i><p>Selecciona un invitado para ver sus detalles</p></div>
+                        <div class="empty-state">👤<p>Selecciona un invitado para ver sus detalles</p></div>
                     </div>
                 </div>
             </div>
@@ -225,7 +225,7 @@
     <div class="modal" id="newEventModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-calendar-plus"></i> Nuevo Evento</h3>
+                <h3>📅 Nuevo Evento</h3>
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
@@ -241,7 +241,7 @@
                         <select id="newEventType"><option value="boda">Boda</option><option value="conferencia">Conferencia</option><option value="fiesta">Fiesta</option><option value="corporativo">Evento Corporativo</option><option value="otro">Otro</option></select>
                     </div>
                     <div class="form-group"><label>Configuración Inicial</label><div class="checkbox-group"><input type="checkbox" id="useTemplate" checked><label for="useTemplate">Usar plantilla predeterminada</label></div></div>
-                    <div id="eventLimitWarning" style="display:none; color:var(--titi-coral,#f44336); font-size:.88rem; margin-top:10px"><i class="fas fa-exclamation-triangle"></i> <span>Como cliente solo puedes tener 1 evento activo.</span></div>
+                    <div id="eventLimitWarning" style="display:none; color:var(--titi-coral,#f44336); font-size:.88rem; margin-top:10px">⚠️ <span>Como cliente solo puedes tener 1 evento activo.</span></div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -254,7 +254,7 @@
     <!-- Modal Disposición -->
     <div class="modal" id="layoutModal">
         <div class="modal-content">
-            <div class="modal-header"><h3><i class="fas fa-th"></i> Configurar Disposición</h3><button class="modal-close">&times;</button></div>
+            <div class="modal-header"><h3>☰ Configurar Disposición</h3><button class="modal-close">&times;</button></div>
             <div class="modal-body">
                 <div class="layout-options">
                     <div class="layout-presets">
