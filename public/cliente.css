@@ -1,35 +1,34 @@
-/* cliente.css - Layout de 3 columnas */
+/* cliente.css - Layout de 3 columnas — Titi Invita */
 
-/* ===== FORZAR MODO CLARO SIEMPRE ===== */
 :root {
-    --primary-color: #764ba2;
-    --primary-dark: #5a3780;
-    --primary-light: #9a7bb8;
-    --secondary-color: #f5a623;
-    --bg-light: #f8f9fa;
-    --bg-white: #ffffff;
-    --text-dark: #333333;
-    --text-light: #666666;
-    --text-lighter: #888888;
-    --border-color: #e0e0e0;
+    --primary-color: var(--titi-plum, #5B2D8E);
+    --primary-dark: var(--titi-plum-deep, #3E1D63);
+    --primary-light: var(--titi-lavender, #8B6BB5);
+    --secondary-color: var(--titi-gold, #E8A838);
+    --bg-light: var(--titi-snow, #F9F8FB);
+    --bg-white: var(--titi-white, #FFFFFF);
+    --text-dark: var(--titi-charcoal, #3D3558);
+    --text-light: var(--titi-slate, #6B6580);
+    --text-lighter: var(--titi-ash, #9A94A8);
+    --border-color: var(--titi-fog, #EEEAF2);
     
-    /* Colores estados sillas */
+    /* Colores estados sillas — NO MODIFICAR */
     --color-sin-asignar: #9E9E9E;
     --color-asignado: #f44336;
     --color-confirmado: #4CAF50;
     --color-mesa: #8B4513;
     --color-silla: #9E9E9E;
     
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
-    --radius: 10px;
-    --radius-sm: 5px;
-    --transition: all 0.3s ease;
+    --shadow: var(--shadow-sm, 0 2px 6px rgba(27,16,55,.06));
+    --shadow-lg: var(--shadow-lg, 0 8px 24px rgba(27,16,55,.10));
+    --radius: var(--r-md, 10px);
+    --radius-sm: var(--r-sm, 6px);
+    --transition: all 0.25s cubic-bezier(.22,1,.36,1);
 }
 
 body {
-    background: #f5f7fa !important;
-    color: #333333 !important;
+    background: var(--titi-snow, #F9F8FB) !important;
+    color: var(--titi-charcoal, #3D3558) !important;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
@@ -79,8 +78,9 @@ body {
 }
 
 .logo h1 {
-    font-size: 1.6rem;
-    background: linear-gradient(to right, var(--primary-color), var(--primary-light));
+    font-size: 1.5rem;
+    font-family: var(--font-display, 'Playfair Display', serif);
+    background: linear-gradient(to right, var(--titi-plum, #5B2D8E), var(--titi-lavender, #8B6BB5));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
