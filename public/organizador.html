@@ -56,6 +56,7 @@
                 eventos = Array.isArray(data) ? data : [];
                 renderizarEventos();
                 actualizarEstadisticas();
+                renderDashboardEventos();
             } catch (error) { console.error('Error:', error); alert('Error al cargar eventos: ' + error.message); }
         }
 
@@ -134,7 +135,7 @@
                     body:JSON.stringify(data)
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(err.error || 'Error'); }
-                alert('Solicitud enviada exitosamente. Espera la aprobación del administrador.');
+                alert('Solicitud enviada exitosamente.\n\nTu solicitud será revisada por el administrador. En un momento te aprobaremos el evento nuevo.');
                 cerrarModalSolicitud(); cargarMisEventos();
             } catch (error) { alert(error.message); }
         }
@@ -203,6 +204,69 @@
                 if (!response.ok) throw new Error('Error');
                 alert('Colaborador eliminado'); cargarColaboradores(eventoSeleccionado);
             } catch (error) { alert('Error al eliminar'); }
+        }
+
+        async function renderDashboardEventos() {
+            const container = document.getElementById('dashboardEventosColabs');
+            const activos = eventos.filter(e => e.estado === 'activo');
+            if (activos.length === 0) {
+                container.innerHTML = '<p style="color:var(--titi-ash); font-size:.88rem; padding:20px 0">No tienes eventos activos aún. Solicita uno nuevo.</p>';
+                return;
+            }
+            let html = '';
+            for (const evento of activos) {
+                let colabsHtml = '<p style="color:var(--titi-ash); font-size:.82rem">Cargando colaboradores...</p>';
+                try {
+                    const token = obtenerToken();
+                    const res = await fetch(API_BASE + '/eventos/' + evento.id + '/colaboradores', {
+                        headers:{'Authorization':'Bearer '+token}
+                    });
+                    if (res.ok) {
+                        const colabs = await res.json();
+                        if (colabs.length === 0) {
+                            colabsHtml = '<p style="color:var(--titi-ash); font-size:.82rem">Sin colaboradores asignados</p>';
+                        } else {
+                            colabsHtml = colabs.map(c => `
+                                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--titi-snow); border-radius:8px; border:1px solid var(--titi-fog); margin-bottom:6px">
+                                    <div>
+                                        <strong style="font-size:.85rem; color:var(--titi-ink)">${c.nombre}</strong>
+                                        <div style="font-size:.75rem; color:var(--titi-ash)">${c.email}</div>
+                                    </div>
+                                    <button onclick="eliminarColaborador(${c.id})" style="padding:4px 10px; background:rgba(229,83,75,.1); color:#E5534B; border:none; border-radius:6px; cursor:pointer; font-size:.78rem; font-weight:600">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            `).join('');
+                        }
+                    }
+                } catch(e) { colabsHtml = '<p style="color:var(--titi-ash); font-size:.82rem">Error al cargar</p>'; }
+
+                html += `
+                    <div class="titi-card" style="padding:0; overflow:hidden">
+                        <div style="padding:20px 24px; border-bottom:1px solid var(--titi-fog)">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+                                <h4 style="margin:0; font-family:var(--font-display); font-size:1rem; color:var(--titi-ink)">${evento.nombre}</h4>
+                                <span class="titi-badge titi-badge-activo">Activo</span>
+                            </div>
+                            <p style="margin:0; color:var(--titi-slate); font-size:.82rem"><i class="fas fa-calendar" style="width:16px; color:var(--titi-lavender)"></i> ${evento.fecha_evento ? new Date(evento.fecha_evento).toLocaleDateString() : 'Sin fecha'}</p>
+                        </div>
+                        <div style="padding:16px 24px">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px">
+                                <span style="font-size:.82rem; font-weight:600; color:var(--titi-charcoal)"><i class="fas fa-users" style="color:var(--titi-lavender); margin-right:6px"></i>Colaboradores</span>
+                                <button onclick="gestionarColaboradores(${evento.id}, '${evento.nombre.replace(/'/g,"\\'")}')" style="padding:4px 12px; background:var(--titi-ice); color:var(--titi-plum); border:none; border-radius:6px; cursor:pointer; font-size:.78rem; font-weight:600">
+                                    <i class="fas fa-plus"></i> Agregar
+                                </button>
+                            </div>
+                            ${colabsHtml}
+                        </div>
+                        <div style="padding:12px 24px 16px; border-top:1px solid var(--titi-fog); display:flex; gap:8px">
+                            <button onclick="verEventoCompleto(${evento.id})" class="titi-btn titi-btn-primary" style="flex:1; padding:9px; font-size:.85rem">
+                                <i class="fas fa-eye"></i> Ver Renderizado
+                            </button>
+                        </div>
+                    </div>`;
+            }
+            container.innerHTML = html;
         }
 
         function verEventoCompleto(eventoId) { window.open('cliente.html?evento=' + eventoId, '_blank'); }
@@ -283,10 +347,18 @@
                     </div>
                 </div>
 
-                <div style="margin-top:32px">
+                <div style="margin-top:32px; display:flex; gap:12px; flex-wrap:wrap">
                     <button onclick="abrirModalSolicitud()" class="titi-btn titi-btn-primary" style="padding:14px 28px; font-size:1rem">
                         <i class="fas fa-plus"></i> Solicitar Nuevo Evento
                     </button>
+                </div>
+
+                <!-- Sección de eventos activos con colaboradores -->
+                <div style="margin-top:40px">
+                    <h3 style="font-family:var(--font-display); font-size:1.15rem; color:var(--titi-ink); margin-bottom:16px"><i class="fas fa-users" style="color:var(--titi-lavender); margin-right:8px"></i>Mis Eventos y Colaboradores</h3>
+                    <div id="dashboardEventosColabs" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:16px">
+                        <p style="color:var(--titi-ash); font-size:.88rem">Cargando eventos...</p>
+                    </div>
                 </div>
             </div>
 
