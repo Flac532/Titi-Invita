@@ -3014,39 +3014,11 @@ h3,
 }
 
 
-/* ===== ESTILOS PARA ICONOS SIMPLES ===== */
+/* ===== TITI INVITA DESIGN OVERRIDES ===== */
 
-/* Ocultar TODOS los iconos de FontAwesome */
+/* FontAwesome icons should be VISIBLE */
 i.fas, i.fa, i.far, i.fab {
-    display: none !important;
-}
-
-/* Asegurar fuente para símbolos */
-.btn-icon,
-.button-group button,
-#addGuestBtn,
-#logoutBtn,
-h3,
-.logo h1 {
-    font-family: Arial, Helvetica, sans-serif !important;
-}
-
-/* Botones con símbolos más grandes */
-.btn-icon {
-    font-size: 1.3rem !important;
-    font-weight: bold !important;
-}
-
-/* Botón agregar invitado destacado */
-#addGuestBtn {
-    font-size: 1rem !important;
-    font-weight: 700 !important;
-    text-align: center !important;
-}
-
-/* Títulos con bullets */
-h3 {
-    font-weight: 700 !important;
+    display: inline-block !important;
 }
 
 /* Botones de configuración con símbolos claros */
@@ -3059,281 +3031,206 @@ h3 {
 }
 
 
-/* ===== BOTONES CON COLOR Y DISEÑO MEJORADO ===== */
 
-/* ===== BOTONES PRINCIPALES DE CONFIGURACIÓN ===== */
+/* ===== TITI INVITA — ALL OVERRIDES ===== */
 
-.button-group {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 12px !important;
-    margin-top: 20px !important;
-}
+/* Ocultar: share, help, fullscreen, cambiar disposición */
+#shareBtn, #helpBtn, #fullscreenBtn, #changeLayoutBtn { display:none !important; }
 
-.button-group button {
-    width: 100% !important;
-    padding: 14px 20px !important;
-    border: none !important;
-    border-radius: 12px !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    cursor: pointer !important;
-    transition: all 0.3s !important;
-    color: white !important;
-    text-align: center !important;
-}
+/* Ocultar: importar, exportar, enviar invitaciones */
+#importGuestsBtn, #exportGuestsBtn, #sendInvitationsBtn, .guest-actions { display:none !important; }
 
-/* ACTUALIZAR MESAS - Azul */
-#btnCrearMesas {
-    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4) !important;
-}
+/* Ocultar botones crear evento y refresh para TODOS */
+#newEventBtn, #refreshEventsBtn, .event-selector-buttons { display:none !important; }
 
-#btnCrearMesas:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.5) !important;
-}
+/* Espaciado default 150 */
+.mesas-container { gap:150px 125px !important; }
 
-/* GUARDAR CAMBIOS - Verde */
-#btnGuardarEvento {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
-}
-
-#btnGuardarEvento:hover {
-    background: linear-gradient(135deg, #059669, #047857) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5) !important;
-}
-
-/* ELIMINAR - Rojo */
-#btnFinalizarEvento {
-    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
-}
-
-#btnFinalizarEvento:hover {
-    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.5) !important;
-}
-
-/* ===== BOTONES PEQUEÑOS DEL SELECTOR DE EVENTOS ===== */
-
-.event-selector-buttons {
-    display: flex !important;
-    gap: 6px !important;
-}
-
-.event-selector-buttons .btn-icon {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 10px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 1.2rem !important;
-    font-weight: 700 !important;
-    border: none !important;
-    cursor: pointer !important;
-    transition: all 0.3s !important;
-}
-
-/* Nuevo Evento - Verde */
-#newEventBtn {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-    color: white !important;
-}
-
-#newEventBtn:hover {
-    background: linear-gradient(135deg, #059669, #047857) !important;
-    transform: translateY(-2px) scale(1.05) !important;
-}
-
-/* Editar Evento - Azul */
-#editEventBtn {
-    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-    color: white !important;
-}
-
-#editEventBtn:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-    transform: translateY(-2px) scale(1.05) !important;
-}
-
-/* Eliminar Evento - Rojo */
-#deleteEventBtn {
-    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
-    color: white !important;
-}
-
-#deleteEventBtn:hover {
-    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
-    transform: translateY(-2px) scale(1.05) !important;
-}
-
-/* ===== BOTONES DE VISTA/ZOOM ===== */
-
-.view-controls .btn-icon {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 10px !important;
-    font-size: 1.1rem !important;
-    font-weight: 700 !important;
-    border: none !important;
-    cursor: pointer !important;
-    transition: all 0.3s !important;
-}
-
-/* Zoom In - Verde */
-#zoomInBtn {
-    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
-    color: white !important;
-}
-
-#zoomInBtn:hover {
-    background: linear-gradient(135deg, #16a34a, #15803d) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* Zoom Out - Naranja */
-#zoomOutBtn {
-    background: linear-gradient(135deg, #f97316, #ea580c) !important;
-    color: white !important;
-}
-
-#zoomOutBtn:hover {
-    background: linear-gradient(135deg, #ea580c, #c2410c) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* Reset View - Azul */
-#resetViewBtn {
-    background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
-    color: white !important;
-}
-
-#resetViewBtn:hover {
-    background: linear-gradient(135deg, #0891b2, #0e7490) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* Change Layout - Morado */
-#changeLayoutBtn {
-    background: linear-gradient(135deg, #a855f7, #9333ea) !important;
-    color: white !important;
-}
-
-#changeLayoutBtn:hover {
-    background: linear-gradient(135deg, #9333ea, #7e22ce) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* ===== BOTÓN AGREGAR INVITADO - DESTACADO ===== */
-
-#addGuestBtn {
-    width: 100% !important;
-    padding: 16px 24px !important;
-    background: linear-gradient(135deg, #a855f7, #9333ea) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 14px !important;
-    font-weight: 800 !important;
-    font-size: 1.05rem !important;
-    cursor: pointer !important;
-    transition: all 0.3s !important;
-    margin-bottom: 16px !important;
-    box-shadow: 0 6px 18px rgba(168, 85, 247, 0.4) !important;
-}
-
-#addGuestBtn:hover {
-    background: linear-gradient(135deg, #9333ea, #7e22ce) !important;
-    transform: translateY(-3px) scale(1.02) !important;
-    box-shadow: 0 10px 25px rgba(168, 85, 247, 0.5) !important;
-}
-
-/* ===== BOTONES DE IMPORTAR/EXPORTAR/ENVIAR ===== */
-
-#importGuestsBtn,
-#exportGuestsBtn,
-#sendInvitationsBtn {
-    padding: 10px 18px !important;
-    border: none !important;
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    font-size: 0.9rem !important;
-    cursor: pointer !important;
-    transition: all 0.3s !important;
-    color: white !important;
-}
-
-/* Importar - Azul */
-#importGuestsBtn {
-    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
-}
-
-#importGuestsBtn:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* Exportar - Verde */
-#exportGuestsBtn {
-    background: linear-gradient(135deg, #10b981, #059669) !important;
-}
-
-#exportGuestsBtn:hover {
-    background: linear-gradient(135deg, #059669, #047857) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* Enviar - Naranja */
-#sendInvitationsBtn {
-    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
-}
-
-#sendInvitationsBtn:hover {
-    background: linear-gradient(135deg, #d97706, #b45309) !important;
-    transform: translateY(-2px) !important;
-}
-
-/* ===== BOTÓN CERRAR SESIÓN ===== */
-
+/* ── Cerrar sesión botón ── */
 #logoutBtn {
-    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
-    color: white !important;
-    border: none !important;
-    padding: 10px 18px !important;
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    cursor: pointer !important;
-    transition: all 0.3s !important;
+    width:42px !important; height:42px !important;
+    background:linear-gradient(135deg,#ef4444,#dc2626) !important;
+    color:white !important; border:none !important; border-radius:50% !important;
+    font-size:1rem !important; cursor:pointer !important;
+    display:flex !important; align-items:center !important; justify-content:center !important;
+    box-shadow:0 3px 10px rgba(239,68,68,.3) !important; padding:0 !important;
+    transition:all .25s !important;
 }
-
 #logoutBtn:hover {
-    background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+    transform:translateY(-2px) scale(1.08) !important;
+    box-shadow:0 6px 18px rgba(239,68,68,.45) !important;
 }
 
-/* ===== OCULTAR BORRADORES ===== */
+.header-actions { display:flex !important; gap:8px !important; margin-top:12px !important; }
 
-.count-item:has(small:contains("Borradores")),
-.count-item:nth-child(3) {
-    display: none !important;
-}
-
-/* Si los borradores están en otra estructura */
-.event-counts > div:last-child,
-.event-counts p:last-of-type {
-    display: none !important;
-}
-
-/* ===== MEJORAR SÍMBOLOS ===== */
-
-.btn-icon,
-.button-group button,
+/* ── Agregar invitado botón ── */
 #addGuestBtn {
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    width:auto !important; padding:10px 16px !important;
+    background:linear-gradient(135deg, var(--titi-periwinkle,#667eea), var(--titi-plum,#5B2D8E)) !important;
+    color:white !important; border:none !important;
+    border-radius:var(--r-md,10px) !important;
+    font-weight:600 !important; font-size:.88rem !important;
+    box-shadow:0 3px 10px rgba(91,45,142,.25) !important;
+    margin-bottom:0 !important; text-transform:none !important; letter-spacing:0 !important;
+    cursor:pointer !important; transition:all .25s !important;
 }
+#addGuestBtn:hover {
+    transform:translateY(-2px) !important;
+    box-shadow:0 6px 18px rgba(91,45,142,.35) !important;
+}
+
+/* ── Modal cerrar sesión ── */
+.modal-logout { background:rgba(26,16,53,.45) !important; backdrop-filter:blur(6px); }
+.modal-logout-box {
+    background:white; border-radius:24px; padding:40px 36px;
+    max-width:400px; width:90%; text-align:center;
+    box-shadow:0 24px 64px rgba(26,16,53,.2);
+    animation:titiModalIn .3s cubic-bezier(.22,1,.36,1);
+}
+@keyframes titiModalIn { from{opacity:0;transform:translateY(24px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+.logout-icon {
+    width:72px; height:72px;
+    background:linear-gradient(135deg,#ef4444,#C23B33);
+    border-radius:50%; margin:0 auto 20px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:2rem; color:white;
+    box-shadow:0 6px 20px rgba(239,68,68,.3);
+}
+.logout-icon i { display:inline-block !important; }
+
+.modal-logout-box h3 {
+    font-family:var(--font-display,'Playfair Display',serif);
+    font-size:1.5rem; margin:0 0 8px; color:#1A1035;
+}
+.modal-logout-box p { color:#6B6580; margin-bottom:28px; font-size:.92rem; }
+
+.logout-buttons { display:flex; gap:12px; }
+.logout-buttons button {
+    flex:1; padding:13px 20px; border:none; border-radius:12px;
+    font-weight:600; cursor:pointer; transition:all .25s; font-size:.92rem;
+}
+.btn-cancel-logout { background:#EEEAF2; color:#3D3558; }
+.btn-cancel-logout:hover { background:#D4D0DC; }
+.btn-confirm-logout {
+    background:linear-gradient(135deg,#ef4444,#C23B33); color:white;
+    box-shadow:0 3px 10px rgba(239,68,68,.25);
+}
+.btn-confirm-logout:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(239,68,68,.4); }
+
+/* ── Modal editar invitado — esquinas arregladas ── */
+.modal-invitado-box {
+    border-radius:20px !important; overflow:hidden;
+    box-shadow:0 24px 64px rgba(26,16,53,.2);
+    animation:titiModalIn .3s cubic-bezier(.22,1,.36,1);
+}
+.modal-invitado-header {
+    background:linear-gradient(135deg, var(--titi-periwinkle,#667eea), var(--titi-plum,#5B2D8E)) !important;
+    padding:28px !important; border-radius:0 !important;
+}
+.modal-invitado-header::before { display:none !important; }
+.modal-invitado-header h2 {
+    font-family:var(--font-display,'Playfair Display',serif);
+    font-size:1.4rem; font-weight:700;
+}
+.modal-close-invitado {
+    width:34px; height:34px; background:rgba(255,255,255,.15);
+    border:none; border-radius:50%; color:white; font-size:1.3rem;
+    cursor:pointer; transition:all .25s;
+    display:flex; align-items:center; justify-content:center;
+}
+.modal-close-invitado:hover { background:rgba(255,255,255,.25); transform:rotate(90deg); }
+.modal-invitado-body { padding:28px; overflow-y:auto; max-height:calc(90vh - 100px); }
+.form-group-invitado {
+    margin-bottom:18px; background:transparent !important;
+    border:none !important; padding:0 !important; border-radius:0 !important;
+}
+.form-group-invitado label {
+    font-weight:600; color:#3D3558; font-size:.82rem;
+    text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px;
+}
+.form-group-invitado label::before { display:none !important; }
+.form-group-invitado input,
+.form-group-invitado select {
+    border:1.5px solid #D4D0DC !important; border-radius:10px !important;
+    background:white !important; box-shadow:none !important;
+    padding:12px 14px; font-size:.92rem; color:#3D3558;
+}
+.form-group-invitado input:focus,
+.form-group-invitado select:focus {
+    border-color:#8B6BB5 !important;
+    box-shadow:0 0 0 4px rgba(91,45,142,.1) !important;
+}
+.form-buttons-invitado {
+    display:flex; gap:12px; margin-top:24px; padding-top:20px;
+    border-top:1px solid #EEEAF2;
+}
+.form-buttons-invitado button {
+    flex:1; padding:13px 20px; border:none; border-radius:12px;
+    font-weight:600; cursor:pointer; transition:all .25s; font-size:.92rem;
+}
+.btn-cancel-invitado { background:#EEEAF2 !important; color:#3D3558 !important; }
+.btn-cancel-invitado:hover { background:#D4D0DC !important; }
+.btn-save-invitado {
+    background:linear-gradient(135deg, var(--titi-periwinkle,#667eea), var(--titi-plum,#5B2D8E)) !important;
+    color:white !important; box-shadow:0 3px 10px rgba(91,45,142,.25);
+}
+.btn-save-invitado:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(91,45,142,.35) !important; }
+
+/* ── Modal asignar silla ── */
+.modal-content {
+    border-radius:20px !important;
+    box-shadow:0 24px 64px rgba(26,16,53,.2);
+    animation:titiModalIn .3s cubic-bezier(.22,1,.36,1);
+}
+.modal { background:rgba(26,16,53,.45) !important; backdrop-filter:blur(6px); }
+.modal-header { padding:24px 28px 20px; border-bottom:1px solid #EEEAF2; }
+.modal-header h3 { font-family:var(--font-display,'Playfair Display',serif); font-size:1.25rem; color:#1A1035; }
+.modal-close {
+    width:32px; height:32px; background:#EEEAF2; border:none; border-radius:50%;
+    color:#6B6580; font-size:1.2rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:0; line-height:1;
+}
+.modal-close:hover { background:rgba(229,83,75,.1); color:#E5534B; }
+.modal-body { padding:24px 28px; }
+.modal-footer { padding:20px 28px; border-top:1px solid #EEEAF2; display:flex; gap:12px; }
+.modal-footer button, .modal-cancel {
+    padding:12px 20px; border-radius:12px; font-weight:600; font-size:.92rem; cursor:pointer; transition:all .25s;
+}
+.modal-footer .btn-primary {
+    background:linear-gradient(135deg, var(--titi-periwinkle,#667eea), var(--titi-plum,#5B2D8E)) !important;
+    color:white; border:none; box-shadow:0 3px 10px rgba(91,45,142,.25);
+}
+.modal-footer .btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(91,45,142,.35); }
+.modal-cancel, .modal-footer .btn-secondary { background:#EEEAF2; color:#3D3558; border:none; }
+
+/* ── Botones config ── */
+.button-group { display:flex !important; flex-direction:column !important; gap:10px !important; margin-top:20px !important; }
+.button-group button {
+    width:100% !important; padding:13px 20px !important; border:none !important;
+    border-radius:12px !important; font-weight:600 !important; font-size:.92rem !important;
+    cursor:pointer !important; transition:all .25s !important; color:white !important;
+}
+#btnCrearMesas { background:linear-gradient(135deg,#3B82F6,#2563EB) !important; box-shadow:0 3px 10px rgba(59,130,246,.3) !important; }
+#btnGuardarEvento { background:linear-gradient(135deg,#2CB67D,#1F9D6A) !important; box-shadow:0 3px 10px rgba(44,182,125,.3) !important; }
+#btnFinalizarEvento { background:linear-gradient(135deg,#ef4444,#dc2626) !important; box-shadow:0 4px 12px rgba(239,68,68,.3) !important; }
+
+/* ── Zoom buttons cleaner ── */
+#zoomInBtn, #zoomOutBtn, #resetViewBtn {
+    background:white !important; color:#3D3558 !important;
+    border:1.5px solid #D4D0DC !important; box-shadow:none !important;
+    width:36px !important; height:36px !important; border-radius:10px !important;
+}
+#zoomInBtn:hover, #zoomOutBtn:hover, #resetViewBtn:hover {
+    background:#EDE7F6 !important; border-color:#8B6BB5 !important; color:#5B2D8E !important;
+}
+
+/* ── Ocultar borradores ── */
+.count-item:nth-child(3) { display:none !important; }
+.event-counts > div:last-child { display:none !important; }
+
+/* ── Font fixes ── */
+.logo h1 { font-family:var(--font-display,'Playfair Display',serif) !important; }
+h3 { font-family:var(--font-body,'DM Sans',sans-serif) !important; font-weight:600 !important; }
+.btn-icon { font-size:1rem !important; }
+.btn-icon, .button-group button, #addGuestBtn { text-shadow:none !important; }
