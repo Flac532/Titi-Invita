@@ -1192,11 +1192,11 @@ function mostrarDetallesInvitado(invitadoId) {
                 ` : ''}
             </div>
             <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button class="btn-secondary btn-small" onclick="editarInvitado(${invitado.id})">
-                    <i class="fas fa-edit"></i> Editar
+                <button class="btn-secondary btn-small" onclick="editarInvitado(${invitado.id})" style="display:flex;align-items:center;gap:6px">
+                    ✏️ Editar
                 </button>
-                <button class="btn-secondary btn-small" onclick="asignarInvitado(${invitado.id})">
-                    <i class="fas fa-chair"></i> Asignar
+                <button class="btn-secondary btn-small" onclick="asignarInvitado(${invitado.id})" style="display:flex;align-items:center;gap:6px">
+                    🪑 Asignar
                 </button>
             </div>
         </div>
@@ -1462,7 +1462,7 @@ function mostrarModalAgregarInvitado(invitadoId = null) {
             <div class="modal-invitado-box">
                 <div class="modal-invitado-header">
                     <h2>
-                        <i class="fas fa-user-${isEdit ? 'edit' : 'plus'}"></i>
+                        ${isEdit ? '✏️' : '➕'}
                         ${titulo}
                     </h2>
                     <button class="btn-close-invitado" onclick="cerrarModalAgregarInvitado()">&times;</button>
@@ -1511,10 +1511,10 @@ function mostrarModalAgregarInvitado(invitadoId = null) {
                     
                     <div class="form-buttons-invitado">
                         <button type="button" class="btn-cancel-invitado" onclick="cerrarModalAgregarInvitado()">
-                            <i class="fas fa-times"></i> Cancelar
+                            Cancelar
                         </button>
                         <button type="submit" class="btn-save-invitado">
-                            <i class="fas fa-save"></i> Guardar
+                            💾 Guardar
                         </button>
                     </div>
                 </form>
@@ -1609,181 +1609,74 @@ window.editarInvitado = function(invitadoId) {
 console.log('✅ Modal bonito de agregar invitado activado');
 
 
-// ===== CAMBIAR TEXTO BOTÓN FINALIZAR A ELIMINAR =====
+// ===== CAMBIAR TEXTO BOTÓN FINALIZAR =====
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Esperar un poco para que se cargue todo
     setTimeout(() => {
         const btnFinalizar = document.getElementById('btnFinalizarEvento');
-        if (btnFinalizar) {
-            btnFinalizar.innerHTML = '<i class="fas fa-trash-alt"></i> ELIMINAR';
-        }
+        if (btnFinalizar) btnFinalizar.innerHTML = '⚠️ Finalizar Evento';
     }, 100);
 });
 
-console.log('✅ Botones principales mejorados');
+// ===== CLEAN ICON SETUP =====
 
-// ===== CAMBIAR BOTÓN FINALIZAR A ELIMINAR EN CONFIGURACIÓN =====
-
-const cambiarBotonConfiguracion = () => {
-    const btnFinalizar = document.getElementById('btnFinalizarEvento');
-    if (btnFinalizar) {
-        btnFinalizar.innerHTML = '<i class="fas fa-trash-alt"></i> ELIMINAR';
-        console.log('✅ Botón de configuración cambiado a ELIMINAR');
-        return true;
-    }
-    return false;
-};
-
-// Intentar cambiar inmediatamente y múltiples veces
-cambiarBotonConfiguracion();
-setTimeout(cambiarBotonConfiguracion, 100);
-setTimeout(cambiarBotonConfiguracion, 300);
-setTimeout(cambiarBotonConfiguracion, 500);
-setTimeout(cambiarBotonConfiguracion, 1000);
-
-// Cuando el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', cambiarBotonConfiguracion);
-} else {
-    cambiarBotonConfiguracion();
-}
-
-// Cuando todo cargue
-window.addEventListener('load', cambiarBotonConfiguracion);
-
-console.log('✅ Botones de configuración mejorados');
-
-// ===== SÍMBOLOS MEJORADOS Y VISIBLES =====
-
-function simbolosMejorados() {
-    console.log('Aplicando símbolos mejorados...');
-    
-    // ===== BOTONES CONFIGURACIÓN =====
+function setupCleanIcons() {
+    // Config buttons - use simple text, FontAwesome already hidden by CSS was removed
     const btnActualizar = document.getElementById('btnCrearMesas');
-    if (btnActualizar) {
-        btnActualizar.innerHTML = '<span style="font-size: 1.2em;">↻</span> ACTUALIZAR MESAS';
-    }
+    if (btnActualizar) btnActualizar.innerHTML = '↻ Actualizar Mesas';
     
     const btnGuardar = document.getElementById('btnGuardarEvento');
-    if (btnGuardar) {
-        btnGuardar.innerHTML = '<span style="font-size: 1.2em;">💾</span> GUARDAR CAMBIOS';
-    }
+    if (btnGuardar) btnGuardar.innerHTML = '💾 Guardar Cambios';
     
     const btnEliminar = document.getElementById('btnFinalizarEvento');
-    if (btnEliminar) {
-        btnEliminar.innerHTML = '<span style="font-size: 1.2em;">✕</span> ELIMINAR';
+    if (btnEliminar) btnEliminar.innerHTML = '⚠️ Finalizar Evento';
+    
+    // Zoom buttons
+    const zoomIn = document.getElementById('zoomInBtn');
+    if (zoomIn) { zoomIn.textContent = '+'; zoomIn.style.fontSize = '1.3rem'; }
+    
+    const zoomOut = document.getElementById('zoomOutBtn');
+    if (zoomOut) { zoomOut.textContent = '−'; zoomOut.style.fontSize = '1.3rem'; }
+    
+    const resetView = document.getElementById('resetViewBtn');
+    if (resetView) { resetView.textContent = '↻'; resetView.style.fontSize = '1.1rem'; }
+    
+    // Add guest button - clean icon
+    const addGuest = document.getElementById('addGuestBtn');
+    if (addGuest) addGuest.innerHTML = '＋ Agregar Invitado';
+    
+    // Logout button - just an icon
+    const logout = document.getElementById('logoutBtn');
+    if (logout) {
+        logout.innerHTML = '⏻';
+        logout.title = 'Cerrar Sesión';
+        logout.style.fontSize = '1.2rem';
     }
     
-    // ===== BOTONES EVENTOS =====
-    const newEventBtn = document.getElementById('newEventBtn');
-    if (newEventBtn) {
-        newEventBtn.textContent = '+';
-        newEventBtn.style.fontSize = '1.4rem';
-    }
-    
-    const editEventBtn = document.getElementById('editEventBtn');
-    if (editEventBtn) {
-        editEventBtn.textContent = '✎';
-        editEventBtn.style.fontSize = '1.2rem';
-    }
-    
-    const deleteEventBtn = document.getElementById('deleteEventBtn');
-    if (deleteEventBtn) {
-        deleteEventBtn.textContent = '✕';
-        deleteEventBtn.style.fontSize = '1.3rem';
-    }
-    
-    // ===== BOTONES ZOOM =====
-    const zoomInBtn = document.getElementById('zoomInBtn');
-    if (zoomInBtn) {
-        zoomInBtn.textContent = '+';
-        zoomInBtn.style.fontSize = '1.5rem';
-    }
-    
-    const zoomOutBtn = document.getElementById('zoomOutBtn');
-    if (zoomOutBtn) {
-        zoomOutBtn.textContent = '−';
-        zoomOutBtn.style.fontSize = '1.5rem';
-    }
-    
-    const resetViewBtn = document.getElementById('resetViewBtn');
-    if (resetViewBtn) {
-        resetViewBtn.textContent = '↻';
-        resetViewBtn.style.fontSize = '1.3rem';
-    }
-    
-    const changeLayoutBtn = document.getElementById('changeLayoutBtn');
-    if (changeLayoutBtn) {
-        changeLayoutBtn.textContent = '☰';
-        changeLayoutBtn.style.fontSize = '1.2rem';
-    }
-    
-    // ===== BOTÓN AGREGAR INVITADO =====
-    const addGuestBtn = document.getElementById('addGuestBtn');
-    if (addGuestBtn) {
-        addGuestBtn.innerHTML = '<span style="font-size: 1.3em;">+</span> AGREGAR INVITADO';
-    }
-    
-    // ===== BOTONES INVITADOS =====
-    const importBtn = document.getElementById('importGuestsBtn');
-    if (importBtn) {
-        importBtn.innerHTML = '<span style="font-size: 1.1em;">↓</span> Importar';
-    }
-    
-    const exportBtn = document.getElementById('exportGuestsBtn');
-    if (exportBtn) {
-        exportBtn.innerHTML = '<span style="font-size: 1.1em;">↑</span> Exportar';
-    }
-    
-    const sendBtn = document.getElementById('sendInvitationsBtn');
-    if (sendBtn) {
-        sendBtn.innerHTML = '<span style="font-size: 1.1em;">✉</span> Enviar';
-    }
-    
-    // ===== CERRAR SESIÓN =====
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.innerHTML = '<span style="font-size: 1.2em;">✕</span> Cerrar Sesión';
-    }
-    
-    // ===== LOGO =====
+    // Logo
     const logo = document.querySelector('.logo h1');
-    if (logo) {
-        logo.textContent = 'Titi Invita';
-    }
+    if (logo) logo.textContent = 'Titi Invita';
     
-    // ===== TÍTULOS CON BULLETS =====
-    const titulos = document.querySelectorAll('h3');
-    titulos.forEach(h3 => {
-        const texto = h3.textContent.trim().replace(/^[•\[\]]/g, '').trim();
-        
-        if (texto.includes('Seleccionar Evento')) {
-            h3.textContent = '• Seleccionar Evento';
-        } else if (texto.includes('Estadísticas')) {
-            h3.textContent = '• Estadísticas de Eventos';
-        } else if (texto.includes('Vista del Salón')) {
-            h3.textContent = '• Vista del Salón';
-        } else if (texto.includes('Configuración')) {
-            h3.textContent = '• Configuración del Evento';
-        } else if (texto.includes('Invitados') || texto.includes('Lista')) {
-            h3.textContent = '• Lista de Invitados';
-        }
+    // Section titles with bullets  
+    document.querySelectorAll('h3').forEach(h3 => {
+        const texto = h3.textContent.trim().replace(/^[•\[\]🪑📊⚙️👥ℹ️📅⏩]/g, '').trim();
+        if (texto.includes('Seleccionar Evento')) h3.textContent = '• Seleccionar Evento';
+        else if (texto.includes('Estadísticas')) h3.textContent = '• Estadísticas de Eventos';
+        else if (texto.includes('Vista')) h3.textContent = '• Vista Rápida';
+        else if (texto.includes('Configuración')) h3.textContent = '• Configuración del Evento';
+        else if (texto.includes('Invitados') || texto.includes('Lista')) h3.textContent = '• Lista de Invitados';
+        else if (texto.includes('Información')) h3.textContent = '• Información de Invitado';
     });
     
-    // ===== ELIMINAR ICONOS FA =====
-    document.querySelectorAll('i.fas, i.fa, i.far').forEach(i => i.remove());
+    // DO NOT remove FontAwesome icons globally anymore
+    // Only remove orphan <i> inside buttons we already replaced
     
-    console.log('✅ Símbolos mejorados aplicados');
+    console.log('✅ Clean icons applied');
 }
 
-// Ejecutar múltiples veces
-simbolosMejorados();
-setTimeout(simbolosMejorados, 50);
-setTimeout(simbolosMejorados, 100);
-setTimeout(simbolosMejorados, 300);
-setTimeout(simbolosMejorados, 500);
-setTimeout(simbolosMejorados, 1000);
-
-document.addEventListener('DOMContentLoaded', simbolosMejorados);
-window.addEventListener('load', simbolosMejorados);
+// Run setup
+setupCleanIcons();
+setTimeout(setupCleanIcons, 100);
+setTimeout(setupCleanIcons, 500);
+document.addEventListener('DOMContentLoaded', setupCleanIcons);
+window.addEventListener('load', setupCleanIcons);
