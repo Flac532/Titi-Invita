@@ -127,8 +127,12 @@ function redireccionarPorRol(usuario) {
     setTimeout(() => {
         if (usuario.rol === 'admin') {
             window.location.href = 'admin.html';
-        } else if (usuario.rol === 'cliente' || usuario.rol === 'organizador') {
+        } else if (usuario.rol === 'organizador') {
+            window.location.href = 'organizador.html';
+        } else if (usuario.rol === 'cliente') {
             window.location.href = 'cliente.html';
+        } else if (usuario.rol === 'colaborador') {
+            window.location.href = 'colaborador.html';
         } else {
             window.location.href = 'index.html';
         }
