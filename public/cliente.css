@@ -1305,49 +1305,95 @@ body {
     50% { box-shadow:0 0 0 8px rgba(102,126,234,.3); }
 }
 
-/* ===== ANULAR MODO OSCURO ===== */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-white: #ffffff !important;
-        --bg-light: #f8f9fa !important;
-        --text-dark: #333333 !important;
-        --text-light: #666666 !important;
-        --border-color: #e0e0e0 !important;
-    }
-    
-    body, .event-panel, .mesas-area, .right-panel, .modal-content {
-        background: #ffffff !important;
-        color: #333333 !important;
-        border-color: #e0e0e0 !important;
-    }
-    
-    .mesas-container {
-        background-color: #f9f9f9 !important;
-    }
-    
-    input, select, textarea {
-        background: #ffffff !important;
-        color: #333333 !important;
-        border-color: #e0e0e0 !important;
-    }
-    
-    .event-stats {
-        background: #ffffff !important;
-    }
-    
-    .count-item {
-        background: #f8f9fa !important;
-    }
-    
-    .preset-item {
-        background: #ffffff !important;
-        border-color: #e0e0e0 !important;
-    }
-    
-    .preset-mesa {
-        background: var(--primary-color) !important;
-    }
+/* ===== DARK MODE TOGGLE BUTTON ===== */
+.dark-mode-toggle {
+    position:fixed; bottom:80px; right:16px; z-index:5500;
+    width:44px; height:44px; border-radius:50%;
+    border:none; cursor:pointer; font-size:1.2rem;
+    background:#1A1035; color:#E8A838;
+    box-shadow:0 3px 12px rgba(26,16,53,.3);
+    display:flex; align-items:center; justify-content:center;
+    transition:all .3s;
 }
+.dark-mode-toggle:hover { transform:scale(1.1); }
+body.dark-mode .dark-mode-toggle { background:#F9F8FB; color:#E8A838; }
+
+@media (min-width:901px) {
+    .dark-mode-toggle { bottom:20px; right:20px; }
+}
+
+/* ===== DARK MODE ===== */
+body.dark-mode {
+    --dm-bg: #0F0A1A;
+    --dm-surface: #1A1330;
+    --dm-card: #221B35;
+    --dm-border: #2E2545;
+    --dm-text: #E8E4EF;
+    --dm-text-muted: #9A94A8;
+    --dm-input-bg: #1A1330;
+}
+
+body.dark-mode,
+body.dark-mode .cliente-main { background:var(--dm-bg) !important; color:var(--dm-text) !important; }
+
+body.dark-mode .event-panel { background:var(--dm-surface) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .mesas-area { background:var(--dm-bg) !important; }
+body.dark-mode .right-panel { background:var(--dm-surface) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .mesas-container { background:var(--dm-bg) !important; }
+
+body.dark-mode .mesas-header { background:var(--dm-surface) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .mesas-footer { background:var(--dm-surface) !important; border-color:var(--dm-border) !important; }
+
+body.dark-mode .mesa-info { background:var(--dm-card) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+
+body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+    background:var(--dm-input-bg) !important; color:var(--dm-text) !important;
+    border-color:var(--dm-border) !important;
+}
+
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4,
+body.dark-mode .section-title, body.dark-mode label {
+    color:var(--dm-text) !important;
+}
+
+body.dark-mode p, body.dark-mode span, body.dark-mode .form-label {
+    color:var(--dm-text-muted) !important;
+}
+
+body.dark-mode .config-section, body.dark-mode .guests-section {
+    border-color:var(--dm-border) !important;
+}
+
+body.dark-mode .btn-icon { background:var(--dm-card) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .btn-icon:hover { background:var(--dm-border) !important; }
+
+body.dark-mode .search-box input { background:var(--dm-input-bg) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+
+body.dark-mode .invitado-card { background:var(--dm-card) !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
+
+body.dark-mode .event-card-info { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
+
+body.dark-mode .stat-card, body.dark-mode .count-item, body.dark-mode .event-stats {
+    background:var(--dm-card) !important; border-color:var(--dm-border) !important;
+}
+
+body.dark-mode .user-card { background:var(--dm-card) !important; }
+
+body.dark-mode .modal-logout-box { background:var(--dm-surface) !important; color:var(--dm-text) !important; }
+body.dark-mode .modal-logout-box h2, body.dark-mode .modal-logout-box p { color:var(--dm-text) !important; }
+
+body.dark-mode .preset-item { background:var(--dm-card) !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
+
+body.dark-mode .legend span { color:var(--dm-text-muted) !important; }
+body.dark-mode .checkbox-option label { color:var(--dm-text-muted) !important; }
+
+/* Mobile panels dark */
+body.dark-mode .mobile-tabs { background:var(--dm-surface) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .mobile-tab { color:var(--dm-text-muted) !important; }
+body.dark-mode .mobile-tab.active { color:#E8A838 !important; }
+
+/* Silla text in dark mode */
+body.dark-mode .silla { color:#fff !important; }
 /* ===== SOLO CERRAR SESIÓN - NO TOCAR NADA MÁS ===== */
 
 .modal-logout {
