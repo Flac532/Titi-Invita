@@ -139,110 +139,74 @@ function configurarLimiteEventos() {
     }
 }
 
-// 1. Cargar eventos del usuario según su rol
-function cargarEventosUsuario() {
-    // Datos de demo - en producción vendrían de la API
-    let eventosDemo = [];
-    
-    if (usuario.rol === 'cliente') {
-        // Cliente solo ve sus eventos (máximo 1 activo)
-        eventosDemo = [
-            {
-                id: 1,
-                nombre: 'Boda de Ana y Carlos',
-                descripcion: 'Celebración en jardín botánico',
-                fecha: '2024-06-15',
-                hora: '18:00',
-                ubicacion: 'Jardín Botánico',
-                estado: 'activo',
-                mesas: 8,
-                sillasPorMesa: 8,
-                formaMesa: 'rectangular',
-                configuracion: {}
-            }
-        ];
-    } else if (usuario.rol === 'organizador') {
-        // Organizador ve múltiples eventos
-        eventosDemo = [
-            {
-                id: 1,
-                nombre: 'Boda de Ana y Carlos',
-                descripcion: 'Celebración en jardín botánico',
-                fecha: '2024-06-15',
-                hora: '18:00',
-                ubicacion: 'Jardín Botánico',
-                estado: 'activo',
-                mesas: 8,
-                sillasPorMesa: 8,
-                formaMesa: 'rectangular',
-                configuracion: {}
-            },
-            {
-                id: 2,
-                nombre: 'Conferencia Tech 2024',
-                descripcion: 'Conferencia anual de tecnología',
-                fecha: '2024-07-20',
-                hora: '09:00',
-                ubicacion: 'Centro de Convenciones',
-                estado: 'activo',
-                mesas: 12,
-                sillasPorMesa: 6,
-                formaMesa: 'circular',
-                configuracion: {}
-            },
-            {
-                id: 3,
-                nombre: 'Fiesta de Graduación',
-                descripcion: 'Celebración de graduación universitaria',
-                fecha: '2024-08-10',
-                hora: '20:00',
-                ubicacion: 'Salón de Eventos',
-                estado: 'borrador',
-                mesas: 6,
-                sillasPorMesa: 10,
-                formaMesa: 'rectangular',
-                configuracion: {}
-            }
-        ];
-    } else if (usuario.rol === 'admin') {
-        // Admin vería todos, pero admin va a admin.html
-        // Por si acaso, mostramos algunos eventos
-        eventosDemo = [
-            {
-                id: 1,
-                nombre: 'Evento de Administración',
-                descripcion: 'Evento de prueba para admin',
-                fecha: '2024-06-20',
-                hora: '10:00',
-                ubicacion: 'Oficina Principal',
-                estado: 'activo',
-                mesas: 10,
-                sillasPorMesa: 8,
-                formaMesa: 'rectangular',
-                configuracion: {}
-            }
-        ];
+// 1. Cargar eventos del usuario desde la API
+async function cargarEventosUsuario() {
+    const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+    const API = window.location.origin + '/api';
+
+    // Check if we're viewing a specific event (from ?evento=ID)
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventoIdParam = urlParams.get('evento');
+
+    try {
+        let eventosData = [];
+
+        if (usuario.rol === 'admin') {
+            const res = await fetch(API + '/eventos', { headers: { 'Authorization': 'Bearer ' + token } });
+            const data = await res.json();
+            eventosData = data.eventos || data || [];
+        } else if (usuario.rol === 'organizador') {
+            const res = await fetch(API + '/mis-eventos', { headers: { 'Authorization': 'Bearer ' + token } });
+            eventosData = await res.json();
+            if (!Array.isArray(eventosData)) eventosData = eventosData.eventos || [];
+        } else if (usuario.rol === 'colaborador' && usuario.evento_id) {
+            const res = await fetch(API + '/mi-evento', { headers: { 'Authorization': 'Bearer ' + token } });
+            const ev = await res.json();
+            if (ev && ev.id) eventosData = [ev];
+        } else {
+            // cliente
+            const res = await fetch(API + '/eventos-usuario', { headers: { 'Authorization': 'Bearer ' + token } });
+            const data = await res.json();
+            eventosData = data.eventos || data || [];
+        }
+
+        // Map API fields to local fields
+        eventosCliente = eventosData.map(e => ({
+            id: e.id,
+            nombre: e.nombre,
+            descripcion: e.descripcion || '',
+            fecha: e.fecha_evento ? e.fecha_evento.substring(0, 10) : '',
+            hora: e.hora_evento || '',
+            ubicacion: e.ubicacion || '',
+            estado: e.estado || 'activo',
+            mesas: e.num_mesas || 8,
+            sillasPorMesa: e.sillas_por_mesa || 8,
+            formaMesa: e.forma_mesa || 'rectangular',
+            configuracion: e.configuracion || {}
+        }));
+    } catch (error) {
+        console.error('Error cargando eventos:', error);
+        eventosCliente = [];
     }
-    
-    eventosCliente = eventosDemo;
-    
-    // Actualizar estadísticas de eventos
+
+    // Update stats
     actualizarEstadisticasEventos();
-    
-    // Llenar selector de eventos
+
+    // Fill selector
     eventSelector.innerHTML = '<option value="">Seleccionar Evento...</option>';
     eventosCliente.forEach(evento => {
         const option = document.createElement('option');
         option.value = evento.id;
         option.textContent = evento.nombre;
-        if (evento.estado === 'borrador') {
-            option.textContent += ' (Borrador)';
-        }
+        if (evento.estado === 'borrador') option.textContent += ' (Borrador)';
         eventSelector.appendChild(option);
     });
-    
-    // Seleccionar primer evento por defecto
-    if (eventosCliente.length > 0) {
+
+    // Auto-select
+    if (eventoIdParam) {
+        eventSelector.value = eventoIdParam;
+        cargarEvento(eventoIdParam);
+    } else if (eventosCliente.length > 0) {
         eventSelector.value = eventosCliente[0].id;
         cargarEvento(eventosCliente[0].id);
     }
@@ -258,15 +222,15 @@ function actualizarEstadisticasEventos() {
     draftEventsCount.textContent = borradores;
 }
 
-// 2. Cargar un evento específico
-function cargarEvento(eventoId) {
+// 2. Cargar un evento específico (with mesas from API)
+async function cargarEvento(eventoId) {
     const evento = eventosCliente.find(e => e.id == eventoId);
     if (!evento) return;
     
     eventoActual = evento;
     currentEventName.textContent = evento.nombre;
     
-    // Llenar formulario con datos del evento
+    // Fill form
     eventNameInput.value = evento.nombre;
     eventDescriptionInput.value = evento.descripcion || '';
     eventDateInput.value = evento.fecha;
@@ -275,16 +239,67 @@ function cargarEvento(eventoId) {
     sillasPorMesaInput.value = evento.sillasPorMesa;
     formaMesaSelect.value = evento.formaMesa;
     
-    // Cargar configuración si existe
-    if (evento.configuracion && evento.configuracion.mesas) {
-        mesas = evento.configuracion.mesas;
-        renderizarMesas();
-    } else {
+    // Load mesas from API
+    const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+    const API = window.location.origin + '/api';
+    
+    try {
+        const res = await fetch(API + '/eventos/' + eventoId + '/mesas', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const mesasAPI = data.mesas || data || [];
+        
+        if (mesasAPI.length > 0) {
+            // Convert API mesas to local format
+            mesas = mesasAPI.map((m, idx) => ({
+                id: m.id, // Use real DB id
+                nombre: m.nombre || `Mesa ${idx + 1}`,
+                forma: m.forma || evento.formaMesa || 'rectangular',
+                sillas: (typeof m.sillas === 'string' ? JSON.parse(m.sillas) : m.sillas) || []
+            }));
+            
+            mesasContainer.innerHTML = '';
+            mesas.forEach(mesa => crearMesaVisual(mesa));
+            actualizarEstadisticas();
+            console.log('✅ Mesas cargadas desde API:', mesas.length);
+        } else {
+            crearMesas();
+        }
+    } catch (error) {
+        console.error('Error cargando mesas:', error);
         crearMesas();
     }
     
-    // Actualizar estadísticas
-    actualizarEstadisticas();
+    // Load invitados from API
+    try {
+        const res = await fetch(API + '/eventos/' + eventoId + '/invitados', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        const invitadosAPI = data.invitados || data || [];
+        
+        invitados = invitadosAPI.map(inv => ({
+            id: inv.id,
+            nombre: inv.nombre,
+            email: inv.email || '',
+            telefono: inv.telefono || '',
+            estado: inv.estado || 'pendiente',
+            idMesa: inv.id_mesa,
+            idSilla: inv.silla_numero,
+            notas: inv.notas || ''
+        }));
+        
+        actualizarListaInvitados();
+        console.log('✅ Invitados cargados:', invitados.length);
+    } catch (error) {
+        console.error('Error cargando invitados:', error);
+    }
+    
+    // Update event info display
+    const fechaDisplay = evento.fecha ? new Date(evento.fecha + 'T00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    document.getElementById('currentEventDate').textContent = fechaDisplay + (evento.hora ? ' - ' + evento.hora : '');
+    document.getElementById('currentEventStatus').innerHTML = 'Estado: <span class="status-active">' + (evento.estado || 'Activo') + '</span>';
 }
 
 // 3. Crear mesas (basado en final.html pero adaptado)
@@ -1066,42 +1081,50 @@ function actualizarEstadisticas() {
     ocupacionBar.style.width = `${porcentaje}%`;
 }
 
-function guardarConfiguracionEvento() {
+async function guardarConfiguracionEvento() {
     if (!eventoActual) return;
     
-    eventoActual.configuracion = {
-        mesas: JSON.parse(JSON.stringify(mesas)),
-        disposicion: configuracionDisposicion,
-        fechaActualizacion: new Date().toISOString()
-    };
+    const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+    const API = window.location.origin + '/api';
     
-    eventoActual.mesas = mesas.length;
-    eventoActual.sillasPorMesa = mesas.length > 0 ? mesas[0].sillas.length : 0;
-    eventoActual.formaMesa = mesas.length > 0 ? mesas[0].forma : 'rectangular';
+    // Build mesas payload for API
+    const mesasPayload = mesas.map(m => ({
+        nombre: m.nombre,
+        forma: m.forma || eventoActual.formaMesa || 'rectangular',
+        posicion_x: 0,
+        posicion_y: 0,
+        sillas: m.sillas
+    }));
     
-    // En producción, aquí harías fetch a la API
-    console.log('Guardando evento:', eventoActual);
-    
-    // Simular guardado
-    if (autoSaveCheckbox.checked) {
-        localStorage.setItem(`titi_evento_${eventoActual.id}`, JSON.stringify(eventoActual));
-        mostrarMensaje('Cambios guardados automáticamente', 'info');
+    try {
+        const res = await fetch(API + '/eventos/' + eventoActual.id + '/mesas', {
+            method: 'PUT',
+            headers: { 
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ mesas: mesasPayload })
+        });
+        
+        if (res.ok) {
+            console.log('✅ Mesas guardadas en servidor');
+            if (autoSaveCheckbox.checked) {
+                mostrarMensaje('Cambios guardados', 'success');
+            }
+        } else {
+            console.error('Error guardando mesas:', res.status);
+            mostrarMensaje('Error al guardar', 'error');
+        }
+    } catch (error) {
+        console.error('Error guardando:', error);
+        mostrarMensaje('Error de conexión al guardar', 'error');
     }
 }
 
 function cargarInvitadosDemo() {
-    invitados = [
-        { id: 1, nombre: 'Ana López', email: 'ana@email.com', telefono: '555-0101', estado: 'confirmado', idMesa: 1, idSilla: 1 },
-        { id: 2, nombre: 'Carlos Ruiz', email: 'carlos@email.com', telefono: '555-0102', estado: 'confirmado', idMesa: 1, idSilla: 2 },
-        { id: 3, nombre: 'María González', email: 'maria@email.com', telefono: '555-0103', estado: 'asignado', idMesa: 2, idSilla: 1 },
-        { id: 4, nombre: 'Pedro Hernández', email: 'pedro@email.com', telefono: '555-0104', estado: 'pendiente' },
-        { id: 5, nombre: 'Laura Martínez', email: 'laura@email.com', telefono: '555-0105', estado: 'pendiente' },
-        { id: 6, nombre: 'Roberto Sánchez', email: 'roberto@email.com', telefono: '555-0106', estado: 'asignado' },
-        { id: 7, nombre: 'Sofía Castro', email: 'sofia@email.com', telefono: '555-0107', estado: 'pendiente' },
-        { id: 8, nombre: 'David Ramírez', email: 'david@email.com', telefono: '555-0108', estado: 'pendiente' }
-    ];
-    
-    actualizarListaInvitados();
+    // Invitados are now loaded from API in cargarEvento()
+    // This function is kept for compatibility but does nothing
+    console.log('Invitados se cargan desde la API');
 }
 
 function actualizarListaInvitados() {
@@ -1249,39 +1272,52 @@ function buscarEnMesas(termino) {
     });
 }
 
-function guardarEvento() {
+async function guardarEvento() {
     if (!eventoActual) {
         mostrarMensaje('No hay evento seleccionado', 'error');
         return;
     }
     
-    // Actualizar datos del evento
-    eventoActual.nombre = eventNameInput.value || 'Evento sin nombre';
-    eventoActual.descripcion = eventDescriptionInput.value;
-    eventoActual.fecha = eventDateInput.value;
-    eventoActual.hora = eventTimeInput.value;
-    eventoActual.mesas = parseInt(numMesasInput.value);
-    eventoActual.sillasPorMesa = parseInt(sillasPorMesaInput.value);
-    eventoActual.formaMesa = formaMesaSelect.value;
+    const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+    const API = window.location.origin + '/api';
     
-    // Guardar configuración
-    guardarConfiguracionEvento();
-    
-    // Actualizar UI
-    currentEventName.textContent = eventoActual.nombre;
-    
-    // Actualizar selector de eventos
-    const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
-    if (option) {
-        option.textContent = eventoActual.nombre;
-        if (eventoActual.estado === 'borrador') {
-            option.textContent += ' (Borrador)';
-        } else if (eventoActual.estado === 'completado') {
-            option.textContent += ' (Completado)';
+    // Update event details via API
+    try {
+        const res = await fetch(API + '/eventos/' + eventoActual.id, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                nombre: eventNameInput.value || 'Evento sin nombre',
+                descripcion: eventDescriptionInput.value,
+                fecha_evento: eventDateInput.value || null,
+                hora_evento: eventTimeInput.value || null,
+                num_mesas: parseInt(numMesasInput.value),
+                sillas_por_mesa: parseInt(sillasPorMesaInput.value),
+                forma_mesa: formaMesaSelect.value
+            })
+        });
+        
+        if (res.ok) {
+            // Also save mesas
+            await guardarConfiguracionEvento();
+            
+            eventoActual.nombre = eventNameInput.value;
+            currentEventName.textContent = eventoActual.nombre;
+            
+            const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
+            if (option) option.textContent = eventoActual.nombre;
+            
+            mostrarMensaje(`Evento "${eventoActual.nombre}" guardado`, 'success');
+        } else {
+            mostrarMensaje('Error al guardar evento', 'error');
         }
+    } catch (error) {
+        console.error('Error guardando evento:', error);
+        mostrarMensaje('Error de conexión', 'error');
     }
-    
-    mostrarMensaje(`Evento "${eventoActual.nombre}" guardado correctamente`, 'success');
 }
 
 function agregarInvitado() {
@@ -1539,7 +1575,7 @@ window.cerrarModalAgregarInvitado = function() {
     }
 };
 
-window.guardarInvitadoModal = function(invitadoId) {
+window.guardarInvitadoModal = async function(invitadoId) {
     const nombre = document.getElementById('modalNombre').value.trim();
     const email = document.getElementById('modalEmail').value.trim();
     const telefono = document.getElementById('modalTelefono').value.trim();
@@ -1550,37 +1586,56 @@ window.guardarInvitadoModal = function(invitadoId) {
         return;
     }
     
-    if (invitadoId) {
-        // Editar
-        const invitado = invitados.find(i => i.id === invitadoId);
-        if (invitado) {
-            invitado.nombre = nombre;
-            invitado.email = email || null;
-            invitado.telefono = telefono || null;
-            invitado.estado = estado;
-            mostrarToastBonito('Invitado actualizado correctamente', 'success');
+    if (!eventoActual) {
+        mostrarToastBonito('No hay evento seleccionado', 'error');
+        return;
+    }
+    
+    const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+    const API = window.location.origin + '/api';
+    
+    try {
+        if (invitadoId) {
+            // Edit existing
+            const res = await fetch(API + '/eventos/' + eventoActual.id + '/invitados/' + invitadoId, {
+                method: 'PUT',
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, email: email || null, telefono: telefono || null, estado })
+            });
+            if (res.ok) {
+                const inv = invitados.find(i => i.id === invitadoId);
+                if (inv) { inv.nombre = nombre; inv.email = email; inv.telefono = telefono; inv.estado = estado; }
+                mostrarToastBonito('Invitado actualizado', 'success');
+            } else {
+                mostrarToastBonito('Error al actualizar', 'error');
+            }
+        } else {
+            // Create new
+            const res = await fetch(API + '/eventos/' + eventoActual.id + '/invitados', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre, email: email || null, telefono: telefono || null, estado })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const nuevo = data.invitado || data;
+                invitados.push({
+                    id: nuevo.id, nombre: nuevo.nombre, email: nuevo.email || '',
+                    telefono: nuevo.telefono || '', estado: nuevo.estado || 'pendiente',
+                    idMesa: null, idSilla: null
+                });
+                mostrarToastBonito('Invitado agregado', 'success');
+            } else {
+                mostrarToastBonito('Error al agregar', 'error');
+            }
         }
-    } else {
-        // Agregar nuevo
-        const nuevoInvitado = {
-            id: invitados.length + 1,
-            nombre: nombre,
-            email: email || null,
-            telefono: telefono || null,
-            estado: estado,
-            idMesa: null,
-            idSilla: null
-        };
-        
-        invitados.push(nuevoInvitado);
-        mostrarToastBonito('Invitado agregado correctamente', 'success');
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarToastBonito('Error de conexión', 'error');
     }
     
     cerrarModalAgregarInvitado();
-    
-    if (typeof actualizarListaInvitados === 'function') {
-        actualizarListaInvitados();
-    }
+    actualizarListaInvitados();
 };
 
 // Toast bonito
