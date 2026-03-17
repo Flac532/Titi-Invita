@@ -478,3 +478,37 @@
     box-shadow:0 3px 10px rgba(91,45,142,.25);
 }
 .titi-alert-footer button:hover { transform:translateY(-1px); }
+
+/* ===== DARK MODE — ADMIN ===== */
+.dark-mode-toggle {
+    position:fixed; bottom:20px; right:20px; z-index:5500;
+    width:44px; height:44px; border-radius:50%;
+    border:none; cursor:pointer; font-size:1.2rem;
+    background:#1A1035; color:#E8A838;
+    box-shadow:0 3px 12px rgba(26,16,53,.3);
+    display:flex; align-items:center; justify-content:center;
+    transition:all .3s;
+}
+.dark-mode-toggle:hover { transform:scale(1.1); }
+body.dark-mode .dark-mode-toggle { background:#F9F8FB; color:#E8A838; }
+
+body.dark-mode { --dm-bg:#0F0A1A; --dm-surface:#1A1330; --dm-card:#221B35; --dm-border:#2E2545; --dm-text:#E8E4EF; --dm-muted:#9A94A8; --dm-input:#1A1330; }
+body.dark-mode, body.dark-mode .admin-container { background:var(--dm-bg) !important; color:var(--dm-text) !important; }
+body.dark-mode .admin-sidebar { background:var(--dm-surface) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .admin-main { background:var(--dm-bg) !important; }
+body.dark-mode .admin-main header { background:var(--dm-bg) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .stat-card { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .stat-label, body.dark-mode .stat-value { color:var(--dm-text) !important; }
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode p { color:var(--dm-text) !important; }
+body.dark-mode .nav-item { color:var(--dm-muted) !important; }
+body.dark-mode .nav-item.active, body.dark-mode .nav-item:hover { background:var(--dm-card) !important; color:var(--dm-text) !important; }
+body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background:var(--dm-input) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .solicitud-card { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .user-row { background:var(--dm-card) !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
+body.dark-mode .user-row:hover { background:var(--dm-border) !important; }
+body.dark-mode .modal-content { background:var(--dm-surface) !important; color:var(--dm-text) !important; }
+body.dark-mode .form-group label { color:var(--dm-text) !important; }
+body.dark-mode .titi-btn-ghost { background:var(--dm-card) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .page { color:var(--dm-text) !important; }
+body.dark-mode .sidebar-user { color:var(--dm-text) !important; }
+body.dark-mode .sidebar-user span { color:var(--dm-muted) !important; }
