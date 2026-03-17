@@ -502,35 +502,33 @@ function crearMesaVisual(mesa) {
     // Color de mesa (default: marrón original)
     const mesaColor = mesa.color || '#8B4513';
     
-    // Info bar with name + color button
-    const mesaInfo = document.createElement('div');
-    mesaInfo.className = 'mesa-info';
-    mesaInfo.style.display = 'flex';
-    mesaInfo.style.alignItems = 'center';
-    mesaInfo.style.justifyContent = 'center';
-    mesaInfo.style.gap = '6px';
+    // Color button row (separate from info)
+    const colorRow = document.createElement('div');
+    colorRow.className = 'mesa-color-row';
+    colorRow.style.cssText = 'display:flex;justify-content:center;margin-bottom:4px';
     
-    // Color button (small circle)
     const colorBtn = document.createElement('button');
     colorBtn.className = 'mesa-color-btn';
-    colorBtn.style.cssText = `width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:${mesaColor};cursor:pointer;flex-shrink:0;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);padding:0;outline:none`;
-    colorBtn.title = 'Cambiar color';
+    colorBtn.style.cssText = `width:22px;height:22px;border-radius:50%;border:2.5px solid #fff;background:${mesaColor};cursor:pointer;flex-shrink:0;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.25);padding:0;outline:none`;
+    colorBtn.title = 'Cambiar color de mesa';
     colorBtn.addEventListener('click', function(e) {
         e.stopPropagation();
         const rect = colorBtn.getBoundingClientRect();
-        mostrarSelectorColor(mesa.id, rect.left, rect.bottom + 8 + window.scrollY);
+        mostrarSelectorColor(mesa.id, rect.left - 80, rect.bottom + 8 + window.scrollY);
     });
+    colorBtn.addEventListener('mouseenter', function() { this.style.transform = 'scale(1.2)'; });
+    colorBtn.addEventListener('mouseleave', function() { this.style.transform = 'scale(1)'; });
     
-    // Name text (clickable to edit)
-    const nameSpan = document.createElement('span');
-    nameSpan.textContent = `${mesa.nombre} (${mesa.sillas.length} sillas)`;
-    nameSpan.style.cursor = 'pointer';
-    nameSpan.addEventListener('click', function() {
+    colorRow.appendChild(colorBtn);
+    mesaElement.appendChild(colorRow);
+    
+    // Info bar (name only — clickable to edit)
+    const mesaInfo = document.createElement('div');
+    mesaInfo.className = 'mesa-info';
+    mesaInfo.textContent = `${mesa.nombre} (${mesa.sillas.length} sillas)`;
+    mesaInfo.addEventListener('click', function() {
         editarNombreMesa(mesa.id, mesaInfo);
     });
-    
-    mesaInfo.appendChild(colorBtn);
-    mesaInfo.appendChild(nameSpan);
     mesaElement.appendChild(mesaInfo);
     
     // Representación gráfica de la mesa
@@ -1235,7 +1233,7 @@ window.aplicarColorMesa = function(mesaId, color) {
         const grafica = mesaEl.querySelector('.mesa-grafica');
         if (grafica) grafica.style.backgroundColor = color;
         
-        // Update color button
+        // Update color button in separate row
         const colorBtn = mesaEl.querySelector('.mesa-color-btn');
         if (colorBtn) colorBtn.style.background = color;
     }
