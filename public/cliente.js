@@ -96,7 +96,82 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Verificar límite al cargar
     verificarLimiteEventos();
+    
+    // ===== COLABORADOR RESTRICTIONS =====
+    if (usuario.rol === 'colaborador') {
+        aplicarRestriccionesColaborador();
+    }
 });
+
+function aplicarRestriccionesColaborador() {
+    console.log('🔒 Modo colaborador — aplicando restricciones');
+    
+    // Hide config elements that colaborador can't use
+    const hideElements = [
+        '#btnCrearMesas',       // Update mesas button
+        '#btnGuardarEvento',    // Save event (they save via auto-save on sillas)
+        '#btnFinalizarEvento',  // Finalize event
+        '#eventName',           // Event name input
+        '#eventDate',           // Date input
+        '#eventTime',           // Time input  
+        '#eventDescription',    // Description textarea
+        '#numMesas',            // Num mesas input
+        '#sillasPorMesa',       // Sillas per mesa
+        '#formaMesa',           // Forma select
+        '#numColumnas',         // Columns
+        '#numFilas',            // Rows
+        '#espaciado',           // Spacing
+        '.disposicion-row',     // Layout row
+        '.event-selector',      // Event selector (they have 1 event)
+        '.event-selector-container h3', // "Seleccionar Evento" title
+        '#eventLimitInfo',      // Limit info
+    ];
+    
+    // Run after a delay to ensure DOM is loaded
+    setTimeout(() => {
+        hideElements.forEach(sel => {
+            const el = document.querySelector(sel);
+            if (el) {
+                // For inputs make them readonly, for buttons hide them
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+                    el.readOnly = true;
+                    el.disabled = true;
+                    el.style.opacity = '0.5';
+                    el.style.cursor = 'not-allowed';
+                } else if (el.tagName === 'BUTTON') {
+                    el.style.display = 'none';
+                } else {
+                    el.style.display = 'none';
+                }
+            }
+        });
+        
+        // Change config section title
+        const configTitle = document.querySelector('.config-section h3');
+        if (configTitle) configTitle.textContent = '• Info del Evento (solo lectura)';
+        
+        // Hide the button-group entirely
+        const btnGroup = document.querySelector('.button-group');
+        if (btnGroup) btnGroup.style.display = 'none';
+        
+        // Add colaborador badge
+        const roleBadge = document.getElementById('roleBadge');
+        if (roleBadge) {
+            roleBadge.textContent = 'COLABORADOR';
+            roleBadge.style.cssText = 'background:linear-gradient(135deg,#8B6BB5,#5B2D8E);color:#fff;padding:2px 8px;border-radius:20px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-left:5px;display:inline-block';
+        }
+        
+        console.log('✅ Restricciones de colaborador aplicadas');
+    }, 500);
+    
+    // Also apply after mesas load
+    setTimeout(() => {
+        // Make sure mesas can't be dragged
+        document.querySelectorAll('.mesa').forEach(mesa => {
+            mesa.draggable = false;
+        });
+    }, 2000);
+}
 
 // ===== FUNCIONES PRINCIPALES =====
 
