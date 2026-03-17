@@ -358,12 +358,25 @@ async function cargarEvento(eventoId) {
         
         if (mesasAPI.length > 0) {
             // Convert API mesas to local format
-            mesas = mesasAPI.map((m, idx) => ({
-                id: m.id, // Use real DB id
-                nombre: m.nombre || `Mesa ${idx + 1}`,
-                forma: m.forma || evento.formaMesa || 'rectangular',
-                sillas: (typeof m.sillas === 'string' ? JSON.parse(m.sillas) : m.sillas) || []
-            }));
+            mesas = mesasAPI.map((m, idx) => {
+                let sillasRaw = (typeof m.sillas === 'string' ? JSON.parse(m.sillas) : m.sillas) || [];
+                
+                // Extract color from _meta entry if present
+                let mesaColor = '#8B4513';
+                const metaEntry = sillasRaw.find(s => s._meta);
+                if (metaEntry) {
+                    mesaColor = metaEntry.color || '#8B4513';
+                    sillasRaw = sillasRaw.filter(s => !s._meta);
+                }
+                
+                return {
+                    id: m.id,
+                    nombre: m.nombre || `Mesa ${idx + 1}`,
+                    forma: m.forma || evento.formaMesa || 'rectangular',
+                    color: mesaColor,
+                    sillas: sillasRaw
+                };
+            });
             
             mesasContainer.innerHTML = '';
             mesas.forEach(mesa => crearMesaVisual(mesa));
@@ -486,10 +499,19 @@ function crearMesaVisual(mesa) {
     mesaElement.style.transform = `scale(${zoomLevel})`;
     mesaElement.style.transition = 'transform 0.3s ease';
     
+    // Color de mesa (default: marrón original)
+    const mesaColor = mesa.color || '#8B4513';
+    
     // Información de la mesa (editable)
     const mesaInfo = document.createElement('div');
     mesaInfo.className = 'mesa-info';
     mesaInfo.textContent = `${mesa.nombre} (${mesa.sillas.length} sillas)`;
+    
+    // Color indicator dot
+    if (mesa.color && mesa.color !== '#8B4513') {
+        mesaInfo.innerHTML = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${mesa.color};margin-right:6px;vertical-align:middle;box-shadow:0 1px 3px rgba(0,0,0,.2)"></span>${mesa.nombre} (${mesa.sillas.length} sillas)`;
+    }
+    
     mesaInfo.addEventListener('click', function() {
         editarNombreMesa(mesa.id, mesaInfo);
     });
@@ -499,6 +521,25 @@ function crearMesaVisual(mesa) {
     const mesaGrafica = document.createElement('div');
     mesaGrafica.className = `mesa-grafica mesa-${mesa.forma}`;
     mesaGrafica.textContent = mesa.nombre;
+    mesaGrafica.style.backgroundColor = mesaColor;
+    
+    // Right-click or long-press to change color
+    mesaGrafica.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        mostrarSelectorColor(mesa.id, e.pageX, e.pageY);
+    });
+    
+    // Long press for mobile
+    let longPressTimer;
+    mesaGrafica.addEventListener('touchstart', function(e) {
+        longPressTimer = setTimeout(() => {
+            const touch = e.touches[0];
+            mostrarSelectorColor(mesa.id, touch.pageX, touch.pageY);
+        }, 600);
+    });
+    mesaGrafica.addEventListener('touchend', () => clearTimeout(longPressTimer));
+    mesaGrafica.addEventListener('touchmove', () => clearTimeout(longPressTimer));
+    
     mesaElement.appendChild(mesaGrafica);
     
     // Contenedor para las sillas
@@ -1119,6 +1160,102 @@ function cerrarModal(modal) {
     }, 300);
 }
 
+// ===== SISTEMA DE COLORES POR MESA =====
+const MESA_COLORES = [
+    { color: '#8B4513', nombre: 'Madera', emoji: '🟤' },
+    { color: '#E5534B', nombre: 'Rojo', emoji: '🔴' },
+    { color: '#3B82F6', nombre: 'Azul', emoji: '🔵' },
+    { color: '#2CB67D', nombre: 'Verde', emoji: '🟢' },
+    { color: '#E8A838', nombre: 'Dorado', emoji: '🟡' },
+    { color: '#9333EA', nombre: 'Morado', emoji: '🟣' },
+    { color: '#EC4899', nombre: 'Rosa', emoji: '🩷' },
+    { color: '#06B6D4', nombre: 'Turquesa', emoji: '🩵' },
+    { color: '#F97316', nombre: 'Naranja', emoji: '🟠' },
+    { color: '#1A1035', nombre: 'Negro', emoji: '⚫' },
+];
+
+function mostrarSelectorColor(mesaId, x, y) {
+    // Remove existing
+    document.getElementById('colorPickerMesa')?.remove();
+    
+    const picker = document.createElement('div');
+    picker.id = 'colorPickerMesa';
+    picker.style.cssText = `
+        position:absolute; top:${y}px; left:${x}px; z-index:6000;
+        background:#fff; border-radius:16px; padding:16px;
+        box-shadow:0 12px 40px rgba(26,16,53,.2); border:1px solid #EEEAF2;
+        animation:titiColorIn .2s cubic-bezier(.22,1,.36,1);
+        min-width:200px;
+    `;
+    
+    const mesa = mesas.find(m => m.id === parseInt(mesaId) || m.id === mesaId);
+    const currentColor = mesa?.color || '#8B4513';
+    
+    picker.innerHTML = `
+        <div style="font-size:.78rem; font-weight:600; color:#6B6580; text-transform:uppercase; letter-spacing:.4px; margin-bottom:10px">
+            🎨 Color de ${mesa?.nombre || 'Mesa'}
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:8px">
+            ${MESA_COLORES.map(c => `
+                <button onclick="aplicarColorMesa(${mesaId}, '${c.color}')" title="${c.nombre}"
+                    style="width:36px; height:36px; border-radius:10px; border:2px solid ${c.color === currentColor ? '#1A1035' : 'transparent'};
+                    background:${c.color}; cursor:pointer; transition:all .15s; display:flex; align-items:center; justify-content:center;
+                    box-shadow:${c.color === currentColor ? '0 0 0 2px #fff, 0 0 0 4px '+c.color : 'none'}"
+                    onmouseenter="this.style.transform='scale(1.15)'" onmouseleave="this.style.transform='scale(1)'">
+                </button>
+            `).join('')}
+        </div>
+    `;
+    
+    document.body.appendChild(picker);
+    
+    // Adjust position if off screen
+    const rect = picker.getBoundingClientRect();
+    if (rect.right > window.innerWidth) picker.style.left = (x - rect.width) + 'px';
+    if (rect.bottom > window.innerHeight) picker.style.top = (y - rect.height) + 'px';
+    
+    // Close on click outside
+    setTimeout(() => {
+        document.addEventListener('click', function closePicker(e) {
+            if (!picker.contains(e.target)) {
+                picker.remove();
+                document.removeEventListener('click', closePicker);
+            }
+        });
+    }, 100);
+}
+
+window.aplicarColorMesa = function(mesaId, color) {
+    const mesa = mesas.find(m => m.id === parseInt(mesaId) || m.id === mesaId);
+    if (!mesa) return;
+    
+    mesa.color = color;
+    
+    // Update visual
+    const mesaEl = document.querySelector(`.mesa[data-id="${mesaId}"]`);
+    if (mesaEl) {
+        const grafica = mesaEl.querySelector('.mesa-grafica');
+        if (grafica) grafica.style.backgroundColor = color;
+        
+        // Update info with color dot
+        const info = mesaEl.querySelector('.mesa-info');
+        if (info) {
+            if (color !== '#8B4513') {
+                info.innerHTML = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:6px;vertical-align:middle;box-shadow:0 1px 3px rgba(0,0,0,.2)"></span>${mesa.nombre} (${mesa.sillas.length} sillas)`;
+            } else {
+                info.textContent = `${mesa.nombre} (${mesa.sillas.length} sillas)`;
+            }
+        }
+    }
+    
+    // Close picker
+    document.getElementById('colorPickerMesa')?.remove();
+    
+    // Auto-save
+    guardarConfiguracionEvento();
+    mostrarMensaje(`Color de ${mesa.nombre} actualizado`, 'success');
+};
+
 function actualizarSilla(mesaId, sillaId, invitadoId, nuevoEstado) {
     const mesa = mesas.find(m => m.id === parseInt(mesaId));
     if (!mesa) return;
@@ -1193,13 +1330,16 @@ async function guardarConfiguracionEvento() {
     const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
     const API = window.location.origin + '/api';
     
-    // Build mesas payload for API
+    // Build mesas payload for API — color stored as _meta in sillas array
     const mesasPayload = mesas.map(m => ({
         nombre: m.nombre,
         forma: m.forma || eventoActual.formaMesa || 'rectangular',
         posicion_x: 0,
         posicion_y: 0,
-        sillas: m.sillas
+        sillas: [
+            ...(m.color && m.color !== '#8B4513' ? [{ _meta: true, color: m.color }] : []),
+            ...m.sillas.filter(s => !s._meta)
+        ]
     }));
     
     try {
