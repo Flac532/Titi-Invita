@@ -3060,26 +3060,24 @@ h3,
 
 .header-actions { display:flex !important; gap:8px !important; margin-top:12px !important; }
 
-/* ── Agregar invitado botón ── */
+/* ── Agregar invitado botón — solo icono + ── */
 #addGuestBtn {
-    width:auto !important; padding:8px 14px !important;
+    width:38px !important; height:38px !important;
+    padding:0 !important;
     background:linear-gradient(135deg, var(--titi-periwinkle,#667eea), var(--titi-plum,#5B2D8E)) !important;
     color:white !important; border:none !important;
-    border-radius:8px !important;
-    font-weight:600 !important; font-size:.82rem !important;
+    border-radius:10px !important;
+    font-weight:700 !important; font-size:1.3rem !important;
     box-shadow:0 2px 8px rgba(91,45,142,.2) !important;
     margin-bottom:0 !important; text-transform:none !important; letter-spacing:0 !important;
     cursor:pointer !important; transition:all .25s !important;
-    white-space:nowrap !important;
-    min-width:0 !important;
-    max-width:120px !important;
-    overflow:hidden !important;
-    text-overflow:ellipsis !important;
-    height:38px !important;
-    line-height:1.2 !important;
+    display:flex !important; align-items:center !important; justify-content:center !important;
+    min-width:38px !important; max-width:38px !important;
+    flex-shrink:0 !important;
+    line-height:1 !important;
 }
 #addGuestBtn:hover {
-    transform:translateY(-1px) !important;
+    transform:translateY(-1px) scale(1.05) !important;
     box-shadow:0 4px 12px rgba(91,45,142,.3) !important;
 }
 
@@ -3175,7 +3173,7 @@ h3,
 }
 .form-group-invitado label::before { display:none !important; }
 .form-group-invitado label {
-    padding-left:2px !important;
+    padding-left:14px !important;
 }
 .form-buttons-invitado {
     display:flex; gap:12px; margin-top:24px; padding-top:20px;
