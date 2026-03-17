@@ -295,6 +295,9 @@
         </div>
     </div>
 
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()" title="Modo Oscuro">🌙</button>
+
     <!-- Mobile Tab Bar -->
     <div class="mobile-tabs" id="mobileTabs">
         <div class="mobile-tabs-inner">
@@ -406,6 +409,19 @@
                     }
                 }, 300);
             });
+        }
+
+        // ===== DARK MODE =====
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('titi_dark_mode', isDark ? 'on' : 'off');
+            document.getElementById('darkModeToggle').textContent = isDark ? '☀️' : '🌙';
+        }
+        // Load saved preference
+        if (localStorage.getItem('titi_dark_mode') === 'on') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeToggle').textContent = '☀️';
         }
 
         // ===== LAYOUT HELPERS =====
