@@ -24,6 +24,12 @@
     </style>
 </head>
 <body>
+    <!-- Mobile hamburger -->
+    <button class="mobile-hamburger" id="mobileHamburger" onclick="toggleMobilePanel('left')">☰</button>
+    
+    <!-- Mobile overlay -->
+    <div class="mobile-panel-overlay" id="mobilePanelOverlay" onclick="closeMobilePanels()"></div>
+    
     <main class="cliente-main">
         <!-- ===== COLUMNA 1: Selección de Evento ===== -->
         <aside class="event-panel">
@@ -289,12 +295,120 @@
         </div>
     </div>
 
+    <!-- Mobile Tab Bar -->
+    <div class="mobile-tabs" id="mobileTabs">
+        <div class="mobile-tabs-inner">
+            <button class="mobile-tab active" onclick="switchMobileTab('mesas')">
+                <span class="mobile-tab-icon">🪑</span>Mesas
+            </button>
+            <button class="mobile-tab" onclick="switchMobileTab('config')">
+                <span class="mobile-tab-icon">⚙️</span>Config
+            </button>
+            <button class="mobile-tab" onclick="switchMobileTab('guests')">
+                <span class="mobile-tab-icon">👥</span>Invitados
+            </button>
+            <button class="mobile-tab" onclick="switchMobileTab('info')">
+                <span class="mobile-tab-icon">📋</span>Evento
+            </button>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div id="messageToast" class="toast"></div>
 
     <script src="login.js"></script>
     <script src="cliente.js"></script>
     <script>
+        // ===== MOBILE PANEL LOGIC =====
+        function toggleMobilePanel(side) {
+            const leftPanel = document.querySelector('.event-panel');
+            const overlay = document.getElementById('mobilePanelOverlay');
+            if (side === 'left') {
+                leftPanel.classList.toggle('mobile-open');
+                overlay.classList.toggle('show', leftPanel.classList.contains('mobile-open'));
+            }
+        }
+        
+        function closeMobilePanels() {
+            document.querySelector('.event-panel')?.classList.remove('mobile-open');
+            document.querySelector('.right-panel')?.classList.remove('mobile-open');
+            document.getElementById('mobilePanelOverlay')?.classList.remove('show');
+        }
+        
+        function switchMobileTab(tab) {
+            // Update active tab
+            document.querySelectorAll('.mobile-tab').forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            const rightPanel = document.querySelector('.right-panel');
+            const overlay = document.getElementById('mobilePanelOverlay');
+            
+            closeMobilePanels();
+            
+            if (tab === 'config' || tab === 'guests') {
+                rightPanel.classList.add('mobile-open');
+                overlay.classList.add('show');
+                // Scroll to relevant section
+                if (tab === 'config') {
+                    rightPanel.querySelector('.config-section')?.scrollIntoView({behavior:'smooth'});
+                } else {
+                    rightPanel.querySelector('.guests-section')?.scrollIntoView({behavior:'smooth'});
+                }
+            } else if (tab === 'info') {
+                toggleMobilePanel('left');
+            }
+            // 'mesas' just closes panels and shows the main area
+        }
+
+        // ===== SEARCH HIGHLIGHT IN MESAS =====
+        const searchGuestsInput = document.getElementById('searchGuests');
+        if (searchGuestsInput) {
+            let searchTimeout;
+            searchGuestsInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const term = this.value.trim().toLowerCase();
+                
+                // Remove previous highlights
+                document.querySelectorAll('.silla.search-highlight').forEach(s => s.classList.remove('search-highlight'));
+                
+                if (term.length < 2) return;
+                
+                searchTimeout = setTimeout(() => {
+                    // Search through mesas/sillas for matching names
+                    let found = 0;
+                    if (typeof mesas !== 'undefined') {
+                        mesas.forEach(mesa => {
+                            mesa.sillas.forEach(silla => {
+                                if (silla.nombre && silla.nombre.toLowerCase().includes(term)) {
+                                    const el = document.querySelector(`.silla[data-mesa-id="${mesa.id}"][data-silla-id="${silla.id}"]`);
+                                    if (el) {
+                                        el.classList.add('search-highlight');
+                                        if (found === 0) el.scrollIntoView({ behavior:'smooth', block:'center' });
+                                        found++;
+                                    }
+                                }
+                            });
+                        });
+                    }
+                    
+                    // Also search invitados list
+                    if (typeof invitados !== 'undefined') {
+                        invitados.forEach(inv => {
+                            if (inv.nombre.toLowerCase().includes(term) && inv.idMesa) {
+                                const el = document.querySelector(`.silla[data-mesa-id="${inv.idMesa}"][data-silla-id="${inv.idSilla}"]`);
+                                if (el) {
+                                    el.classList.add('search-highlight');
+                                    if (found === 0) el.scrollIntoView({ behavior:'smooth', block:'center' });
+                                    found++;
+                                }
+                            }
+                        });
+                    }
+                }, 300);
+            });
+        }
+
+        // ===== LAYOUT HELPERS =====
         function mostrarOpcionesDisposicion() { document.getElementById('layoutModal').style.display = 'flex'; }
         function aplicarPreset(c,f,e) { document.getElementById('numColumnas').value=c; document.getElementById('numFilas').value=f; document.getElementById('espaciado').value=e; actualizarDisposicion(); cerrarModal(document.getElementById('layoutModal')); }
         function aplicarDisposicionPersonalizada() {
