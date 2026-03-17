@@ -1653,6 +1653,18 @@ function setupCleanIcons() {
         logout.style.fontSize = '1.2rem';
     }
     
+    // Back to Dashboard button — only for admin and organizador
+    const backBtn = document.getElementById('backToDashBtn');
+    const usr = JSON.parse(localStorage.getItem('titi_usuario_actual') || '{}');
+    if (backBtn && (usr.rol === 'admin' || usr.rol === 'organizador')) {
+        backBtn.style.display = 'flex';
+        backBtn.style.cssText = 'display:flex !important;width:42px;height:42px;background:linear-gradient(135deg,#667eea,#5B2D8E);color:white;border:none;border-radius:50%;font-size:1.2rem;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(91,45,142,.25);transition:all .25s;padding:0';
+        backBtn.onclick = function() {
+            if (usr.rol === 'admin') window.location.href = 'admin.html';
+            else window.location.href = 'organizador.html';
+        };
+    }
+    
     // Logo
     const logo = document.querySelector('.logo h1');
     if (logo) logo.textContent = 'Titi Invita';
