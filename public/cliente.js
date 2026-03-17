@@ -1652,10 +1652,16 @@ async function guardarEvento() {
         return;
     }
     
+    // Colaborador can only save mesas, not event details
+    if (usuario.rol === 'colaborador') {
+        await guardarConfiguracionEvento();
+        mostrarMensaje('Cambios guardados', 'success');
+        return;
+    }
+    
     const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
     const API = window.location.origin + '/api';
     
-    // Update event details via API
     try {
         const res = await fetch(API + '/eventos/' + eventoActual.id, {
             method: 'PUT',
@@ -1675,15 +1681,11 @@ async function guardarEvento() {
         });
         
         if (res.ok) {
-            // Also save mesas
             await guardarConfiguracionEvento();
-            
             eventoActual.nombre = eventNameInput.value;
             currentEventName.textContent = eventoActual.nombre;
-            
             const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
             if (option) option.textContent = eventoActual.nombre;
-            
             mostrarMensaje(`Evento "${eventoActual.nombre}" guardado`, 'success');
         } else {
             mostrarMensaje('Error al guardar evento', 'error');
