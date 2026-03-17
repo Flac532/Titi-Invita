@@ -1643,7 +1643,7 @@ function setupCleanIcons() {
     
     // Add guest button - clean icon
     const addGuest = document.getElementById('addGuestBtn');
-    if (addGuest) addGuest.innerHTML = '＋ Agregar Invitado';
+    if (addGuest) { addGuest.textContent = '+'; addGuest.title = 'Agregar Invitado'; }
     
     // Logout button - just an icon
     const logout = document.getElementById('logoutBtn');
