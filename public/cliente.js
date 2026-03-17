@@ -209,6 +209,17 @@ async function cargarEventosUsuario() {
     } else if (eventosCliente.length > 0) {
         eventSelector.value = eventosCliente[0].id;
         cargarEvento(eventosCliente[0].id);
+    } else {
+        // No events - show friendly message
+        const mesasC = document.getElementById('mesasContainer');
+        if (mesasC) {
+            mesasC.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; min-height:400px; color:#9A94A8; text-align:center; padding:40px">
+                    <div style="font-size:4rem; margin-bottom:16px; opacity:.4">🪑</div>
+                    <h3 style="font-size:1.2rem; color:#3D3558; margin-bottom:8px; font-weight:600">Sin eventos aún</h3>
+                    <p style="font-size:.9rem; max-width:300px; line-height:1.5">Todavía no tienes eventos asignados. ${usuario.rol === 'organizador' ? 'Solicita uno desde tu panel de organizador.' : usuario.rol === 'cliente' ? 'Contacta al administrador para que te cree un evento.' : 'Crea un evento desde el panel de admin.'}</p>
+                </div>`;
+        }
     }
 }
 
