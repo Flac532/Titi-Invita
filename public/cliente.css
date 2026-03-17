@@ -1170,105 +1170,139 @@ body {
     font-size: 1.2rem;
 }
 
-/* ===== RESPONSIVE OPTIMIZADO ===== */
-@media (max-width: 768px) {
-    /* 1. Cambiar grid por flex vertical */
+/* ===== RESPONSIVE — HAMBURGER MOBILE LAYOUT ===== */
+
+/* Hamburger button (hidden on desktop) */
+.mobile-hamburger {
+    display:none; position:fixed; top:12px; left:12px; z-index:5000;
+    width:44px; height:44px; border-radius:12px;
+    background:linear-gradient(135deg,#667eea,#5B2D8E);
+    color:#fff; border:none; font-size:1.4rem; cursor:pointer;
+    box-shadow:0 3px 12px rgba(91,45,142,.3);
+    align-items:center; justify-content:center;
+    transition:all .25s;
+}
+.mobile-hamburger:active { transform:scale(.92); }
+
+/* Mobile tab bar */
+.mobile-tabs {
+    display:none; position:fixed; bottom:0; left:0; right:0;
+    background:#fff; border-top:1px solid #EEEAF2;
+    z-index:5000; padding:6px 0 env(safe-area-inset-bottom, 6px);
+    box-shadow:0 -2px 12px rgba(26,16,53,.06);
+}
+.mobile-tabs-inner {
+    display:flex; justify-content:space-around; align-items:center;
+}
+.mobile-tab {
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:6px 12px; border:none; background:none; color:#9A94A8;
+    font-size:.65rem; font-weight:600; cursor:pointer; transition:color .2s;
+}
+.mobile-tab.active { color:#5B2D8E; }
+.mobile-tab-icon { font-size:1.3rem; }
+
+/* Mobile overlay for panels */
+.mobile-panel-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(26,16,53,.4); z-index:4000;
+    backdrop-filter:blur(4px);
+}
+.mobile-panel-overlay.show { display:block; }
+
+@media (max-width: 900px) {
+    /* Show mobile UI */
+    .mobile-hamburger { display:flex; }
+    .mobile-tabs { display:block; }
+
+    /* Main layout — single column */
     .cliente-main {
-        display: flex;
-        flex-direction: column;
-        height: auto;
+        display:flex !important;
+        flex-direction:column !important;
+        height:100vh;
+        overflow:hidden;
     }
-    
-    /* 2. Orden de las secciones: */
-    /* Primero: Panel de evento (logo, usuario, selector) */
+
+    /* Left panel — slide-in drawer */
     .event-panel {
-        order: 1;
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        padding: 15px;
+        position:fixed !important; top:0; left:-320px; z-index:4500;
+        width:300px !important; height:100vh !important;
+        background:#fff; overflow-y:auto;
+        transition:left .3s cubic-bezier(.22,1,.36,1);
+        box-shadow:4px 0 24px rgba(26,16,53,.15);
+        padding:60px 20px 20px !important;
+        border-right:1px solid #EEEAF2;
     }
-    
-    /* Segundo: Configuración del evento (antes parte de columna 3) */
-    .config-section {
-        order: 2;
-        width: 100%;
-        border-bottom: 1px solid var(--border-color);
-        padding: 15px;
-    }
-    
-    /* Tercero: Área de mesas (centro) */
-    .mesas-area {
-        order: 3;
-        width: 100%;
-        border-bottom: 1px solid var(--border-color);
-        min-height: 500px;
-    }
-    
-    /* Cuarto: Invitados (resto de columna 3) */
-    .guests-section {
-        order: 4;
-        width: 100%;
-        padding: 15px;
-    }
-    
-    /* 3. Reorganizar panel derecho */
+    .event-panel.mobile-open { left:0 !important; }
+
+    /* Right panel — slide-in from right */
     .right-panel {
-        display: contents; /* Hace que los hijos sean hijos directos del grid */
+        position:fixed !important; top:0; right:-420px; z-index:4500;
+        width:92vw !important; max-width:400px; height:100vh !important;
+        background:#fff; overflow-y:auto;
+        transition:right .3s cubic-bezier(.22,1,.36,1);
+        box-shadow:-4px 0 24px rgba(26,16,53,.15);
+        display:flex !important; flex-direction:column !important;
     }
-    
-    /* 4. Ajustar mesas para móvil */
+    .right-panel.mobile-open { right:0 !important; }
+
+    /* Config and guests sections stack */
+    .config-section, .guests-section {
+        max-height:none !important; width:100%;
+    }
+
+    /* Mesas area — full screen */
+    .mesas-area {
+        flex:1; width:100% !important; order:1;
+        padding-top:56px; /* space for hamburger */
+        padding-bottom:60px; /* space for tab bar */
+    }
+
     .mesas-container {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 30px !important;
-        padding: 20px !important;
+        gap:80px 60px !important;
+        padding:16px !important;
+        min-height:calc(100vh - 180px) !important;
     }
-    
-    /* 5. Ajustar tamaños */
-    .mesa-rectangular {
-        width: 160px;
-        height: 90px;
+
+    .mesas-header {
+        padding:8px 12px 8px 60px !important; /* space for hamburger */
     }
-    
-    .mesa-circular {
-        width: 120px;
-        height: 120px;
-    }
-    
-    .mesa-cuadrada {
-        width: 140px;
-        height: 140px;
-    }
-    
-    /* 6. Ajustar formularios */
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .button-group {
-        flex-direction: column;
-    }
-    
-    .disposicion-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .event-counts {
-        grid-template-columns: 1fr;
-    }
+
+    /* Smaller mesas on mobile */
+    .mesa-rectangular { width:160px; height:85px; }
+    .mesa-circular { width:110px; height:110px; }
+    .mesa-cuadrada { width:130px; height:130px; }
+    .mesa-grafica { margin-top:80px; }
+
+    .silla { width:26px; height:34px; font-size:8px; }
+    .silla:before { top:-5px; left:5px; width:16px; height:6px; }
+
+    /* Footer adjustments */
+    .mesas-footer { padding:8px 12px; font-size:.8rem; padding-bottom:68px; }
+    .legend { gap:12px; }
+
+    /* Form adjustments */
+    .form-row, .right-panel .form-row { grid-template-columns:1fr !important; }
+    .disposicion-row { grid-template-columns:1fr 1fr 1fr !important; }
 }
 
-/* Móvil pequeño: 1 columna de mesas */
 @media (max-width: 480px) {
-    .mesas-container {
-        grid-template-columns: 1fr !important;
-        gap: 35px !important;
-    }
-    
-    .mesa {
-        max-width: 200px;
-        margin: 0 auto;
-    }
+    .mesa-rectangular { width:140px; height:75px; }
+    .mesa-circular { width:100px; height:100px; }
+    .mesa-cuadrada { width:120px; height:120px; }
+    .silla { width:22px; height:30px; font-size:7px; }
+}
+
+/* ===== SEARCH HIGHLIGHT ===== */
+.silla.search-highlight {
+    animation:sillaHighlight 1.5s ease infinite !important;
+    z-index:10 !important;
+    filter:brightness(1.3) !important;
+    transform:scale(1.25) !important;
+}
+@keyframes sillaHighlight {
+    0%,100% { box-shadow:0 0 0 3px rgba(102,126,234,.6); }
+    50% { box-shadow:0 0 0 8px rgba(102,126,234,.3); }
 }
 
 /* ===== ANULAR MODO OSCURO ===== */
