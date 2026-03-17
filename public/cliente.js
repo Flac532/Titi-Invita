@@ -502,19 +502,35 @@ function crearMesaVisual(mesa) {
     // Color de mesa (default: marrón original)
     const mesaColor = mesa.color || '#8B4513';
     
-    // Información de la mesa (editable)
+    // Info bar with name + color button
     const mesaInfo = document.createElement('div');
     mesaInfo.className = 'mesa-info';
-    mesaInfo.textContent = `${mesa.nombre} (${mesa.sillas.length} sillas)`;
+    mesaInfo.style.display = 'flex';
+    mesaInfo.style.alignItems = 'center';
+    mesaInfo.style.justifyContent = 'center';
+    mesaInfo.style.gap = '6px';
     
-    // Color indicator dot
-    if (mesa.color && mesa.color !== '#8B4513') {
-        mesaInfo.innerHTML = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${mesa.color};margin-right:6px;vertical-align:middle;box-shadow:0 1px 3px rgba(0,0,0,.2)"></span>${mesa.nombre} (${mesa.sillas.length} sillas)`;
-    }
+    // Color button (small circle)
+    const colorBtn = document.createElement('button');
+    colorBtn.className = 'mesa-color-btn';
+    colorBtn.style.cssText = `width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:${mesaColor};cursor:pointer;flex-shrink:0;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);padding:0;outline:none`;
+    colorBtn.title = 'Cambiar color';
+    colorBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const rect = colorBtn.getBoundingClientRect();
+        mostrarSelectorColor(mesa.id, rect.left, rect.bottom + 8 + window.scrollY);
+    });
     
-    mesaInfo.addEventListener('click', function() {
+    // Name text (clickable to edit)
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = `${mesa.nombre} (${mesa.sillas.length} sillas)`;
+    nameSpan.style.cursor = 'pointer';
+    nameSpan.addEventListener('click', function() {
         editarNombreMesa(mesa.id, mesaInfo);
     });
+    
+    mesaInfo.appendChild(colorBtn);
+    mesaInfo.appendChild(nameSpan);
     mesaElement.appendChild(mesaInfo);
     
     // Representación gráfica de la mesa
@@ -522,24 +538,6 @@ function crearMesaVisual(mesa) {
     mesaGrafica.className = `mesa-grafica mesa-${mesa.forma}`;
     mesaGrafica.textContent = mesa.nombre;
     mesaGrafica.style.backgroundColor = mesaColor;
-    
-    // Right-click or long-press to change color
-    mesaGrafica.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        mostrarSelectorColor(mesa.id, e.pageX, e.pageY);
-    });
-    
-    // Long press for mobile
-    let longPressTimer;
-    mesaGrafica.addEventListener('touchstart', function(e) {
-        longPressTimer = setTimeout(() => {
-            const touch = e.touches[0];
-            mostrarSelectorColor(mesa.id, touch.pageX, touch.pageY);
-        }, 600);
-    });
-    mesaGrafica.addEventListener('touchend', () => clearTimeout(longPressTimer));
-    mesaGrafica.addEventListener('touchmove', () => clearTimeout(longPressTimer));
-    
     mesaElement.appendChild(mesaGrafica);
     
     // Contenedor para las sillas
@@ -1237,15 +1235,9 @@ window.aplicarColorMesa = function(mesaId, color) {
         const grafica = mesaEl.querySelector('.mesa-grafica');
         if (grafica) grafica.style.backgroundColor = color;
         
-        // Update info with color dot
-        const info = mesaEl.querySelector('.mesa-info');
-        if (info) {
-            if (color !== '#8B4513') {
-                info.innerHTML = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${color};margin-right:6px;vertical-align:middle;box-shadow:0 1px 3px rgba(0,0,0,.2)"></span>${mesa.nombre} (${mesa.sillas.length} sillas)`;
-            } else {
-                info.textContent = `${mesa.nombre} (${mesa.sillas.length} sillas)`;
-            }
-        }
+        // Update color button
+        const colorBtn = mesaEl.querySelector('.mesa-color-btn');
+        if (colorBtn) colorBtn.style.background = color;
     }
     
     // Close picker
@@ -1993,3 +1985,123 @@ setTimeout(setupCleanIcons, 100);
 setTimeout(setupCleanIcons, 500);
 document.addEventListener('DOMContentLoaded', setupCleanIcons);
 window.addEventListener('load', setupCleanIcons);
+
+// ===== VISTA PREVIA / IMPRESIÓN =====
+window.abrirVistaPrevia = function() {
+    if (!eventoActual || mesas.length === 0) {
+        mostrarMensaje('No hay mesas para mostrar', 'error');
+        return;
+    }
+    
+    const evento = eventoActual;
+    const fechaStr = evento.fecha ? new Date(evento.fecha + 'T00:00').toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' }) : '';
+    
+    // Count stats
+    let totalSillas = 0, ocupadas = 0, confirmadas = 0;
+    mesas.forEach(m => {
+        m.sillas.filter(s => !s._meta).forEach(s => {
+            totalSillas++;
+            if (s.estado === 'asignado' || s.estado === 'confirmado') ocupadas++;
+            if (s.estado === 'confirmado') confirmadas++;
+        });
+    });
+    
+    // Build mesa cards
+    const mesasHTML = mesas.map(mesa => {
+        const color = mesa.color || '#8B4513';
+        const sillasReales = mesa.sillas.filter(s => !s._meta);
+        const asignadas = sillasReales.filter(s => s.estado !== 'sin-asignar').length;
+        
+        const sillasListHTML = sillasReales.map(s => {
+            const bgColor = s.estado === 'confirmado' ? '#E6F9F0' : s.estado === 'asignado' ? '#FFF0EF' : '#F9F8FB';
+            const dotColor = s.estado === 'confirmado' ? '#2CB67D' : s.estado === 'asignado' ? '#E5534B' : '#D4D0DC';
+            const nombre = s.nombre || '—';
+            return `<div style="display:flex;align-items:center;gap:8px;padding:5px 10px;background:${bgColor};border-radius:6px;font-size:.82rem">
+                <span style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0"></span>
+                <span style="color:#3D3558;font-weight:${s.nombre ? '600' : '400'}">${s.id}. ${nombre}</span>
+            </div>`;
+        }).join('');
+        
+        return `
+            <div style="break-inside:avoid;background:#fff;border-radius:12px;border:1px solid #EEEAF2;overflow:hidden;margin-bottom:16px">
+                <div style="padding:12px 16px;background:${color};color:#fff;display:flex;justify-content:space-between;align-items:center">
+                    <strong style="font-size:.95rem">${mesa.nombre}</strong>
+                    <span style="font-size:.78rem;opacity:.8">${asignadas}/${sillasReales.length} asignadas</span>
+                </div>
+                <div style="padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:4px">
+                    ${sillasListHTML}
+                </div>
+            </div>`;
+    }).join('');
+    
+    // Open print window
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${evento.nombre} — Vista Previa</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'DM Sans',system-ui,sans-serif; color:#3D3558; background:#F9F8FB; }
+        @media print {
+            body { background:#fff; }
+            .no-print { display:none !important; }
+            .print-container { padding:0; }
+        }
+        .print-container { max-width:900px; margin:0 auto; padding:32px 24px; }
+        .header { text-align:center; margin-bottom:32px; padding-bottom:24px; border-bottom:2px solid #EEEAF2; }
+        .header h1 { font-family:'Playfair Display',serif; font-size:2rem; color:#1A1035; margin-bottom:4px; }
+        .header p { color:#9A94A8; font-size:.92rem; }
+        .stats { display:flex; justify-content:center; gap:32px; margin:20px 0; }
+        .stat { text-align:center; }
+        .stat-num { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:#5B2D8E; }
+        .stat-label { font-size:.75rem; color:#9A94A8; text-transform:uppercase; letter-spacing:.5px; }
+        .legend { display:flex; justify-content:center; gap:20px; margin:16px 0 28px; font-size:.82rem; }
+        .legend-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+        .mesas-grid { column-count:2; column-gap:16px; }
+        @media (max-width:600px) { .mesas-grid { column-count:1; } }
+        .print-btn { display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:linear-gradient(135deg,#667eea,#5B2D8E); color:#fff; border:none; border-radius:50px; font-size:.95rem; font-weight:600; cursor:pointer; margin:0 8px; }
+        .print-btn:hover { opacity:.9; }
+        .print-btn.secondary { background:#EEEAF2; color:#3D3558; }
+        .footer { text-align:center; margin-top:24px; padding-top:16px; border-top:1px solid #EEEAF2; color:#9A94A8; font-size:.78rem; }
+    </style>
+</head>
+<body>
+    <div class="print-container">
+        <div class="no-print" style="text-align:center;margin-bottom:24px">
+            <button class="print-btn" onclick="window.print()">🖨️ Imprimir</button>
+            <button class="print-btn secondary" onclick="window.close()">✕ Cerrar</button>
+        </div>
+        
+        <div class="header">
+            <h1>${evento.nombre}</h1>
+            <p>${fechaStr}${evento.hora ? ' · ' + evento.hora : ''}${evento.ubicacion ? ' · ' + evento.ubicacion : ''}</p>
+            
+            <div class="stats">
+                <div class="stat"><div class="stat-num">${mesas.length}</div><div class="stat-label">Mesas</div></div>
+                <div class="stat"><div class="stat-num">${totalSillas}</div><div class="stat-label">Sillas</div></div>
+                <div class="stat"><div class="stat-num">${ocupadas}</div><div class="stat-label">Asignadas</div></div>
+                <div class="stat"><div class="stat-num">${confirmadas}</div><div class="stat-label">Confirmadas</div></div>
+                <div class="stat"><div class="stat-num">${Math.round((ocupadas/totalSillas)*100)}%</div><div class="stat-label">Ocupación</div></div>
+            </div>
+            
+            <div class="legend">
+                <span><span class="legend-dot" style="background:#D4D0DC"></span>Sin asignar</span>
+                <span><span class="legend-dot" style="background:#E5534B"></span>Asignado</span>
+                <span><span class="legend-dot" style="background:#2CB67D"></span>Confirmado</span>
+            </div>
+        </div>
+        
+        <div class="mesas-grid">${mesasHTML}</div>
+        
+        <div class="footer">
+            ${evento.nombre} — Generado por Titi Invita · ${new Date().toLocaleDateString('es-MX')}
+        </div>
+    </div>
+</body>
+</html>`);
+    printWindow.document.close();
+};
