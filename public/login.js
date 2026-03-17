@@ -132,7 +132,7 @@ function redireccionarPorRol(usuario) {
         } else if (usuario.rol === 'cliente') {
             window.location.href = 'cliente.html';
         } else if (usuario.rol === 'colaborador') {
-            window.location.href = 'colaborador.html';
+            window.location.href = 'cliente.html';
         } else {
             window.location.href = 'index.html';
         }
