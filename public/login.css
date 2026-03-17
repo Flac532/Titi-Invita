@@ -214,3 +214,25 @@
     .split-right { padding:32px 20px 48px; }
     .toast { left:14px; right:14px; bottom:14px; }
 }
+
+/* ===== DARK MODE — LOGIN ===== */
+body.dark-mode .split-right { background:#0F0A1A !important; }
+body.dark-mode .login-welcome { color:#E8E4EF !important; }
+body.dark-mode .login-sub { color:#9A94A8 !important; }
+body.dark-mode .field label { color:#9A94A8 !important; }
+body.dark-mode .field input { color:#E8E4EF !important; border-bottom-color:#2E2545 !important; }
+body.dark-mode .field input::placeholder { color:#6B6580 !important; }
+body.dark-mode .field input:focus { border-bottom-color:#8B6BB5 !important; }
+body.dark-mode .chk { color:#9A94A8 !important; }
+body.dark-mode .forgot-link { color:#8B6BB5 !important; }
+body.dark-mode .creds-box { background:#1A1330 !important; border-color:#2E2545 !important; }
+body.dark-mode .creds-title { color:#8B6BB5 !important; }
+body.dark-mode .creds-row:hover { background:#221B35 !important; }
+body.dark-mode .creds-email { color:#9A94A8 !important; }
+body.dark-mode .creds-pw { color:#6B6580 !important; }
+body.dark-mode .creds-pw strong { color:#E8E4EF !important; }
+body.dark-mode .back-link { color:#9A94A8 !important; }
+body.dark-mode .modal-forgot-box { background:#1A1330 !important; color:#E8E4EF !important; }
+body.dark-mode .modal-forgot-box h4 { color:#E8E4EF !important; }
+body.dark-mode .modal-forgot-box .field input { border-bottom-color:#2E2545 !important; color:#E8E4EF !important; }
+body.dark-mode .btn-forgot-cancel { background:#221B35 !important; border-color:#2E2545 !important; color:#9A94A8 !important; }
