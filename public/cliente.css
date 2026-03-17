@@ -1394,6 +1394,105 @@ body.dark-mode .mobile-tab.active { color:#E8A838 !important; }
 
 /* Silla text in dark mode */
 body.dark-mode .silla { color:#fff !important; }
+
+/* ── Additional dark mode coverage ── */
+
+/* Event panel card info */
+body.dark-mode .event-current-info,
+body.dark-mode .event-card-wrapper { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .event-current-info h3, body.dark-mode .event-current-info p { color:var(--dm-text) !important; }
+body.dark-mode #currentEventName { color:var(--dm-text) !important; }
+body.dark-mode #currentEventDate, body.dark-mode #currentEventStatus { color:var(--dm-text-muted) !important; }
+body.dark-mode #currentEventStatus span { color:#2CB67D !important; }
+
+/* User card */
+body.dark-mode .user-card-main, body.dark-mode .user-info-card { background:linear-gradient(135deg,#221B35,#1A1330) !important; }
+body.dark-mode .user-info-card h3 { color:var(--dm-text) !important; }
+body.dark-mode .user-info-card p, body.dark-mode .user-info-card span:not(.role-badge) { color:var(--dm-text-muted) !important; }
+
+/* Event limit badge */
+body.dark-mode .event-limit-info { background:rgba(229,83,75,.15) !important; }
+
+/* Section titles */
+body.dark-mode .section-header, body.dark-mode .section-title-bar { color:var(--dm-text) !important; }
+body.dark-mode .config-section h3, body.dark-mode .guests-section h3 { color:var(--dm-text) !important; }
+
+/* Form labels & all text */
+body.dark-mode .form-label, body.dark-mode .form-group label, body.dark-mode label { color:var(--dm-text-muted) !important; }
+body.dark-mode .form-row label { color:var(--dm-text-muted) !important; }
+
+/* Select dropdown */
+body.dark-mode select option { background:var(--dm-surface) !important; color:var(--dm-text) !important; }
+
+/* Buttons - action buttons */
+body.dark-mode .btn-primary, body.dark-mode .btn-success { color:#fff !important; }
+body.dark-mode .btn-cancel-invitado { background:var(--dm-card) !important; color:var(--dm-text-muted) !important; }
+
+/* Guest search */
+body.dark-mode #guestSearch, body.dark-mode .guest-search input { background:var(--dm-input-bg) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+body.dark-mode #guestFilter { background:var(--dm-input-bg) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+
+/* Invitado info section */
+body.dark-mode .invitado-detalle, body.dark-mode .guest-detail-card { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .guest-detail-card h4, body.dark-mode .guest-detail-card p { color:var(--dm-text) !important; }
+
+/* Vista rapida */
+body.dark-mode .quick-view, body.dark-mode .vista-rapida { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .quick-view h3 { color:var(--dm-text) !important; }
+
+/* Stats bar */
+body.dark-mode .stat-item, body.dark-mode .ocupacion-stat { color:var(--dm-text) !important; }
+body.dark-mode .ocupacion-bar-bg { background:var(--dm-border) !important; }
+
+/* Checkboxes area */
+body.dark-mode .checkbox-row label, body.dark-mode .checkbox-group label { color:var(--dm-text-muted) !important; }
+
+/* Mesa info bar */
+body.dark-mode .mesa-info { background:rgba(34,27,53,.9) !important; color:var(--dm-text) !important; }
+
+/* Search box */
+body.dark-mode .search-box { background:var(--dm-surface) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .search-box input, body.dark-mode #searchGuests { background:transparent !important; color:var(--dm-text) !important; }
+
+/* Color picker popup */
+body.dark-mode #colorPickerMesa { background:var(--dm-surface) !important; border-color:var(--dm-border) !important; }
+body.dark-mode #colorPickerMesa div:first-child { color:var(--dm-text-muted) !important; }
+
+/* Modals (agregar invitado, silla, etc) */
+body.dark-mode .modal-invitado, body.dark-mode .modal-add-invitado { background:rgba(15,10,26,.8) !important; }
+body.dark-mode .modal-invitado-content, body.dark-mode .modal-add-content { background:var(--dm-surface) !important; color:var(--dm-text) !important; }
+body.dark-mode .modal-invitado-header { background:linear-gradient(135deg,#5B2D8E,#3E1D63) !important; }
+body.dark-mode .modal-invitado-body input, body.dark-mode .modal-invitado-body select { background:var(--dm-input-bg) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+body.dark-mode .modal-invitado-body label { color:var(--dm-text-muted) !important; }
+
+/* Silla modal */  
+body.dark-mode .silla-modal-content { background:var(--dm-surface) !important; color:var(--dm-text) !important; }
+body.dark-mode .silla-modal-content h3, body.dark-mode .silla-modal-content p { color:var(--dm-text) !important; }
+body.dark-mode .silla-modal-content select { background:var(--dm-input-bg) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+
+/* Custom modals (showClienteModal) */
+body.dark-mode #clienteModalOverlay > div { background:var(--dm-surface) !important; }
+body.dark-mode #clienteModalOverlay h3 { color:var(--dm-text) !important; }
+body.dark-mode #clienteModalOverlay p { color:var(--dm-text-muted) !important; }
+body.dark-mode #clienteModalCancel { background:var(--dm-card) !important; color:var(--dm-text-muted) !important; }
+
+/* Toast */
+body.dark-mode .toast-custom { box-shadow:0 4px 16px rgba(0,0,0,.4) !important; }
+
+/* Back to dashboard button stays visible */
+body.dark-mode #backToDashBtn { opacity:1 !important; }
+
+/* Hamburger in dark mode */
+body.dark-mode .mobile-hamburger { background:linear-gradient(135deg,#E8A838,#D4922A) !important; }
+
+/* Event selector */
+body.dark-mode #eventSelector { background:var(--dm-input-bg) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+
+/* All remaining white backgrounds */
+body.dark-mode div[style*="background:#fff"], body.dark-mode div[style*="background: #fff"],
+body.dark-mode div[style*="background:white"], body.dark-mode div[style*="background: white"] {
+    background:var(--dm-card) !important;
+}
 /* ===== SOLO CERRAR SESIÓN - NO TOCAR NADA MÁS ===== */
 
 .modal-logout {
