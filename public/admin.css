@@ -409,3 +409,72 @@
     .page { padding:20px; }
     .user-row { grid-template-columns:40px 1fr 100px 80px; }
 }
+
+/* ============================================
+   CUSTOM CONFIRM/ALERT MODALS
+   ============================================ */
+.titi-alert-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(26,16,53,.5); backdrop-filter:blur(6px);
+    z-index:20000; align-items:center; justify-content:center;
+}
+.titi-alert-overlay.show { display:flex; }
+
+.titi-alert-box {
+    background:var(--titi-white,#fff); border-radius:24px;
+    padding:0; max-width:420px; width:90%;
+    box-shadow:0 24px 64px rgba(26,16,53,.2);
+    animation:titiAlertIn .35s cubic-bezier(.22,1,.36,1);
+    overflow:hidden;
+}
+@keyframes titiAlertIn { from{opacity:0;transform:scale(.92) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+
+.titi-alert-icon {
+    width:100%; padding:32px 0 20px; text-align:center;
+}
+.titi-alert-icon .icon-circle {
+    width:72px; height:72px; border-radius:50%;
+    margin:0 auto; display:flex; align-items:center; justify-content:center;
+    font-size:2rem;
+}
+.titi-alert-icon .icon-circle.success { background:linear-gradient(135deg,#2CB67D,#1F9D6A); color:#fff; }
+.titi-alert-icon .icon-circle.danger  { background:linear-gradient(135deg,#E5534B,#C23B33); color:#fff; }
+.titi-alert-icon .icon-circle.info    { background:linear-gradient(135deg,#667eea,#5B2D8E); color:#fff; }
+.titi-alert-icon .icon-circle.warning { background:linear-gradient(135deg,#E8A838,#D4922A); color:#fff; }
+
+.titi-alert-body { padding:0 32px 8px; text-align:center; }
+.titi-alert-body h3 {
+    font-family:var(--font-display,'Playfair Display',serif) !important;
+    font-size:1.35rem; color:var(--titi-ink,#1A1035); margin:0 0 8px;
+}
+.titi-alert-body p { color:var(--titi-slate,#6B6580); font-size:.92rem; margin:0 0 12px; line-height:1.5; }
+
+.titi-alert-input {
+    width:100%; padding:12px 14px; border:1.5px solid var(--titi-mist,#D4D0DC);
+    border-radius:10px; font-size:.92rem; margin-top:8px;
+    transition:border-color .2s;
+}
+.titi-alert-input:focus { outline:none; border-color:var(--titi-lavender,#8B6BB5); box-shadow:0 0 0 3px rgba(91,45,142,.08); }
+
+.titi-alert-footer { padding:16px 32px 28px; display:flex; gap:12px; }
+.titi-alert-footer button {
+    flex:1; padding:13px; border:none; border-radius:12px;
+    font-weight:600; font-size:.92rem; cursor:pointer; transition:all .2s;
+}
+.titi-alert-footer .btn-cancel {
+    background:var(--titi-fog,#EEEAF2); color:var(--titi-charcoal,#3D3558);
+}
+.titi-alert-footer .btn-cancel:hover { background:var(--titi-mist,#D4D0DC); }
+.titi-alert-footer .btn-ok-success {
+    background:linear-gradient(135deg,#2CB67D,#1F9D6A); color:#fff;
+    box-shadow:0 3px 10px rgba(44,182,125,.25);
+}
+.titi-alert-footer .btn-ok-danger {
+    background:linear-gradient(135deg,#E5534B,#C23B33); color:#fff;
+    box-shadow:0 3px 10px rgba(229,83,75,.25);
+}
+.titi-alert-footer .btn-ok-primary {
+    background:linear-gradient(135deg,#667eea,#5B2D8E); color:#fff;
+    box-shadow:0 3px 10px rgba(91,45,142,.25);
+}
+.titi-alert-footer button:hover { transform:translateY(-1px); }
