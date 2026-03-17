@@ -3297,3 +3297,14 @@ h3 { font-family:var(--font-body,'DM Sans',sans-serif) !important; font-weight:6
 
 /* ── Logout icon emoji ── */
 .logout-icon { font-size:2rem; line-height:1; }
+
+/* ── Color picker animation ── */
+@keyframes titiColorIn {
+    from { opacity:0; transform:scale(.9) translateY(-8px); }
+    to { opacity:1; transform:scale(1) translateY(0); }
+}
+
+/* ── Mesa color indicator in info bar ── */
+.mesa-info span[style*="border-radius:50%"] {
+    flex-shrink:0;
+}
