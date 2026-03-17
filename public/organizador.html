@@ -30,6 +30,32 @@
             const initials = currentUser.nombre.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
             document.getElementById('sidebarUserInitials').textContent = initials;
             cargarMisEventos();
+            
+            // Notification polling — check for approved/rejected events every 30s
+            setInterval(async () => {
+                try {
+                    const tk = obtenerToken();
+                    const res = await fetch(API_BASE + '/mis-eventos', { headers:{'Authorization':'Bearer '+tk} });
+                    const data = await res.json();
+                    const evts = Array.isArray(data) ? data : [];
+                    
+                    const nuevosActivos = evts.filter(e => e.estado === 'activo').length;
+                    const actualesActivos = eventos.filter(e => e.estado === 'activo').length;
+                    const nuevosCancelados = evts.filter(e => e.estado === 'cancelado').length;
+                    const actualesCancelados = eventos.filter(e => e.estado === 'cancelado').length;
+                    
+                    if (nuevosActivos > actualesActivos) {
+                        showTitiSuccess({ icon:'🎉', iconType:'success', title:'¡Evento Aprobado!', message:'El administrador aprobó tu solicitud. Ya puedes configurar tu evento.' });
+                        eventos = evts;
+                        renderizarEventos(); actualizarEstadisticas(); renderDashboardEventos();
+                    } else if (nuevosCancelados > actualesCancelados) {
+                        const rechazado = evts.find(e => e.estado === 'cancelado' && !eventos.find(x => x.id === e.id && x.estado === 'cancelado'));
+                        showTitiSuccess({ icon:'😔', iconType:'danger', title:'Solicitud Rechazada', message: rechazado?.motivo_rechazo || 'Tu solicitud fue rechazada por el administrador.' });
+                        eventos = evts;
+                        renderizarEventos(); actualizarEstadisticas(); renderDashboardEventos();
+                    }
+                } catch(e) {}
+            }, 30000);
         });
 
         function showPage(page) {
