@@ -945,9 +945,8 @@ function configurarEventListeners() {
         }
     });
     
-    // Botón guardar evento — HIDDEN (auto-save handles it)
+    // Botón guardar evento
     btnGuardarEvento.addEventListener('click', function() { guardarEvento(); });
-    if (btnGuardarEvento) btnGuardarEvento.style.display = 'none';
     
     // Botón finalizar evento
     if (btnFinalizarEvento) {
