@@ -285,22 +285,27 @@ async function cargarEventosUsuario() {
         eventSelector.value = eventosCliente[0].id;
         cargarEvento(eventosCliente[0].id);
     } else {
-        // No events - show friendly message with create button for clients
+        // No events - show friendly message with create/solicitar button per role
         const mesasC = document.getElementById('mesasContainer');
         if (mesasC) {
             const esCliente = usuario.rol === 'cliente';
+            const esOrganizador = usuario.rol === 'organizador';
+            
+            let botonHTML = '';
+            if (esCliente) {
+                botonHTML = `<button onclick="mostrarFormCrearPrimerEvento()" style="padding:14px 32px; background:linear-gradient(135deg,#667eea,#5B2D8E); color:#fff; border:none; border-radius:50px; font-size:1rem; font-weight:600; cursor:pointer; box-shadow:0 4px 16px rgba(91,45,142,.3); transition:all .25s">＋ Crear Mi Evento</button>`;
+            } else if (esOrganizador) {
+                botonHTML = `<button onclick="window.location.href='organizador.html'" style="padding:14px 32px; background:linear-gradient(135deg,#E8A838,#D4922A); color:#fff; border:none; border-radius:50px; font-size:1rem; font-weight:600; cursor:pointer; box-shadow:0 4px 16px rgba(232,168,56,.3); transition:all .25s">📨 Solicitar Evento</button>`;
+            }
+            
             mesasC.innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; min-height:400px; color:#9A94A8; text-align:center; padding:40px">
                     <div style="font-size:4rem; margin-bottom:16px; opacity:.4">🪑</div>
                     <h3 style="font-size:1.2rem; color:#3D3558; margin-bottom:8px; font-weight:600">Sin eventos aún</h3>
                     <p style="font-size:.9rem; max-width:320px; line-height:1.5; margin-bottom:24px">
-                        ${esCliente ? 'Crea tu primer evento para empezar a organizar mesas e invitados.' : usuario.rol === 'organizador' ? 'Solicita un evento desde tu panel de organizador.' : 'Crea un evento desde el panel de admin.'}
+                        ${esCliente ? 'Crea tu primer evento para empezar a organizar mesas e invitados.' : esOrganizador ? 'Solicita un evento nuevo desde tu panel de organizador.' : usuario.rol === 'colaborador' ? 'Aún no tienes un evento asignado. Contacta a tu organizador.' : 'Crea un evento desde el panel de admin.'}
                     </p>
-                    ${esCliente ? `
-                        <button onclick="mostrarFormCrearPrimerEvento()" style="padding:14px 32px; background:linear-gradient(135deg,#667eea,#5B2D8E); color:#fff; border:none; border-radius:50px; font-size:1rem; font-weight:600; cursor:pointer; box-shadow:0 4px 16px rgba(91,45,142,.3); transition:all .25s">
-                            ＋ Crear Mi Evento
-                        </button>
-                    ` : ''}
+                    ${botonHTML}
                 </div>`;
         }
     }
@@ -842,30 +847,78 @@ function crearNuevoEvento() {
 
 // 9. Finalizar evento
 function finalizarEvento() {
-    if (!eventoActual) {
-        mostrarMensaje('No hay evento seleccionado', 'error');
-        return;
-    }
+    if (!eventoActual) { mostrarMensaje('No hay evento seleccionado', 'error'); return; }
     
-    if (confirm(`¿Estás seguro de finalizar el evento "${eventoActual.nombre}"? Esto cambiará su estado a "completado".`)) {
-        eventoActual.estado = 'completado';
-        
-        // Actualizar selector
-        const option = eventSelector.querySelector(`option[value="${eventoActual.id}"]`);
-        if (option) {
-            option.textContent = eventoActual.nombre + ' (Completado)';
+    showClienteModal({
+        icon: '🗑️', iconType: 'danger',
+        title: '¿Eliminar Evento?',
+        message: `Se eliminará <b>"${eventoActual.nombre}"</b> junto con todas sus mesas, sillas e invitados. Esta acción no se puede deshacer.`,
+        confirmText: '🗑️ Eliminar Evento', confirmClass: 'danger',
+        onConfirm: async () => {
+            try {
+                const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+                const API = window.location.origin + '/api';
+                const res = await fetch(API + '/eventos/' + eventoActual.id, { method:'DELETE', headers:{'Authorization':'Bearer '+token} });
+                if (res.ok) {
+                    showClienteAlert({ icon:'✓', iconType:'success', title:'Evento Eliminado', message:`"${eventoActual.nombre}" fue eliminado correctamente.` });
+                    setTimeout(() => { cargarEventosUsuario(); }, 1500);
+                } else {
+                    showClienteAlert({ icon:'⚠️', iconType:'danger', title:'Error', message:'No se pudo eliminar el evento.' });
+                }
+            } catch(e) { showClienteAlert({ icon:'⚠️', iconType:'danger', title:'Error', message:'Error de conexión.' }); }
         }
-        
-        // Actualizar estadísticas
-        actualizarEstadisticasEventos();
-        
-        // Si es cliente y finaliza su único evento, habilitar crear nuevo
-        if (limiteEventos === 1) {
-            verificarLimiteEventos();
-        }
-        
-        mostrarMensaje(`Evento "${eventoActual.nombre}" finalizado`, 'success');
-    }
+    });
+}
+
+// ===== CUSTOM MODAL SYSTEM FOR CLIENTE =====
+function showClienteModal({ icon, iconType, title, message, confirmText, confirmClass, onConfirm }) {
+    document.getElementById('clienteModalOverlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'clienteModalOverlay';
+    overlay.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(26,16,53,.5);backdrop-filter:blur(6px);z-index:20000;align-items:center;justify-content:center';
+    
+    const btnColor = confirmClass === 'danger' ? 'background:linear-gradient(135deg,#E5534B,#C23B33)' : 'background:linear-gradient(135deg,#667eea,#5B2D8E)';
+    
+    overlay.innerHTML = `
+        <div style="background:#fff;border-radius:24px;max-width:420px;width:90%;overflow:hidden;box-shadow:0 24px 64px rgba(26,16,53,.2);animation:clienteModalIn .3s cubic-bezier(.22,1,.36,1)">
+            <div style="text-align:center;padding:32px 32px 0">
+                <div style="width:72px;height:72px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:2rem;
+                    ${iconType === 'danger' ? 'background:linear-gradient(135deg,#E5534B,#C23B33);color:#fff' : iconType === 'success' ? 'background:linear-gradient(135deg,#2CB67D,#1F9D6A);color:#fff' : 'background:linear-gradient(135deg,#667eea,#5B2D8E);color:#fff'}">
+                    ${icon}
+                </div>
+                <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#1A1035;margin:0 0 8px">${title}</h3>
+                <p style="color:#6B6580;font-size:.9rem;line-height:1.5;margin:0">${message}</p>
+            </div>
+            <div style="display:flex;gap:12px;padding:24px 32px 28px">
+                <button id="clienteModalCancel" style="flex:1;padding:13px;border:none;border-radius:12px;background:#EEEAF2;color:#3D3558;font-weight:600;font-size:.92rem;cursor:pointer">Cancelar</button>
+                <button id="clienteModalOk" style="flex:1;padding:13px;border:none;border-radius:12px;${btnColor};color:#fff;font-weight:600;font-size:.92rem;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.15)">${confirmText}</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#clienteModalCancel').onclick = () => overlay.remove();
+    overlay.querySelector('#clienteModalOk').onclick = () => { overlay.remove(); if(onConfirm) onConfirm(); };
+    overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
+}
+
+function showClienteAlert({ icon, iconType, title, message }) {
+    document.getElementById('clienteModalOverlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'clienteModalOverlay';
+    overlay.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(26,16,53,.5);backdrop-filter:blur(6px);z-index:20000;align-items:center;justify-content:center';
+    overlay.innerHTML = `
+        <div style="background:#fff;border-radius:24px;max-width:400px;width:90%;overflow:hidden;box-shadow:0 24px 64px rgba(26,16,53,.2);animation:clienteModalIn .3s cubic-bezier(.22,1,.36,1)">
+            <div style="text-align:center;padding:32px">
+                <div style="width:72px;height:72px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:2rem;
+                    ${iconType === 'danger' ? 'background:linear-gradient(135deg,#E5534B,#C23B33);color:#fff' : 'background:linear-gradient(135deg,#2CB67D,#1F9D6A);color:#fff'}">
+                    ${icon}
+                </div>
+                <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#1A1035;margin:0 0 8px">${title}</h3>
+                <p style="color:#6B6580;font-size:.9rem;line-height:1.5;margin:0 0 20px">${message}</p>
+                <button onclick="this.closest('#clienteModalOverlay').remove()" style="padding:12px 32px;border:none;border-radius:12px;background:linear-gradient(135deg,#667eea,#5B2D8E);color:#fff;font-weight:600;cursor:pointer;font-size:.92rem">Entendido</button>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 5000);
 }
 
 // 10. Configurar event listeners
@@ -877,13 +930,24 @@ function configurarEventListeners() {
         }
     });
     
-    // Botón crear mesas
-    btnCrearMesas.addEventListener('click', crearMesas);
-    
-    // Botón guardar evento
-    btnGuardarEvento.addEventListener('click', function() {
-        guardarEvento();
+    // Botón crear mesas — with warning
+    btnCrearMesas.addEventListener('click', function() {
+        if (mesas.length > 0) {
+            showClienteModal({
+                icon: '⚠️', iconType: 'warning',
+                title: '¿Actualizar Mesas?',
+                message: 'Se borrarán <b>todas las mesas actuales</b>, los invitados asignados y los colores. Se crearán mesas nuevas con la configuración actual.',
+                confirmText: '↻ Sí, Actualizar', confirmClass: 'primary',
+                onConfirm: () => { crearMesas(); }
+            });
+        } else {
+            crearMesas();
+        }
     });
+    
+    // Botón guardar evento — HIDDEN (auto-save handles it)
+    btnGuardarEvento.addEventListener('click', function() { guardarEvento(); });
+    if (btnGuardarEvento) btnGuardarEvento.style.display = 'none';
     
     // Botón finalizar evento
     if (btnFinalizarEvento) {
