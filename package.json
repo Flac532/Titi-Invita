@@ -1,10 +1,14 @@
 {
   "name": "titi-invita-backend",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "migrate": "node migrate.js"
+    "dev": "node server.js",
+    "db:test": "node test-db.js",
+    "db:init": "node init-db.js",
+    "db:seed": "node seed-db.js",
+    "db:reset": "node reset-db.js"
   },
   "dependencies": {
     "express": "^4.18.2",
