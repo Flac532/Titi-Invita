@@ -135,9 +135,44 @@
                     body:JSON.stringify(data)
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(err.error || 'Error'); }
-                alert('Solicitud enviada exitosamente.\n\nTu solicitud será revisada por el administrador. En un momento te aprobaremos el evento nuevo.');
-                cerrarModalSolicitud(); cargarMisEventos();
-            } catch (error) { alert(error.message); }
+                cerrarModalSolicitud();
+                // Show beautiful success modal
+                showTitiSuccess({
+                    icon:'📨', iconType:'success',
+                    title:'¡Solicitud Enviada!',
+                    message:'Tu solicitud será revisada por el administrador. En un momento te aprobaremos el evento nuevo.'
+                });
+                cargarMisEventos();
+            } catch (error) {
+                showTitiSuccess({ icon:'⚠️', iconType:'danger', title:'Error', message:error.message });
+            }
+        }
+        
+        // ===== BEAUTIFUL MODAL SYSTEM =====
+        function showTitiSuccess({ icon, iconType, title, message }) {
+            const existing = document.getElementById('titiAlertModal');
+            if (existing) existing.remove();
+            const overlay = document.createElement('div');
+            overlay.className = 'titi-alert-overlay show';
+            overlay.id = 'titiAlertModal';
+            overlay.innerHTML = `
+                <div class="titi-alert-box">
+                    <div class="titi-alert-icon">
+                        <div class="icon-circle ${iconType || 'success'}">${icon || '✓'}</div>
+                    </div>
+                    <div class="titi-alert-body">
+                        <h3>${title}</h3>
+                        <p>${message}</p>
+                    </div>
+                    <div class="titi-alert-footer">
+                        <button class="btn-ok-primary" id="titiAlertOk" style="flex:1">Entendido</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.querySelector('#titiAlertOk').onclick = () => overlay.remove();
+            overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.remove(); });
+            setTimeout(() => overlay.remove(), 6000);
         }
 
         async function gestionarColaboradores(eventoId, eventoNombre) {
