@@ -210,18 +210,113 @@ async function cargarEventosUsuario() {
         eventSelector.value = eventosCliente[0].id;
         cargarEvento(eventosCliente[0].id);
     } else {
-        // No events - show friendly message
+        // No events - show friendly message with create button for clients
         const mesasC = document.getElementById('mesasContainer');
         if (mesasC) {
+            const esCliente = usuario.rol === 'cliente';
             mesasC.innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; min-height:400px; color:#9A94A8; text-align:center; padding:40px">
                     <div style="font-size:4rem; margin-bottom:16px; opacity:.4">🪑</div>
                     <h3 style="font-size:1.2rem; color:#3D3558; margin-bottom:8px; font-weight:600">Sin eventos aún</h3>
-                    <p style="font-size:.9rem; max-width:300px; line-height:1.5">Todavía no tienes eventos asignados. ${usuario.rol === 'organizador' ? 'Solicita uno desde tu panel de organizador.' : usuario.rol === 'cliente' ? 'Contacta al administrador para que te cree un evento.' : 'Crea un evento desde el panel de admin.'}</p>
+                    <p style="font-size:.9rem; max-width:320px; line-height:1.5; margin-bottom:24px">
+                        ${esCliente ? 'Crea tu primer evento para empezar a organizar mesas e invitados.' : usuario.rol === 'organizador' ? 'Solicita un evento desde tu panel de organizador.' : 'Crea un evento desde el panel de admin.'}
+                    </p>
+                    ${esCliente ? `
+                        <button onclick="mostrarFormCrearPrimerEvento()" style="padding:14px 32px; background:linear-gradient(135deg,#667eea,#5B2D8E); color:#fff; border:none; border-radius:50px; font-size:1rem; font-weight:600; cursor:pointer; box-shadow:0 4px 16px rgba(91,45,142,.3); transition:all .25s">
+                            ＋ Crear Mi Evento
+                        </button>
+                    ` : ''}
                 </div>`;
         }
     }
 }
+
+// ===== CREAR PRIMER EVENTO (para clientes nuevos) =====
+window.mostrarFormCrearPrimerEvento = function() {
+    const mesasC = document.getElementById('mesasContainer');
+    mesasC.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:center; height:100%; min-height:400px; padding:40px">
+            <div style="background:#fff; border-radius:20px; padding:36px; max-width:480px; width:100%; box-shadow:0 8px 32px rgba(26,16,53,.1); border:1px solid #EEEAF2">
+                <h3 style="font-family:'Playfair Display',serif; font-size:1.4rem; color:#1A1035; margin:0 0 4px">Crear Mi Evento</h3>
+                <p style="color:#9A94A8; font-size:.85rem; margin:0 0 24px">Completa los datos para crear tu evento</p>
+                
+                <div style="margin-bottom:16px">
+                    <label style="display:block; font-size:.8rem; font-weight:600; color:#6B6580; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px">Nombre del Evento *</label>
+                    <input type="text" id="primerEventoNombre" placeholder="Ej: Boda de Ana y Carlos" style="width:100%; padding:12px 14px; border:1.5px solid #D4D0DC; border-radius:10px; font-size:.92rem; box-sizing:border-box" required>
+                </div>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px">
+                    <div>
+                        <label style="display:block; font-size:.8rem; font-weight:600; color:#6B6580; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px">Fecha *</label>
+                        <input type="date" id="primerEventoFecha" style="width:100%; padding:12px 14px; border:1.5px solid #D4D0DC; border-radius:10px; font-size:.92rem; box-sizing:border-box" required>
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:.8rem; font-weight:600; color:#6B6580; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px">Hora</label>
+                        <input type="time" id="primerEventoHora" style="width:100%; padding:12px 14px; border:1.5px solid #D4D0DC; border-radius:10px; font-size:.92rem; box-sizing:border-box">
+                    </div>
+                </div>
+                
+                <div style="margin-bottom:16px">
+                    <label style="display:block; font-size:.8rem; font-weight:600; color:#6B6580; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px">Ubicación</label>
+                    <input type="text" id="primerEventoUbicacion" placeholder="Ej: Salón de Eventos Principal" style="width:100%; padding:12px 14px; border:1.5px solid #D4D0DC; border-radius:10px; font-size:.92rem; box-sizing:border-box">
+                </div>
+                
+                <div style="margin-bottom:24px">
+                    <label style="display:block; font-size:.8rem; font-weight:600; color:#6B6580; text-transform:uppercase; letter-spacing:.4px; margin-bottom:6px">Descripción</label>
+                    <textarea id="primerEventoDesc" rows="2" placeholder="Describe tu evento..." style="width:100%; padding:12px 14px; border:1.5px solid #D4D0DC; border-radius:10px; font-size:.92rem; resize:vertical; box-sizing:border-box"></textarea>
+                </div>
+                
+                <button onclick="crearPrimerEvento()" style="width:100%; padding:14px; background:linear-gradient(135deg,#667eea,#5B2D8E); color:#fff; border:none; border-radius:12px; font-size:1rem; font-weight:600; cursor:pointer; box-shadow:0 4px 16px rgba(91,45,142,.25); transition:all .25s">
+                    🎉 Crear Evento
+                </button>
+            </div>
+        </div>`;
+    
+    // Set default date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('primerEventoFecha').value = tomorrow.toISOString().split('T')[0];
+};
+
+window.crearPrimerEvento = async function() {
+    const nombre = document.getElementById('primerEventoNombre').value.trim();
+    const fecha = document.getElementById('primerEventoFecha').value;
+    const hora = document.getElementById('primerEventoHora').value;
+    const ubicacion = document.getElementById('primerEventoUbicacion').value.trim();
+    const desc = document.getElementById('primerEventoDesc').value.trim();
+    
+    if (!nombre) { alert('El nombre del evento es obligatorio'); return; }
+    if (!fecha) { alert('La fecha es obligatoria'); return; }
+    
+    const token = localStorage.getItem('titi_token') || sessionStorage.getItem('titi_token');
+    const API = window.location.origin + '/api';
+    
+    try {
+        const res = await fetch(API + '/eventos', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nombre, descripcion: desc, fecha_evento: fecha,
+                hora_evento: hora || null, ubicacion: ubicacion,
+                estado: 'activo', num_mesas: 8, sillas_por_mesa: 8, forma_mesa: 'rectangular'
+            })
+        });
+        
+        if (!res.ok) {
+            const err = await res.json();
+            alert(err.error || 'Error al crear evento');
+            return;
+        }
+        
+        // Reload everything
+        mostrarMensaje('🎉 Evento creado exitosamente', 'success');
+        await cargarEventosUsuario();
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error de conexión al crear evento');
+    }
+};
 
 function actualizarEstadisticasEventos() {
     const total = eventosCliente.length;
