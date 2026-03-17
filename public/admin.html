@@ -372,53 +372,49 @@
                 const eventos = data.eventos || data;
                 if (eventos.length === 0) {
                     container.innerHTML = '<div class="empty-state"><h3>No hay eventos</h3></div>';
-                } else {
-                    const hoy = new Date();
-                    container.innerHTML = eventos.map(e => {
-                        const fecha = e.fecha_evento ? new Date(e.fecha_evento) : null;
-                        const diasRestantes = fecha ? Math.ceil((fecha - hoy) / (1000*60*60*24)) : null;
-                        
-                        let alertaHTML = '';
-                        if (diasRestantes !== null && e.estado === 'activo') {
-                            if (diasRestantes < 0) {
-                                alertaHTML = `<div style="padding:8px 12px; background:#FFF0EF; border-radius:8px; margin-bottom:12px; font-size:.82rem; color:#E5534B">⚠️ Evento pasado — se eliminará en ${5 + diasRestantes} días</div>`;
-                            } else if (diasRestantes <= 3) {
-                                alertaHTML = `<div style="padding:8px 12px; background:#FFF3DB; border-radius:8px; margin-bottom:12px; font-size:.82rem; color:#B8860B">⏰ Quedan ${diasRestantes} día${diasRestantes !== 1 ? 's' : ''} para este evento</div>`;
-                            } else if (diasRestantes <= 7) {
-                                alertaHTML = `<div style="padding:8px 12px; background:#EBF3FF; border-radius:8px; margin-bottom:12px; font-size:.82rem; color:#3B82F6">📅 Faltan ${diasRestantes} días</div>`;
-                            }
-                        }
-                        
-                        const estadoBadge = e.estado === 'activo' ? 'titi-badge-activo' : e.estado === 'pendiente' ? 'titi-badge-pendiente' : 'titi-badge-finalizado';
-                        
-                        return `
-                            <div class="titi-card" style="padding:0; overflow:hidden; margin-bottom:16px">
-                                <div style="padding:20px 24px">
-                                    ${alertaHTML}
-                                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px">
-                                        <div style="flex:1">
-                                            <h3 style="margin:0 0 4px; font-family:var(--font-display); font-size:1.1rem; color:var(--titi-ink)">${e.nombre}</h3>
-                                            <span class="titi-badge ${estadoBadge}">${e.estado}</span>
-                                        </div>
-                                    </div>
-                                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px 20px; margin-top:12px">
-                                        <p style="margin:0; color:var(--titi-slate); font-size:.85rem">👤 <strong>${e.usuario_nombre || 'Sin asignar'}</strong></p>
-                                        <p style="margin:0; color:var(--titi-slate); font-size:.85rem">📅 ${fecha ? fecha.toLocaleDateString('es-MX', {day:'numeric',month:'short',year:'numeric'}) : 'Sin fecha'}</p>
-                                        <p style="margin:0; color:var(--titi-slate); font-size:.85rem">📍 ${e.ubicacion || 'Sin ubicación'}</p>
-                                        <p style="margin:0; color:var(--titi-slate); font-size:.85rem">🪑 ${e.num_mesas || 0} mesas</p>
-                                    </div>
-                                </div>
-                                <div style="display:flex; gap:8px; padding:12px 24px 16px; border-top:1px solid var(--titi-fog); background:var(--titi-snow)">
-                                    <button onclick="verEventoCompleto(${e.id})" class="titi-btn titi-btn-primary" style="flex:2; padding:9px; font-size:.85rem">
-                                        👁️ Ver Renderizado
-                                    </button>
-                                    <button onclick="eliminarEventoAdmin(${e.id}, '${e.nombre.replace(/'/g,"\\'")}')" class="titi-btn titi-btn-danger" style="flex:1; padding:9px; font-size:.85rem">
-                                        🗑️ Eliminar
-                                    </button>
-                                </div>
-                            </div>`;
-                    }).join('');
+                    return;
                 }
+                
+                const hoy = new Date();
+                let html = `<div style="background:var(--titi-white); border-radius:14px; border:1px solid var(--titi-fog); overflow:hidden">`;
+                
+                // Header
+                html += `<div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:12px; padding:14px 20px; background:var(--titi-snow); border-bottom:1px solid var(--titi-fog); font-size:.75rem; font-weight:600; color:var(--titi-ash); text-transform:uppercase; letter-spacing:.4px">
+                    <div>Evento</div><div>Usuario</div><div>Fecha</div><div>Estado</div><div style="width:100px; text-align:center">Acciones</div>
+                </div>`;
+                
+                eventos.forEach(e => {
+                    const fecha = e.fecha_evento ? new Date(e.fecha_evento) : null;
+                    const diasRestantes = fecha ? Math.ceil((fecha - hoy) / (1000*60*60*24)) : null;
+                    
+                    let alertIcon = '';
+                    if (diasRestantes !== null && e.estado === 'activo') {
+                        if (diasRestantes < 0) alertIcon = '<span title="Evento pasado" style="color:#E5534B">⚠️</span> ';
+                        else if (diasRestantes <= 3) alertIcon = '<span title="Próximo" style="color:#B8860B">⏰</span> ';
+                    }
+                    
+                    const estadoColors = { activo:'background:#E6F9F0;color:#2CB67D', pendiente:'background:#FFF3E0;color:#E65100', finalizado:'background:#EEEAF2;color:#9A94A8', completado:'background:#EEEAF2;color:#9A94A8', borrador:'background:#EBF3FF;color:#3B82F6', cancelado:'background:#FFF0EF;color:#E5534B' };
+                    const estadoStyle = estadoColors[e.estado] || estadoColors.activo;
+                    
+                    html += `
+                        <div style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:12px; padding:14px 20px; border-bottom:1px solid var(--titi-fog); align-items:center; transition:background .15s" onmouseenter="this.style.background='var(--titi-snow)'" onmouseleave="this.style.background='transparent'">
+                            <div>
+                                <div style="font-weight:600; color:var(--titi-ink); font-size:.92rem">${alertIcon}${e.nombre}</div>
+                                <div style="font-size:.78rem; color:var(--titi-ash)">${e.ubicacion || 'Sin ubicación'} · ${e.num_mesas || 0} mesas</div>
+                            </div>
+                            <div style="font-size:.85rem; color:var(--titi-slate)">${e.usuario_nombre || 'Sin asignar'}</div>
+                            <div style="font-size:.85rem; color:var(--titi-slate)">${fecha ? fecha.toLocaleDateString('es-MX', {day:'numeric',month:'short',year:'numeric'}) : '—'}</div>
+                            <div><span style="padding:3px 10px; border-radius:20px; font-size:.7rem; font-weight:700; text-transform:uppercase; ${estadoStyle}">${e.estado}</span></div>
+                            <div style="display:flex; gap:6px; width:100px; justify-content:center">
+                                <button onclick="verEventoCompleto(${e.id})" title="Ver" style="width:34px; height:34px; border:none; border-radius:8px; background:var(--titi-sky-bg); color:var(--titi-sky); cursor:pointer; font-size:.85rem; transition:all .2s; display:flex; align-items:center; justify-content:center" onmouseenter="this.style.background='var(--titi-sky)';this.style.color='#fff'" onmouseleave="this.style.background='var(--titi-sky-bg)';this.style.color='var(--titi-sky)'">👁️</button>
+                                <button onclick="eliminarEventoAdmin(${e.id}, '${e.nombre.replace(/'/g,"\\'")}')" title="Eliminar" style="width:34px; height:34px; border:none; border-radius:8px; background:var(--titi-coral-bg); color:var(--titi-coral); cursor:pointer; font-size:.85rem; transition:all .2s; display:flex; align-items:center; justify-content:center" onmouseenter="this.style.background='var(--titi-coral)';this.style.color='#fff'" onmouseleave="this.style.background='var(--titi-coral-bg)';this.style.color='var(--titi-coral)'">🗑️</button>
+                            </div>
+                        </div>`;
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+                
             } catch (error) { container.innerHTML = '<p style="text-align:center; color:var(--titi-coral)">Error al cargar</p>'; }
         }
 
