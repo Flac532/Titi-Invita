@@ -175,14 +175,21 @@
         function buscarUsuarios() { renderizarUsuarios(); }
 
         async function eliminarUsuario(id, nombre) {
-            if (!confirm(`¿Eliminar usuario "${nombre}"?\n\nEsta acción no se puede deshacer.`)) return;
-            try {
-                const token = obtenerToken();
-                const response = await fetch(API_BASE + '/usuarios/' + id, { method:'DELETE', headers:{'Authorization':'Bearer '+token} });
-                if (!response.ok) throw new Error('Error');
-                mostrarNotificacion('Usuario Eliminado', `"${nombre}" eliminado correctamente`, 'success');
-                await cargarEstadisticas(); renderizarUsuarios();
-            } catch (error) { alert('Error al eliminar'); }
+            showTitiModal({
+                icon: '🗑️', iconType: 'danger',
+                title: '¿Eliminar Usuario?',
+                message: `Estás por eliminar a <strong>"${nombre}"</strong>. Esta acción no se puede deshacer.`,
+                confirmText: '🗑️ Eliminar', confirmClass: 'btn-ok-danger',
+                onConfirm: async () => {
+                    try {
+                        const token = obtenerToken();
+                        const response = await fetch(API_BASE + '/usuarios/' + id, { method:'DELETE', headers:{'Authorization':'Bearer '+token} });
+                        if (!response.ok) throw new Error('Error');
+                        showTitiSuccess({ icon:'✓', iconType:'success', title:'Eliminado', message:`"${nombre}" fue eliminado correctamente.` });
+                        await cargarEstadisticas(); renderizarUsuarios();
+                    } catch (error) { showTitiSuccess({ icon:'⚠️', iconType:'danger', title:'Error', message:'No se pudo eliminar el usuario.' }); }
+                }
+            });
         }
 
         let usuarioEditando = null;
@@ -254,28 +261,104 @@
             } catch (error) { container.innerHTML = '<p style="text-align:center; color:var(--titi-coral)">Error al cargar solicitudes</p>'; }
         }
 
+        // ===== BEAUTIFUL MODAL SYSTEM =====
+        function showTitiModal({ icon, iconType, title, message, inputPlaceholder, onConfirm, confirmText, confirmClass, onCancel }) {
+            const existing = document.getElementById('titiAlertModal');
+            if (existing) existing.remove();
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'titi-alert-overlay show';
+            overlay.id = 'titiAlertModal';
+            overlay.innerHTML = `
+                <div class="titi-alert-box">
+                    <div class="titi-alert-icon">
+                        <div class="icon-circle ${iconType || 'info'}">${icon || '📋'}</div>
+                    </div>
+                    <div class="titi-alert-body">
+                        <h3>${title}</h3>
+                        <p>${message}</p>
+                        ${inputPlaceholder ? `<textarea class="titi-alert-input" id="titiAlertInput" placeholder="${inputPlaceholder}" rows="2"></textarea>` : ''}
+                    </div>
+                    <div class="titi-alert-footer">
+                        <button class="btn-cancel" id="titiAlertCancel">Cancelar</button>
+                        <button class="${confirmClass || 'btn-ok-primary'}" id="titiAlertOk">${confirmText || 'Aceptar'}</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            
+            overlay.querySelector('#titiAlertCancel').onclick = () => { overlay.remove(); if(onCancel) onCancel(); };
+            overlay.querySelector('#titiAlertOk').onclick = () => {
+                const inputVal = overlay.querySelector('#titiAlertInput')?.value || '';
+                overlay.remove();
+                if(onConfirm) onConfirm(inputVal);
+            };
+            overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.remove(); });
+        }
+        
+        function showTitiSuccess({ icon, iconType, title, message }) {
+            const existing = document.getElementById('titiAlertModal');
+            if (existing) existing.remove();
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'titi-alert-overlay show';
+            overlay.id = 'titiAlertModal';
+            overlay.innerHTML = `
+                <div class="titi-alert-box">
+                    <div class="titi-alert-icon">
+                        <div class="icon-circle ${iconType || 'success'}">${icon || '✓'}</div>
+                    </div>
+                    <div class="titi-alert-body">
+                        <h3>${title}</h3>
+                        <p>${message}</p>
+                    </div>
+                    <div class="titi-alert-footer">
+                        <button class="btn-ok-primary" id="titiAlertOk" style="flex:1">Entendido</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            overlay.querySelector('#titiAlertOk').onclick = () => overlay.remove();
+            overlay.addEventListener('click', (e) => { if(e.target === overlay) overlay.remove(); });
+            setTimeout(() => overlay.remove(), 5000);
+        }
+
         async function aprobarSolicitud(id) {
-            if (!confirm('¿Aprobar esta solicitud?')) return;
-            try {
-                const token = obtenerToken();
-                await fetch(API_BASE + '/solicitudes/' + id + '/aprobar', { method:'PUT', headers:{'Authorization':'Bearer '+token} });
-                mostrarNotificacion('Solicitud Aprobada', 'El evento ha sido aprobado', 'success');
-                cargarSolicitudes(); cargarEstadisticas();
-            } catch (error) { alert('Error'); }
+            showTitiModal({
+                icon: '✓', iconType: 'success',
+                title: '¿Aprobar Solicitud?',
+                message: 'El evento será aprobado y se crearán las mesas automáticamente. El organizador podrá empezar a configurar su evento.',
+                confirmText: '✓ Aprobar', confirmClass: 'btn-ok-success',
+                onConfirm: async () => {
+                    try {
+                        const token = obtenerToken();
+                        await fetch(API_BASE + '/solicitudes/' + id + '/aprobar', { method:'PUT', headers:{'Authorization':'Bearer '+token} });
+                        showTitiSuccess({ icon:'🎉', iconType:'success', title:'¡Solicitud Aprobada!', message:'El evento ha sido aprobado y las mesas fueron creadas.' });
+                        cargarSolicitudes(); cargarEstadisticas();
+                    } catch (error) { showTitiSuccess({ icon:'⚠️', iconType:'danger', title:'Error', message:'No se pudo aprobar la solicitud.' }); }
+                }
+            });
         }
 
         async function rechazarSolicitud(id) {
-            const motivo = prompt('Motivo del rechazo (opcional):');
-            if (motivo === null) return;
-            try {
-                const token = obtenerToken();
-                await fetch(API_BASE + '/solicitudes/' + id + '/rechazar', {
-                    method:'PUT', headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
-                    body:JSON.stringify({ motivo })
-                });
-                mostrarNotificacion('Solicitud Rechazada', 'El evento ha sido rechazado', 'info');
-                cargarSolicitudes(); cargarEstadisticas();
-            } catch (error) { alert('Error'); }
+            showTitiModal({
+                icon: '✕', iconType: 'danger',
+                title: '¿Rechazar Solicitud?',
+                message: 'Escribe el motivo del rechazo para que el organizador sepa por qué no fue aprobada.',
+                inputPlaceholder: 'Motivo del rechazo (opcional)...',
+                confirmText: '✕ Rechazar', confirmClass: 'btn-ok-danger',
+                onConfirm: async (motivo) => {
+                    try {
+                        const token = obtenerToken();
+                        await fetch(API_BASE + '/solicitudes/' + id + '/rechazar', {
+                            method:'PUT', headers:{'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
+                            body:JSON.stringify({ motivo: motivo || 'Sin motivo especificado' })
+                        });
+                        showTitiSuccess({ icon:'🚫', iconType:'danger', title:'Solicitud Rechazada', message:'El organizador será notificado del rechazo.' });
+                        cargarSolicitudes(); cargarEstadisticas();
+                    } catch (error) { showTitiSuccess({ icon:'⚠️', iconType:'danger', title:'Error', message:'No se pudo rechazar.' }); }
+                }
+            });
         }
 
         async function cargarTodosEventos() {
